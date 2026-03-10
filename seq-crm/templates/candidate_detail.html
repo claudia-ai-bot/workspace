@@ -78,7 +78,7 @@
   {% endif %}
   
   <div style="margin-top: 20px;">
-    <button class="btn" onclick="editCandidate()">Edit</button>
+    <button class="btn" onclick="showEditForm()">Edit Candidate</button>
   </div>
 </div>
 
@@ -177,8 +177,14 @@
   </form>
 </div>
 
+<style>
+#editFormContainer {
+  display: none;
+}
+</style>
+
 <script>
-function editCandidate() {
+function showEditForm() {
   document.getElementById('editFormContainer').style.display = 'block';
   window.scrollTo(0, document.getElementById('editFormContainer').offsetTop);
 }

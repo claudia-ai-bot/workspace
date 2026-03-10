@@ -145,7 +145,10 @@
           🟢 {{ candidate.flight_risk or '-' }}
         {% endif %}
       </td>
-      <td><a href="/candidate/{{ candidate.id }}">View</a></td>
+      <td>
+        <a href="/candidate/{{ candidate.id }}">View</a> | 
+        <a href="#" onclick="editCandidateFromList({{ candidate.id }}, '{{ candidate.name }}', '{{ candidate.current_company or '' }}', '{{ candidate.title or '' }}', '{{ candidate.specialism or '' }}', {{ candidate.years_experience or 0 }}, '{{ candidate.salary_band or '' }}', '{{ candidate.location or '' }}', '{{ candidate.mobility or '' }}', '{{ candidate.flight_risk or '' }}', '{{ candidate.known_offers or '' }}', '{{ candidate.who_wants_them or '' }}', {{ candidate.relationship_score }}, '{{ candidate.last_contact or '' }}', '{{ candidate.next_follow_up or '' }}', '{{ candidate.notes or '' }}'); return false;">Edit</a>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
@@ -160,10 +163,32 @@ function showAddForm() {
   document.getElementById('formContainer').style.display = 'block';
   document.getElementById('candidateForm').reset();
   document.getElementById('candidateId').value = '';
+  document.getElementById('candidateRelationship').value = '1';
 }
 
 function hideForm() {
   document.getElementById('formContainer').style.display = 'none';
+}
+
+function editCandidateFromList(id, name, company, title, specialism, yearsExp, salaryBand, location, mobility, flightRisk, knownOffers, whoWants, relationship, lastContact, nextFollowUp, notes) {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('candidateId').value = id;
+  document.getElementById('candidateName').value = name;
+  document.getElementById('candidateCompany').value = company;
+  document.getElementById('candidateTitle').value = title;
+  document.getElementById('candidateSpecialism').value = specialism;
+  document.getElementById('candidateYearsExp').value = yearsExp;
+  document.getElementById('candidateSalaryBand').value = salaryBand;
+  document.getElementById('candidateLocation').value = location;
+  document.getElementById('candidateMobility').value = mobility;
+  document.getElementById('candidateFlightRisk').value = flightRisk;
+  document.getElementById('candidateKnownOffers').value = knownOffers;
+  document.getElementById('candidateWhoWants').value = whoWants;
+  document.getElementById('candidateRelationship').value = relationship;
+  document.getElementById('candidateLastContact').value = lastContact;
+  document.getElementById('candidateNextFollowUp').value = nextFollowUp;
+  document.getElementById('candidateNotes').value = notes;
+  window.scrollTo(0, document.getElementById('formContainer').offsetTop);
 }
 
 document.getElementById('candidateForm').addEventListener('submit', async (e) => {
