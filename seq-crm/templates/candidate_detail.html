@@ -84,7 +84,25 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+<style>
+#deleteModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+#deleteModal.show {
+  display: flex;
+}
+</style>
+
+<div id="deleteModal">
   <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
     <h2 style="color: #ef4444;">Delete Candidate?</h2>
     <p style="color: #64748b; margin: 15px 0;">This cannot be undone. To confirm, type the candidate's name:</p>
@@ -98,7 +116,7 @@
 </div>
 
 <!-- Edit Form (hidden by default) -->
-<div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+<div id="editFormContainer" style="display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px;">
   <h2>Edit Candidate</h2>
   <form id="editForm">
     <div class="form-group">
@@ -192,12 +210,6 @@
   </form>
 </div>
 
-<style>
-#editFormContainer {
-  display: none;
-}
-</style>
-
 <script>
 function showEditForm() {
   document.getElementById('editFormContainer').style.display = 'block';
@@ -206,16 +218,18 @@ function showEditForm() {
 
 function closeEditForm() {
   document.getElementById('editFormContainer').style.display = 'none';
+  document.getElementById('editForm').reset();
 }
 
 function showDeleteConfirm() {
-  document.getElementById('deleteModal').style.display = 'flex';
+  const modal = document.getElementById('deleteModal');
+  modal.classList.add('show');
   document.getElementById('deleteConfirmInput').value = '';
   document.getElementById('deleteConfirmInput').focus();
 }
 
 function closeDeleteConfirm() {
-  document.getElementById('deleteModal').style.display = 'none';
+  document.getElementById('deleteModal').classList.remove('show');
 }
 
 async function confirmDelete() {
@@ -233,10 +247,10 @@ async function confirmDelete() {
   });
   
   if (response.ok) {
-    alert('Candidate deleted.');
     window.location.href = '/candidates';
   } else {
     alert('Error deleting candidate');
+    closeDeleteConfirm();
   }
 }
 
