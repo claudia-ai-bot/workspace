@@ -15,9 +15,28 @@
 
 <!-- Company Details -->
 <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-  <h2>Company Overview</h2>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h2>Company Overview</h2>
+    <button class="btn" onclick="editCompany()">Edit</button>
+  </div>
   
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div>
+      <h4>Tier</h4>
+      <p>{{ company.tier or '-' }}</p>
+    </div>
+    <div>
+      <h4>Sector</h4>
+      <p>{{ company.sector or '-' }}</p>
+    </div>
+    <div>
+      <h4>Location</h4>
+      <p>{{ company.location or '-' }}</p>
+    </div>
+    <div>
+      <h4>Website</h4>
+      <p>{{ company.website or '-' }}</p>
+    </div>
     <div>
       <h4>Active Projects</h4>
       <p>{{ company.active_projects or 'None' }}</p>
@@ -35,6 +54,60 @@
       <p>{{ company.notes or 'None' }}</p>
     </div>
   </div>
+</div>
+
+<!-- Edit Form (hidden by default) -->
+<div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Edit Company</h2>
+  <form id="editCompanyForm">
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" id="editCompanyName" value="{{ company.name }}" disabled />
+    </div>
+    
+    <div class="form-group">
+      <label>Tier</label>
+      <input type="text" id="editCompanyTier" value="{{ company.tier or '' }}" placeholder="T1, T2, Developer, etc." />
+    </div>
+    
+    <div class="form-group">
+      <label>Sector</label>
+      <input type="text" id="editCompanySector" value="{{ company.sector or '' }}" placeholder="Commercial, Residential, etc." />
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="editCompanyLocation" value="{{ company.location or '' }}" placeholder="Gold Coast suburb" />
+    </div>
+    
+    <div class="form-group">
+      <label>Website</label>
+      <input type="text" id="editCompanyWebsite" value="{{ company.website or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Active Projects</label>
+      <textarea id="editCompanyActiveProjects" rows="2">{{ company.active_projects or '' }}</textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Upcoming Projects</label>
+      <textarea id="editCompanyUpcomingProjects" rows="2">{{ company.upcoming_projects or '' }}</textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Competitors</label>
+      <input type="text" id="editCompanyCompetitors" value="{{ company.competitors or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="editCompanyNotes" rows="3">{{ company.notes or '' }}</textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="closeEditForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
 </div>
 
 <!-- Decision Makers -->
@@ -147,6 +220,44 @@
 </div>
 
 <script>
+function editCompany() {
+  document.getElementById('editFormContainer').style.display = 'block';
+  window.scrollTo(0, document.getElementById('editFormContainer').offsetTop);
+}
+
+function closeEditForm() {
+  document.getElementById('editFormContainer').style.display = 'none';
+}
+
+document.getElementById('editCompanyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: {{ company.id }},
+    name: '{{ company.name }}',
+    tier: document.getElementById('editCompanyTier').value,
+    sector: document.getElementById('editCompanySector').value,
+    location: document.getElementById('editCompanyLocation').value,
+    website: document.getElementById('editCompanyWebsite').value,
+    active_projects: document.getElementById('editCompanyActiveProjects').value,
+    upcoming_projects: document.getElementById('editCompanyUpcomingProjects').value,
+    competitors: document.getElementById('editCompanyCompetitors').value,
+    notes: document.getElementById('editCompanyNotes').value
+  };
+  
+  const response = await fetch('/api/company', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving company');
+  }
+});
+
 function showDMForm() {
   document.getElementById('dmFormContainer').style.display = 'block';
 }

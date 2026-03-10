@@ -92,7 +92,10 @@
       <td>{{ company.sector or '-' }}</td>
       <td>{{ company.location or '-' }}</td>
       <td>{{ company.active_projects[:50] or '-' }}...</td>
-      <td><a href="/company/{{ company.id }}">View</a></td>
+      <td>
+        <a href="/company/{{ company.id }}">View</a> | 
+        <a href="#" onclick="editCompanyFromList({{ company.id }}, '{{ company.name }}', '{{ company.tier or '' }}', '{{ company.sector or '' }}', '{{ company.location or '' }}', '{{ company.active_projects or '' }}', '{{ company.upcoming_projects or '' }}', '{{ company.competitors or '' }}', '{{ company.notes or '' }}'); return false;">Edit</a>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
@@ -103,10 +106,25 @@ function showAddForm() {
   document.getElementById('formContainer').style.display = 'block';
   document.getElementById('companyForm').reset();
   document.getElementById('companyId').value = '';
+  document.getElementById('companyName').value = '';
 }
 
 function hideForm() {
   document.getElementById('formContainer').style.display = 'none';
+}
+
+function editCompanyFromList(id, name, tier, sector, location, activeProjects, upcomingProjects, competitors, notes) {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('companyId').value = id;
+  document.getElementById('companyName').value = name;
+  document.getElementById('companyTier').value = tier;
+  document.getElementById('companySector').value = sector;
+  document.getElementById('companyLocation').value = location;
+  document.getElementById('companyActiveProjects').value = activeProjects;
+  document.getElementById('companyUpcomingProjects').value = upcomingProjects;
+  document.getElementById('companyCompetitors').value = competitors;
+  document.getElementById('companyNotes').value = notes;
+  window.scrollTo(0, document.getElementById('formContainer').offsetTop);
 }
 
 document.getElementById('companyForm').addEventListener('submit', async (e) => {
