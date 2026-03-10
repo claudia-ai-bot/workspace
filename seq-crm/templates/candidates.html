@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Candidates - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>👥 Candidates</h1>
+  <div class="search">
+    <form method="get" style="max-width: 400px;">
+      <input type="text" name="search" placeholder="Search candidates..." value="{{ search }}" />
+      <button type="submit" class="btn">Search</button>
+      <a href="/candidates" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
+    </form>
+  </div>
+  <button class="btn" onclick="showAddForm()">+ Add Candidate</button>
+</div>
+
+<!-- Add/Edit Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add/Edit Candidate</h2>
+  <form id="candidateForm">
+    <input type="hidden" id="candidateId" name="id" />
+    
+    <div class="form-group">
+      <label>Name *</label>
+      <input type="text" id="candidateName" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Current Company</label>
+      <input type="text" id="candidateCompany" />
+    </div>
+    
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="candidateTitle" placeholder="e.g., Senior Project Manager" />
+    </div>
+    
+    <div class="form-group">
+      <label>Specialism</label>
+      <input type="text" id="candidateSpecialism" placeholder="e.g., Commercial PM, Civil Engineer, Estimator" />
+    </div>
+    
+    <div class="form-group">
+      <label>Years Experience</label>
+      <input type="number" id="candidateYearsExp" />
+    </div>
+    
+    <div class="form-group">
+      <label>Salary Band</label>
+      <input type="text" id="candidateSalaryBand" placeholder="e.g., $150-180k" />
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="candidateLocation" placeholder="Gold Coast, Brisbane, etc." />
+    </div>
+    
+    <div class="form-group">
+      <label>Mobility</label>
+      <input type="text" id="candidateMobility" placeholder="e.g., Willing to relocate, Local only" />
+    </div>
+    
+    <div class="form-group">
+      <label>Flight Risk</label>
+      <select id="candidateFlightRisk">
+        <option value="">Select...</option>
+        <option>Low</option>
+        <option>Medium</option>
+        <option>High</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Known Offers?</label>
+      <input type="text" id="candidateKnownOffers" placeholder="e.g., No, Pending Icon Co offer" />
+    </div>
+    
+    <div class="form-group">
+      <label>Who Wants Them</label>
+      <textarea id="candidateWhoWants" rows="2" placeholder="Companies interested in this candidate"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Relationship (1-5)</label>
+      <select id="candidateRelationship">
+        <option value="1">1 - Cold</option>
+        <option value="2">2</option>
+        <option value="3">3 - Warm</option>
+        <option value="4">4</option>
+        <option value="5">5 - Hot</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Last Contact</label>
+      <input type="date" id="candidateLastContact" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Follow Up</label>
+      <input type="date" id="candidateNextFollowUp" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="candidateNotes" rows="3"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Candidate</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Candidates Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Current Company</th>
+      <th>Title</th>
+      <th>Specialism</th>
+      <th>Location</th>
+      <th>Salary</th>
+      <th>Flight Risk</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for candidate in candidates %}
+    <tr>
+      <td><strong>{{ candidate.name }}</strong></td>
+      <td>{{ candidate.current_company or '-' }}</td>
+      <td>{{ candidate.title or '-' }}</td>
+      <td>{{ candidate.specialism or '-' }}</td>
+      <td>{{ candidate.location or '-' }}</td>
+      <td>{{ candidate.salary_band or '-' }}</td>
+      <td>
+        {% if candidate.flight_risk == 'High' %}
+          🔴 {{ candidate.flight_risk }}
+        {% elif candidate.flight_risk == 'Medium' %}
+          🟠 {{ candidate.flight_risk }}
+        {% else %}
+          🟢 {{ candidate.flight_risk or '-' }}
+        {% endif %}
+      </td>
+      <td><a href="/candidate/{{ candidate.id }}">View</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not candidates %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">No candidates yet. <a href="#" onclick="showAddForm(); return false;">Add one now.</a></p>
+{% endif %}
+
+<script>
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('candidateForm').reset();
+  document.getElementById('candidateId').value = '';
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+document.getElementById('candidateForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: document.getElementById('candidateId').value || null,
+    name: document.getElementById('candidateName').value,
+    current_company: document.getElementById('candidateCompany').value,
+    title: document.getElementById('candidateTitle').value,
+    specialism: document.getElementById('candidateSpecialism').value,
+    years_experience: document.getElementById('candidateYearsExp').value,
+    salary_band: document.getElementById('candidateSalaryBand').value,
+    location: document.getElementById('candidateLocation').value,
+    mobility: document.getElementById('candidateMobility').value,
+    flight_risk: document.getElementById('candidateFlightRisk').value,
+    known_offers: document.getElementById('candidateKnownOffers').value,
+    who_wants_them: document.getElementById('candidateWhoWants').value,
+    relationship_score: document.getElementById('candidateRelationship').value,
+    last_contact: document.getElementById('candidateLastContact').value,
+    next_follow_up: document.getElementById('candidateNextFollowUp').value,
+    notes: document.getElementById('candidateNotes').value
+  };
+  
+  const response = await fetch('/api/candidate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving candidate');
+  }
+});
+</script>
+
+{% endblock %}

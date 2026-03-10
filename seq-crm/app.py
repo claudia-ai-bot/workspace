@@ -65,6 +65,30 @@ def init_db():
         )
     ''')
     
+    # Candidates table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS candidates (
+            id INTEGER PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            current_company TEXT,
+            title TEXT,
+            specialism TEXT,
+            years_experience INTEGER,
+            salary_band TEXT,
+            location TEXT,
+            mobility TEXT,
+            flight_risk TEXT,
+            known_offers TEXT,
+            who_wants_them TEXT,
+            relationship_score INTEGER DEFAULT 1,
+            last_contact DATE,
+            next_follow_up DATE,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     db.commit()
     db.close()
 
@@ -83,12 +107,16 @@ def dashboard():
     cursor.execute('SELECT COUNT(*) as count FROM decision_makers WHERE relationship_score >= 4')
     warm_count = cursor.fetchone()['count']
     
+    cursor.execute('SELECT COUNT(*) as count FROM candidates')
+    candidate_count = cursor.fetchone()['count']
+    
     db.close()
     
     return render_template('dashboard.html', 
                          companies=company_count, 
                          dms=dm_count, 
-                         warm=warm_count)
+                         warm=warm_count,
+                         candidates=candidate_count)
 
 @app.route('/companies')
 def companies_list():
@@ -200,6 +228,86 @@ def api_add_dm():
                   data.get('linkedin'), data.get('hiring_signals'),
                   data.get('relationship_score'), data.get('last_contact'),
                   data.get('next_action'), data.get('notes')))
+        
+        db.commit()
+        db.close()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.close()
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+@app.route('/candidates')
+def candidates_list():
+    """List all candidates"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    search = request.args.get('search', '')
+    
+    if search:
+        cursor.execute('SELECT * FROM candidates WHERE name LIKE ? OR current_company LIKE ? ORDER BY name', 
+                      (f'%{search}%', f'%{search}%'))
+    else:
+        cursor.execute('SELECT * FROM candidates ORDER BY name')
+    
+    candidates = cursor.fetchall()
+    db.close()
+    
+    return render_template('candidates.html', candidates=candidates, search=search)
+
+@app.route('/candidate/<int:candidate_id>')
+def candidate_detail(candidate_id):
+    """Candidate detail page"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('SELECT * FROM candidates WHERE id = ?', (candidate_id,))
+    candidate = cursor.fetchone()
+    
+    if not candidate:
+        return redirect(url_for('candidates_list'))
+    
+    db.close()
+    
+    return render_template('candidate_detail.html', candidate=candidate)
+
+@app.route('/api/candidate', methods=['POST'])
+def api_add_candidate():
+    """API: Add/edit candidate"""
+    data = request.json
+    db = get_db()
+    cursor = db.cursor()
+    
+    try:
+        if 'id' in data and data['id']:
+            # Update
+            cursor.execute('''
+                UPDATE candidates 
+                SET name=?, current_company=?, title=?, specialism=?, years_experience=?,
+                    salary_band=?, location=?, mobility=?, flight_risk=?, known_offers=?,
+                    who_wants_them=?, relationship_score=?, last_contact=?, next_follow_up=?,
+                    notes=?, updated_at=CURRENT_TIMESTAMP
+                WHERE id=?
+            ''', (data.get('name'), data.get('current_company'), data.get('title'),
+                  data.get('specialism'), data.get('years_experience'), data.get('salary_band'),
+                  data.get('location'), data.get('mobility'), data.get('flight_risk'),
+                  data.get('known_offers'), data.get('who_wants_them'), 
+                  data.get('relationship_score'), data.get('last_contact'),
+                  data.get('next_follow_up'), data.get('notes'), data.get('id')))
+        else:
+            # Add
+            cursor.execute('''
+                INSERT INTO candidates 
+                (name, current_company, title, specialism, years_experience, salary_band,
+                 location, mobility, flight_risk, known_offers, who_wants_them,
+                 relationship_score, last_contact, next_follow_up, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (data.get('name'), data.get('current_company'), data.get('title'),
+                  data.get('specialism'), data.get('years_experience'), data.get('salary_band'),
+                  data.get('location'), data.get('mobility'), data.get('flight_risk'),
+                  data.get('known_offers'), data.get('who_wants_them'),
+                  data.get('relationship_score'), data.get('last_contact'),
+                  data.get('next_follow_up'), data.get('notes')))
         
         db.commit()
         db.close()

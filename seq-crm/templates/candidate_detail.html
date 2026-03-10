@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.name }} - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 20px;">
+  <a href="/candidates">&larr; Back to Candidates</a>
+</div>
+
+<div class="header">
+  <h1>{{ candidate.name }}</h1>
+  <p>{{ candidate.title }} @ {{ candidate.current_company or 'TBD' }} | {{ candidate.location }}</p>
+</div>
+
+<!-- Candidate Details -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Profile</h2>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+    <div>
+      <h4>Specialism</h4>
+      <p>{{ candidate.specialism or '-' }}</p>
+    </div>
+    <div>
+      <h4>Years Experience</h4>
+      <p>{{ candidate.years_experience or '-' }} years</p>
+    </div>
+    <div>
+      <h4>Salary Band</h4>
+      <p>{{ candidate.salary_band or '-' }}</p>
+    </div>
+    <div>
+      <h4>Mobility</h4>
+      <p>{{ candidate.mobility or '-' }}</p>
+    </div>
+    <div>
+      <h4>Flight Risk</h4>
+      <p>
+        {% if candidate.flight_risk == 'High' %}
+          🔴 {{ candidate.flight_risk }}
+        {% elif candidate.flight_risk == 'Medium' %}
+          🟠 {{ candidate.flight_risk }}
+        {% else %}
+          🟢 {{ candidate.flight_risk or '-' }}
+        {% endif %}
+      </p>
+    </div>
+    <div>
+      <h4>Known Offers</h4>
+      <p>{{ candidate.known_offers or '-' }}</p>
+    </div>
+    <div>
+      <h4>Who Wants Them</h4>
+      <p>{{ candidate.who_wants_them or '-' }}</p>
+    </div>
+    <div>
+      <h4>Relationship</h4>
+      <p>
+        {% for i in range(candidate.relationship_score) %}⭐{% endfor %}
+      </p>
+    </div>
+    <div>
+      <h4>Last Contact</h4>
+      <p>{{ candidate.last_contact or '-' }}</p>
+    </div>
+    <div>
+      <h4>Next Follow Up</h4>
+      <p>{{ candidate.next_follow_up or '-' }}</p>
+    </div>
+  </div>
+  
+  {% if candidate.notes %}
+  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+    <h4>Notes</h4>
+    <p style="white-space: pre-wrap;">{{ candidate.notes }}</p>
+  </div>
+  {% endif %}
+  
+  <div style="margin-top: 20px;">
+    <button class="btn" onclick="editCandidate()">Edit</button>
+  </div>
+</div>
+
+<!-- Edit Form (hidden by default) -->
+<div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Edit Candidate</h2>
+  <form id="editForm">
+    <div class="form-group">
+      <label>Name *</label>
+      <input type="text" id="editName" value="{{ candidate.name }}" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Current Company</label>
+      <input type="text" id="editCompany" value="{{ candidate.current_company or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="editTitle" value="{{ candidate.title or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Specialism</label>
+      <input type="text" id="editSpecialism" value="{{ candidate.specialism or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Years Experience</label>
+      <input type="number" id="editYearsExp" value="{{ candidate.years_experience or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Salary Band</label>
+      <input type="text" id="editSalaryBand" value="{{ candidate.salary_band or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="editLocation" value="{{ candidate.location or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Mobility</label>
+      <input type="text" id="editMobility" value="{{ candidate.mobility or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Flight Risk</label>
+      <select id="editFlightRisk">
+        <option value="">Select...</option>
+        <option {% if candidate.flight_risk == 'Low' %}selected{% endif %}>Low</option>
+        <option {% if candidate.flight_risk == 'Medium' %}selected{% endif %}>Medium</option>
+        <option {% if candidate.flight_risk == 'High' %}selected{% endif %}>High</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Known Offers?</label>
+      <input type="text" id="editKnownOffers" value="{{ candidate.known_offers or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Who Wants Them</label>
+      <textarea id="editWhoWants" rows="2">{{ candidate.who_wants_them or '' }}</textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Relationship (1-5)</label>
+      <select id="editRelationship">
+        <option value="1" {% if candidate.relationship_score == 1 %}selected{% endif %}>1 - Cold</option>
+        <option value="2" {% if candidate.relationship_score == 2 %}selected{% endif %}>2</option>
+        <option value="3" {% if candidate.relationship_score == 3 %}selected{% endif %}>3 - Warm</option>
+        <option value="4" {% if candidate.relationship_score == 4 %}selected{% endif %}>4</option>
+        <option value="5" {% if candidate.relationship_score == 5 %}selected{% endif %}>5 - Hot</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Last Contact</label>
+      <input type="date" id="editLastContact" value="{{ candidate.last_contact or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Follow Up</label>
+      <input type="date" id="editNextFollowUp" value="{{ candidate.next_follow_up or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="editNotes" rows="3">{{ candidate.notes or '' }}</textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="closeEditForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<script>
+function editCandidate() {
+  document.getElementById('editFormContainer').style.display = 'block';
+  window.scrollTo(0, document.getElementById('editFormContainer').offsetTop);
+}
+
+function closeEditForm() {
+  document.getElementById('editFormContainer').style.display = 'none';
+}
+
+document.getElementById('editForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: {{ candidate.id }},
+    name: document.getElementById('editName').value,
+    current_company: document.getElementById('editCompany').value,
+    title: document.getElementById('editTitle').value,
+    specialism: document.getElementById('editSpecialism').value,
+    years_experience: document.getElementById('editYearsExp').value,
+    salary_band: document.getElementById('editSalaryBand').value,
+    location: document.getElementById('editLocation').value,
+    mobility: document.getElementById('editMobility').value,
+    flight_risk: document.getElementById('editFlightRisk').value,
+    known_offers: document.getElementById('editKnownOffers').value,
+    who_wants_them: document.getElementById('editWhoWants').value,
+    relationship_score: parseInt(document.getElementById('editRelationship').value),
+    last_contact: document.getElementById('editLastContact').value,
+    next_follow_up: document.getElementById('editNextFollowUp').value,
+    notes: document.getElementById('editNotes').value
+  };
+  
+  const response = await fetch('/api/candidate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving candidate');
+  }
+});
+</script>
+
+{% endblock %}
