@@ -126,6 +126,7 @@
         <th>Email</th>
         <th>Relationship</th>
         <th>Last Contact</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody>
@@ -140,6 +141,7 @@
           {% for i in range(dm.relationship_score) %}⭐{% endfor %}
         </td>
         <td>{{ dm.last_contact or '-' }}</td>
+        <td><a href="#" onclick="editDMFromTable({{ dm.id }}, '{{ dm.name }}', '{{ dm.title or '' }}', '{{ dm.role or '' }}', '{{ dm.phone or '' }}', '{{ dm.email or '' }}', '{{ dm.linkedin or '' }}', '{{ dm.hiring_signals or '' }}', {{ dm.relationship_score }}, '{{ dm.last_contact or '' }}', '{{ dm.next_action or '' }}', '{{ dm.notes or '' }}'); return false;">Edit</a></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -149,10 +151,11 @@
   {% endif %}
 </div>
 
-<!-- Add DM Form (hidden by default) -->
+<!-- Add/Edit DM Form (hidden by default) -->
 <div id="dmFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-  <h2>Add Decision Maker</h2>
+  <h2 id="dmFormTitle">Add Decision Maker</h2>
   <form id="dmForm">
+    <input type="hidden" id="dmId" name="id" />
     <div class="form-group">
       <label>Name</label>
       <input type="text" id="dmName" required />
@@ -259,17 +262,41 @@ document.getElementById('editCompanyForm').addEventListener('submit', async (e) 
 });
 
 function showDMForm() {
+  document.getElementById('dmFormTitle').textContent = 'Add Decision Maker';
   document.getElementById('dmFormContainer').style.display = 'block';
+  document.getElementById('dmForm').reset();
+  document.getElementById('dmId').value = '';
+  document.getElementById('dmRelationship').value = '1';
+  window.scrollTo(0, document.getElementById('dmFormContainer').offsetTop);
 }
 
 function hideDMForm() {
   document.getElementById('dmFormContainer').style.display = 'none';
 }
 
+function editDMFromTable(id, name, title, role, phone, email, linkedin, hiringSignals, relationshipScore, lastContact, nextAction, notes) {
+  document.getElementById('dmFormTitle').textContent = 'Edit Decision Maker';
+  document.getElementById('dmFormContainer').style.display = 'block';
+  document.getElementById('dmId').value = id;
+  document.getElementById('dmName').value = name;
+  document.getElementById('dmTitle').value = title;
+  document.getElementById('dmRole').value = role;
+  document.getElementById('dmPhone').value = phone;
+  document.getElementById('dmEmail').value = email;
+  document.getElementById('dmLinkedIn').value = linkedin;
+  document.getElementById('dmHiringSignals').value = hiringSignals;
+  document.getElementById('dmRelationship').value = relationshipScore;
+  document.getElementById('dmLastContact').value = lastContact;
+  document.getElementById('dmNextAction').value = nextAction;
+  document.getElementById('dmNotes').value = notes;
+  window.scrollTo(0, document.getElementById('dmFormContainer').offsetTop);
+}
+
 document.getElementById('dmForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   
   const data = {
+    id: document.getElementById('dmId').value || null,
     company_id: {{ company.id }},
     name: document.getElementById('dmName').value,
     title: document.getElementById('dmTitle').value,
