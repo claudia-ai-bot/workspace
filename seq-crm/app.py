@@ -89,6 +89,24 @@ def init_db():
         )
     ''')
     
+    # Deals/Pipeline table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS deals (
+            id INTEGER PRIMARY KEY,
+            client TEXT NOT NULL,
+            role TEXT NOT NULL,
+            salary_value INTEGER,
+            fee_value INTEGER,
+            stage TEXT DEFAULT 'Prospect Identified',
+            competition TEXT,
+            probability INTEGER DEFAULT 50,
+            next_action TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     db.commit()
     db.close()
 
@@ -110,13 +128,17 @@ def dashboard():
     cursor.execute('SELECT COUNT(*) as count FROM candidates')
     candidate_count = cursor.fetchone()['count']
     
+    cursor.execute('SELECT COUNT(*) as count FROM deals')
+    deal_count = cursor.fetchone()['count']
+    
     db.close()
     
     return render_template('dashboard.html', 
                          companies=company_count, 
                          dms=dm_count, 
                          warm=warm_count,
-                         candidates=candidate_count)
+                         candidates=candidate_count,
+                         deals=deal_count)
 
 @app.route('/companies')
 def companies_list():
@@ -308,6 +330,82 @@ def api_add_candidate():
                   data.get('known_offers'), data.get('who_wants_them'),
                   data.get('relationship_score'), data.get('last_contact'),
                   data.get('next_follow_up'), data.get('notes')))
+        
+        db.commit()
+        db.close()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.close()
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+@app.route('/deals')
+def deals_list():
+    """List all deals"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    stage = request.args.get('stage', '')
+    
+    if stage:
+        cursor.execute('SELECT * FROM deals WHERE stage = ? ORDER BY updated_at DESC', (stage,))
+    else:
+        cursor.execute('SELECT * FROM deals ORDER BY updated_at DESC')
+    
+    deals = cursor.fetchall()
+    
+    # Get unique stages for filter
+    cursor.execute('SELECT DISTINCT stage FROM deals ORDER BY stage')
+    stages = cursor.fetchall()
+    
+    db.close()
+    
+    return render_template('deals.html', deals=deals, stages=stages, current_stage=stage)
+
+@app.route('/deal/<int:deal_id>')
+def deal_detail(deal_id):
+    """Deal detail page"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('SELECT * FROM deals WHERE id = ?', (deal_id,))
+    deal = cursor.fetchone()
+    
+    if not deal:
+        return redirect(url_for('deals_list'))
+    
+    db.close()
+    
+    return render_template('deal_detail.html', deal=deal)
+
+@app.route('/api/deal', methods=['POST'])
+def api_add_deal():
+    """API: Add/edit deal"""
+    data = request.json
+    db = get_db()
+    cursor = db.cursor()
+    
+    try:
+        if 'id' in data and data['id']:
+            # Update
+            cursor.execute('''
+                UPDATE deals 
+                SET client=?, role=?, salary_value=?, fee_value=?, stage=?,
+                    competition=?, probability=?, next_action=?, notes=?,
+                    updated_at=CURRENT_TIMESTAMP
+                WHERE id=?
+            ''', (data.get('client'), data.get('role'), data.get('salary_value'),
+                  data.get('fee_value'), data.get('stage'), data.get('competition'),
+                  data.get('probability'), data.get('next_action'), data.get('notes'),
+                  data.get('id')))
+        else:
+            # Add
+            cursor.execute('''
+                INSERT INTO deals 
+                (client, role, salary_value, fee_value, stage, competition, probability, next_action, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (data.get('client'), data.get('role'), data.get('salary_value'),
+                  data.get('fee_value'), data.get('stage'), data.get('competition'),
+                  data.get('probability'), data.get('next_action'), data.get('notes')))
         
         db.commit()
         db.close()

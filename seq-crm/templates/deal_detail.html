@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}{{ deal.client }} - {{ deal.role }} - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 20px;">
+  <a href="/deals">&larr; Back to Pipeline</a>
+</div>
+
+<div class="header">
+  <h1>{{ deal.role }}</h1>
+  <p>{{ deal.client }} | {{ deal.stage }}</p>
+</div>
+
+<!-- Deal Details -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Deal Overview</h2>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+    <div>
+      <h4>Salary Value</h4>
+      <p>${{ "{:,.0f}".format(deal.salary_value) if deal.salary_value else '-' }}</p>
+    </div>
+    <div>
+      <h4>Fee Value</h4>
+      <p>${{{ "{:,.0f}".format(deal.fee_value) if deal.fee_value else '-' }}</p>
+    </div>
+    <div>
+      <h4>Stage</h4>
+      <p><strong>{{ deal.stage }}</strong></p>
+    </div>
+    <div>
+      <h4>Competition</h4>
+      <p>{{ deal.competition or '-' }}</p>
+    </div>
+    <div>
+      <h4>Probability</h4>
+      <p>
+        <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; font-weight: bold;">
+          {{ deal.probability }}%
+        </div>
+      </p>
+    </div>
+    <div>
+      <h4>Next Action</h4>
+      <p style="white-space: pre-wrap;">{{ deal.next_action or '-' }}</p>
+    </div>
+  </div>
+  
+  {% if deal.notes %}
+  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+    <h4>Notes</h4>
+    <p style="white-space: pre-wrap;">{{ deal.notes }}</p>
+  </div>
+  {% endif %}
+  
+  <div style="margin-top: 20px;">
+    <button class="btn" onclick="editDeal()">Edit</button>
+  </div>
+</div>
+
+<!-- Edit Form (hidden by default) -->
+<div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Edit Deal</h2>
+  <form id="editForm">
+    <div class="form-group">
+      <label>Client (Company) *</label>
+      <input type="text" id="editClient" value="{{ deal.client }}" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Role *</label>
+      <input type="text" id="editRole" value="{{ deal.role }}" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Salary Value ($)</label>
+      <input type="number" id="editSalary" value="{{ deal.salary_value or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Fee Value ($)</label>
+      <input type="number" id="editFee" value="{{ deal.fee_value or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Stage</label>
+      <select id="editStage">
+        <option {% if deal.stage == 'Prospect Identified' %}selected{% endif %}>Prospect Identified</option>
+        <option {% if deal.stage == 'Intro Conversation' %}selected{% endif %}>Intro Conversation</option>
+        <option {% if deal.stage == 'Role Scoped' %}selected{% endif %}>Role Scoped</option>
+        <option {% if deal.stage == 'Candidate Map Built' %}selected{% endif %}>Candidate Map Built</option>
+        <option {% if deal.stage == 'Shortlist Sent' %}selected{% endif %}>Shortlist Sent</option>
+        <option {% if deal.stage == 'Interview Stage' %}selected{% endif %}>Interview Stage</option>
+        <option {% if deal.stage == 'Offer Stage' %}selected{% endif %}>Offer Stage</option>
+        <option {% if deal.stage == 'Placement' %}selected{% endif %}>Placement</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Competition</label>
+      <input type="text" id="editCompetition" value="{{ deal.competition or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Probability (%)</label>
+      <input type="number" id="editProbability" min="0" max="100" value="{{ deal.probability }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Action</label>
+      <textarea id="editNextAction" rows="2">{{ deal.next_action or '' }}</textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="editNotes" rows="3">{{ deal.notes or '' }}</textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="closeEditForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<script>
+function editDeal() {
+  document.getElementById('editFormContainer').style.display = 'block';
+  window.scrollTo(0, document.getElementById('editFormContainer').offsetTop);
+}
+
+function closeEditForm() {
+  document.getElementById('editFormContainer').style.display = 'none';
+}
+
+document.getElementById('editForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: {{ deal.id }},
+    client: document.getElementById('editClient').value,
+    role: document.getElementById('editRole').value,
+    salary_value: document.getElementById('editSalary').value,
+    fee_value: document.getElementById('editFee').value,
+    stage: document.getElementById('editStage').value,
+    competition: document.getElementById('editCompetition').value,
+    probability: parseInt(document.getElementById('editProbability').value),
+    next_action: document.getElementById('editNextAction').value,
+    notes: document.getElementById('editNotes').value
+  };
+  
+  const response = await fetch('/api/deal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving deal');
+  }
+});
+</script>
+
+{% endblock %}

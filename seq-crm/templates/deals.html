@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Pipeline - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>💼 Live Deal Pipeline</h1>
+  <div style="margin-top: 15px;">
+    <form method="get" style="display: inline;">
+      {% if stages %}
+      <select name="stage" onchange="this.form.submit()" style="padding: 8px; border-radius: 4px; border: 1px solid #e2e8f0;">
+        <option value="">All Stages</option>
+        {% for stage_row in stages %}
+          <option value="{{ stage_row.stage }}" {% if stage_row.stage == current_stage %}selected{% endif %}>
+            {{ stage_row.stage }}
+          </option>
+        {% endfor %}
+      </select>
+      {% endif %}
+    </form>
+    <button class="btn" onclick="showAddForm()" style="margin-left: 10px;">+ Add Deal</button>
+  </div>
+</div>
+
+<!-- Add/Edit Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add/Edit Deal</h2>
+  <form id="dealForm">
+    <input type="hidden" id="dealId" name="id" />
+    
+    <div class="form-group">
+      <label>Client (Company) *</label>
+      <input type="text" id="dealClient" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Role *</label>
+      <input type="text" id="dealRole" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Salary Value ($)</label>
+      <input type="number" id="dealSalary" />
+    </div>
+    
+    <div class="form-group">
+      <label>Fee Value ($)</label>
+      <input type="number" id="dealFee" />
+    </div>
+    
+    <div class="form-group">
+      <label>Stage</label>
+      <select id="dealStage">
+        <option>Prospect Identified</option>
+        <option>Intro Conversation</option>
+        <option>Role Scoped</option>
+        <option>Candidate Map Built</option>
+        <option>Shortlist Sent</option>
+        <option>Interview Stage</option>
+        <option>Offer Stage</option>
+        <option>Placement</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Competition</label>
+      <input type="text" id="dealCompetition" placeholder="e.g., McNab, ADCO, 1-2 others" />
+    </div>
+    
+    <div class="form-group">
+      <label>Probability (%)</label>
+      <input type="number" id="dealProbability" min="0" max="100" value="50" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Action</label>
+      <textarea id="dealNextAction" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="dealNotes" rows="3"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Deal</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Deals Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Client</th>
+      <th>Role</th>
+      <th>Salary</th>
+      <th>Fee Value</th>
+      <th>Stage</th>
+      <th>Competition</th>
+      <th>Probability</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for deal in deals %}
+    <tr>
+      <td><strong>{{ deal.client }}</strong></td>
+      <td>{{ deal.role }}</td>
+      <td>${{ "{:,.0f}".format(deal.salary_value) if deal.salary_value else '-' }}</td>
+      <td>${{ "{:,.0f}".format(deal.fee_value) if deal.fee_value else '-' }}</td>
+      <td><strong>{{ deal.stage }}</strong></td>
+      <td>{{ deal.competition or '-' }}</td>
+      <td>
+        <div style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; text-align: center;">
+          {{ deal.probability }}%
+        </div>
+      </td>
+      <td><a href="/deal/{{ deal.id }}">View</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not deals %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">No deals yet. <a href="#" onclick="showAddForm(); return false;">Add one now.</a></p>
+{% endif %}
+
+<script>
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('dealForm').reset();
+  document.getElementById('dealId').value = '';
+  document.getElementById('dealProbability').value = '50';
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+document.getElementById('dealForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: document.getElementById('dealId').value || null,
+    client: document.getElementById('dealClient').value,
+    role: document.getElementById('dealRole').value,
+    salary_value: document.getElementById('dealSalary').value,
+    fee_value: document.getElementById('dealFee').value,
+    stage: document.getElementById('dealStage').value,
+    competition: document.getElementById('dealCompetition').value,
+    probability: parseInt(document.getElementById('dealProbability').value),
+    next_action: document.getElementById('dealNextAction').value,
+    notes: document.getElementById('dealNotes').value
+  };
+  
+  const response = await fetch('/api/deal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving deal');
+  }
+});
+</script>
+
+{% endblock %}
