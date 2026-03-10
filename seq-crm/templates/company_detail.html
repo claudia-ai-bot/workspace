@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}{{ company.name }} - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 20px;">
+  <a href="/companies">&larr; Back to Companies</a>
+</div>
+
+<div class="header">
+  <h1>{{ company.name }}</h1>
+  <p>{{ company.tier }} | {{ company.sector }} | {{ company.location }}</p>
+</div>
+
+<!-- Company Details -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Company Overview</h2>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+    <div>
+      <h4>Active Projects</h4>
+      <p>{{ company.active_projects or 'None' }}</p>
+    </div>
+    <div>
+      <h4>Upcoming Projects</h4>
+      <p>{{ company.upcoming_projects or 'None' }}</p>
+    </div>
+    <div>
+      <h4>Competitors</h4>
+      <p>{{ company.competitors or 'None' }}</p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <p>{{ company.notes or 'None' }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Decision Makers -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Decision Makers ({{ dms|length }})</h2>
+  <button class="btn" onclick="showDMForm()" style="margin-top: 15px;">+ Add Decision Maker</button>
+  
+  {% if dms %}
+  <table style="margin-top: 15px;">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Title</th>
+        <th>Role</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Relationship</th>
+        <th>Last Contact</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for dm in dms %}
+      <tr>
+        <td><strong>{{ dm.name }}</strong></td>
+        <td>{{ dm.title or '-' }}</td>
+        <td>{{ dm.role or '-' }}</td>
+        <td>{{ dm.phone or '-' }}</td>
+        <td>{{ dm.email or '-' }}</td>
+        <td>
+          {% for i in range(dm.relationship_score) %}⭐{% endfor %}
+        </td>
+        <td>{{ dm.last_contact or '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="margin-top: 15px; color: #64748b;">No decision makers added yet.</p>
+  {% endif %}
+</div>
+
+<!-- Add DM Form (hidden by default) -->
+<div id="dmFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add Decision Maker</h2>
+  <form id="dmForm">
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="dmName" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="dmTitle" placeholder="e.g., Director, Manager" />
+    </div>
+    
+    <div class="form-group">
+      <label>Role</label>
+      <input type="text" id="dmRole" placeholder="e.g., Development Director, Project Manager" />
+    </div>
+    
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="tel" id="dmPhone" />
+    </div>
+    
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="dmEmail" />
+    </div>
+    
+    <div class="form-group">
+      <label>LinkedIn</label>
+      <input type="text" id="dmLinkedIn" />
+    </div>
+    
+    <div class="form-group">
+      <label>Hiring Signals</label>
+      <textarea id="dmHiringSignals" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Relationship (1-5)</label>
+      <select id="dmRelationship">
+        <option value="1">1 - Cold</option>
+        <option value="2">2</option>
+        <option value="3">3 - Warm</option>
+        <option value="4">4</option>
+        <option value="5">5 - Hot</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Last Contact</label>
+      <input type="date" id="dmLastContact" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Action</label>
+      <textarea id="dmNextAction" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="dmNotes" rows="2"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Decision Maker</button>
+    <button type="button" class="btn btn-secondary" onclick="hideDMForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<script>
+function showDMForm() {
+  document.getElementById('dmFormContainer').style.display = 'block';
+}
+
+function hideDMForm() {
+  document.getElementById('dmFormContainer').style.display = 'none';
+}
+
+document.getElementById('dmForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    company_id: {{ company.id }},
+    name: document.getElementById('dmName').value,
+    title: document.getElementById('dmTitle').value,
+    role: document.getElementById('dmRole').value,
+    phone: document.getElementById('dmPhone').value,
+    email: document.getElementById('dmEmail').value,
+    linkedin: document.getElementById('dmLinkedIn').value,
+    hiring_signals: document.getElementById('dmHiringSignals').value,
+    relationship_score: parseInt(document.getElementById('dmRelationship').value),
+    last_contact: document.getElementById('dmLastContact').value,
+    next_action: document.getElementById('dmNextAction').value,
+    notes: document.getElementById('dmNotes').value
+  };
+  
+  const response = await fetch('/api/dm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving decision maker');
+  }
+});
+</script>
+
+{% endblock %}

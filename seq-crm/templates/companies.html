@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Companies - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>Companies</h1>
+  <div class="search">
+    <form method="get" style="max-width: 400px;">
+      <input type="text" name="search" placeholder="Search companies..." value="{{ search }}" />
+      <button type="submit" class="btn">Search</button>
+      <a href="/companies" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
+    </form>
+  </div>
+  <button class="btn" onclick="showAddForm()">+ Add Company</button>
+</div>
+
+<!-- Add/Edit Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add/Edit Company</h2>
+  <form id="companyForm">
+    <input type="hidden" id="companyId" name="id" />
+    
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" id="companyName" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Tier</label>
+      <select id="companyTier">
+        <option>T1</option>
+        <option>T2</option>
+        <option>Developer</option>
+        <option>Other</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Sector</label>
+      <input type="text" id="companySector" placeholder="Commercial, Residential, etc." />
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="companyLocation" placeholder="Gold Coast suburb" />
+    </div>
+    
+    <div class="form-group">
+      <label>Active Projects</label>
+      <textarea id="companyActiveProjects" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Upcoming Projects</label>
+      <textarea id="companyUpcomingProjects" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Competitors</label>
+      <input type="text" id="companyCompetitors" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="companyNotes" rows="2"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Company</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Companies Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Company</th>
+      <th>Tier</th>
+      <th>Sector</th>
+      <th>Location</th>
+      <th>Active Projects</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for company in companies %}
+    <tr>
+      <td><strong>{{ company.name }}</strong></td>
+      <td>{{ company.tier or '-' }}</td>
+      <td>{{ company.sector or '-' }}</td>
+      <td>{{ company.location or '-' }}</td>
+      <td>{{ company.active_projects[:50] or '-' }}...</td>
+      <td><a href="/company/{{ company.id }}">View</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('companyForm').reset();
+  document.getElementById('companyId').value = '';
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+document.getElementById('companyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: document.getElementById('companyId').value || null,
+    name: document.getElementById('companyName').value,
+    tier: document.getElementById('companyTier').value,
+    sector: document.getElementById('companySector').value,
+    location: document.getElementById('companyLocation').value,
+    active_projects: document.getElementById('companyActiveProjects').value,
+    upcoming_projects: document.getElementById('companyUpcomingProjects').value,
+    competitors: document.getElementById('companyCompetitors').value,
+    notes: document.getElementById('companyNotes').value
+  };
+  
+  const response = await fetch('/api/company', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving company');
+  }
+});
+</script>
+
+{% endblock %}

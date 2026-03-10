@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📊 Market Map Dashboard</h1>
+  <p>SEQ Construction Market Tracker</p>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <h3>Companies</h3>
+    <div class="value">{{ companies }}</div>
+  </div>
+  <div class="card">
+    <h3>Decision Makers</h3>
+    <div class="value">{{ dms }}</div>
+  </div>
+  <div class="card">
+    <h3>Warm Leads</h3>
+    <div class="value">{{ warm }}</div>
+  </div>
+</div>
+
+<div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Quick Actions</h2>
+  <p style="margin-top: 15px;">
+    <a href="/companies" class="btn">View Companies</a>
+    <a href="/companies" class="btn btn-secondary" style="margin-left: 10px;">Add Company</a>
+    <a href="/api/export" class="btn btn-secondary" style="margin-left: 10px;">📥 Export CSV</a>
+  </p>
+</div>
+
+{% endblock %}
