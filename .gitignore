@@ -1,0 +1,45 @@
+# Environment & Secrets
+.env
+.env.local
+*.key
+*.pem
+.av-api-key
+.bot-token
+
+# Node & npm
+node_modules/
+package-lock.json
+npm-debug.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temp
+/tmp/
+/temp/
+
+# OpenClaw
+.openclaw/workspace-state.json
+.clawhub/
+
+# Local dev
+local.json
