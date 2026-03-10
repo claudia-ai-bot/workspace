@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trading Dashboard</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  padding: 20px;
+}
+
+.dashboard {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  font-size: 28px;
+  margin-bottom: 5px;
+  color: #1e293b;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.kpi-card {
+  background: #ffffff;
+  border: 2px solid;
+  padding: 20px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.kpi-positive {
+  border-color: #10b981;
+}
+
+.kpi-positive .kpi-label {
+  color: #10b981;
+}
+
+.kpi-positive .kpi-value {
+  color: #10b981;
+}
+
+.kpi-neutral {
+  border-color: #6366f1;
+}
+
+.kpi-neutral .kpi-label {
+  color: #6366f1;
+}
+
+.kpi-neutral .kpi-value {
+  color: #6366f1;
+}
+
+.kpi-warning {
+  border-color: #f97316;
+}
+
+.kpi-warning .kpi-label {
+  color: #f97316;
+}
+
+.kpi-warning .kpi-value {
+  color: #f97316;
+}
+
+.positions {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.positions h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #1e293b;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 30px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  transition: width 0.3s;
+}
+
+.position-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.position-table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 0;
+  border-bottom: 2px solid #e2e8f0;
+  color: #64748b;
+}
+
+.position-table td {
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+}
+
+.position-table tr:last-child td {
+  border-bottom: none;
+}
+
+.status-positive {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.status-negative {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.footnote {
+  text-align: center;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+  
+  <div class="header">
+    <h1>📈 Trading Challenge Dashboard</h1>
+    <p class="timestamp">Updated: 2026-03-10 05:42 AEST</p>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-positive">
+      <div class="kpi-label">Net P&L</div>
+      <div class="kpi-value">+$27.18</div>
+    </div>
+    <div class="kpi-card kpi-neutral">
+      <div class="kpi-label">Progress</div>
+      <div class="kpi-value">27.2%</div>
+    </div>
+    <div class="kpi-card kpi-warning">
+      <div class="kpi-label">Heat & Days</div>
+      <div class="kpi-value">$50/80 | 27d</div>
+    </div>
+  </div>
+
+  <div class="positions">
+    <h2>Goal Progress</h2>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width: 27.2%;">27.2%</div>
+    </div>
+    <p style="font-size: 13px; color: #64748b;">Target: $100 | Current: $27.18</p>
+  </div>
+
+  <div class="positions">
+    <h2>Active Positions</h2>
+    <table class="position-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Entry</th>
+          <th>Current</th>
+          <th>Target</th>
+          <th>P&L</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>NVDA</strong></td>
+          <td>$177.85</td>
+          <td>$182.65</td>
+          <td>$188.89</td>
+          <td class="status-positive">+$19.20 ✅</td>
+        </tr>
+        <tr>
+          <td><strong>TSM</strong></td>
+          <td>$338.95</td>
+          <td>$348.70</td>
+          <td>$359.62</td>
+          <td class="status-positive">+$19.50 ✅</td>
+        </tr>
+        <tr>
+          <td><strong>MPC</strong></td>
+          <td>$221.35</td>
+          <td>$215.70</td>
+          <td>$239.38</td>
+          <td class="status-negative">-$11.30 ⚠️</td>
+        </tr>
+        <tr>
+          <td><strong>SLB</strong></td>
+          <td>$46.92</td>
+          <td>$47.19</td>
+          <td>$49.95</td>
+          <td class="status-positive">+$3.78 ✅</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="footnote">Keep the heat under $80. All stops + targets locked. Max loss/trade: $20.</p>
+
+</div>
+
+</body>
+</html>
