@@ -414,6 +414,29 @@ def api_add_deal():
         db.close()
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
+@app.route('/api/delete/<table>/<int:record_id>', methods=['POST'])
+def api_delete(table, record_id):
+    """API: Delete record with confirmation"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    try:
+        if table == 'candidate':
+            cursor.execute('DELETE FROM candidates WHERE id = ?', (record_id,))
+        elif table == 'company':
+            cursor.execute('DELETE FROM companies WHERE id = ?', (record_id,))
+        elif table == 'dm':
+            cursor.execute('DELETE FROM decision_makers WHERE id = ?', (record_id,))
+        elif table == 'deal':
+            cursor.execute('DELETE FROM deals WHERE id = ?', (record_id,))
+        
+        db.commit()
+        db.close()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.close()
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
 @app.route('/api/export')
 def api_export():
     """Export all data to CSV"""
