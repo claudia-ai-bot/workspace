@@ -13,13 +13,13 @@
       {% if search %}
       <a href="/contacts" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
       {% endif %}
-      <select name="sort" onchange="this.form.submit()" style="padding: 8px; border-radius: 4px; border: 1px solid #e2e8f0; margin-left: 10px;">
-        <option value="contact_name">Sort: Name A-Z</option>
-        <option value="company" {% if request.args.get('sort') == 'company' %}selected{% endif %}>Sort: Company</option>
-        <option value="relationship_score" {% if request.args.get('sort') == 'relationship_score' %}selected{% endif %}>Sort: Relationship</option>
-        <option value="last_interaction" {% if request.args.get('sort') == 'last_interaction' %}selected{% endif %}>Sort: Last Contact</option>
-        <option value="next_touch_date" {% if request.args.get('sort') == 'next_touch_date' %}selected{% endif %}>Sort: Next Touch</option>
-      </select>
+      <div style="display: inline; margin-left: 10px;">
+        <a href="/contacts?sort=contact_name" {% if sort == 'contact_name' %}style="font-weight: bold;"{% endif %}>Name</a> |
+        <a href="/contacts?sort=company" {% if sort == 'company' %}style="font-weight: bold;"{% endif %}>Company</a> |
+        <a href="/contacts?sort=relationship_score" {% if sort == 'relationship_score' %}style="font-weight: bold;"{% endif %}>Relationship</a> |
+        <a href="/contacts?sort=last_interaction" {% if sort == 'last_interaction' %}style="font-weight: bold;"{% endif %}>Last Contact</a> |
+        <a href="/contacts?sort=next_touch_date" {% if sort == 'next_touch_date' %}style="font-weight: bold;"{% endif %}>Next Touch</a>
+      </div>
     </form>
     <button class="btn" onclick="showAddForm()" style="margin-left: 10px;">+ Add Contact</button>
   </div>
