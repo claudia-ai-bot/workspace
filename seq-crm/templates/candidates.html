@@ -6,14 +6,16 @@
 
 <div class="header">
   <h1>👥 Candidates</h1>
-  <div class="search">
-    <form method="get" style="max-width: 400px;">
-      <input type="text" name="search" placeholder="Search candidates..." value="{{ search }}" />
+  <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <form method="get" style="display: inline;">
+      <input type="text" name="search" placeholder="Search candidates..." value="{{ search }}" style="padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; width: 220px;">
       <button type="submit" class="btn">Search</button>
+      {% if search %}
       <a href="/candidates" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
+      {% endif %}
     </form>
+    <button class="btn" onclick="showAddForm()">+ Add Candidate</button>
   </div>
-  <button class="btn" onclick="showAddForm()">+ Add Candidate</button>
 </div>
 
 <!-- Add/Edit Form (hidden by default) -->
