@@ -479,6 +479,18 @@ def deal_detail(deal_id):
     
     return render_template('deal_detail.html', deal=deal)
 
+@app.route('/api/deal/<int:deal_id>')
+def api_get_deal(deal_id):
+    """API: Get deal by ID"""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT * FROM deals WHERE id = ?', (deal_id,))
+    deal = cursor.fetchone()
+    db.close()
+    if deal:
+        return jsonify(dict(deal))
+    return jsonify({'error': 'Not found'}), 404
+
 @app.route('/api/deal', methods=['POST'])
 def api_add_deal():
     """API: Add/edit deal"""

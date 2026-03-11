@@ -25,7 +25,7 @@
 
 <!-- Add/Edit Form (hidden by default) -->
 <div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-  <h2>Add/Edit Deal</h2>
+  <h2 id="formTitle">Add/Edit Deal</h2>
   <form id="dealForm">
     <input type="hidden" id="dealId" name="id" />
     
@@ -116,7 +116,10 @@
           {{ deal.probability }}%
         </div>
       </td>
-      <td><a href="/deal/{{ deal.id }}">View</a></td>
+      <td>
+        <a href="/deal/{{ deal.id }}">View</a> | 
+        <a href="#" onclick="editJobById({{ deal.id }}); return false;">Edit</a>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
@@ -132,10 +135,35 @@ function showAddForm() {
   document.getElementById('dealForm').reset();
   document.getElementById('dealId').value = '';
   document.getElementById('dealProbability').value = '50';
+  document.getElementById('formTitle').textContent = 'Add Deal';
 }
 
 function hideForm() {
   document.getElementById('formContainer').style.display = 'none';
+}
+
+async function editJobById(id) {
+  try {
+    const response = await fetch('/api/deal/' + id);
+    if (!response.ok) throw new Error('Failed to load');
+    const deal = await response.json();
+    
+    document.getElementById('formTitle').textContent = 'Edit Deal';
+    document.getElementById('formContainer').style.display = 'block';
+    document.getElementById('dealId').value = deal.id;
+    document.getElementById('dealClient').value = deal.client || '';
+    document.getElementById('dealRole').value = deal.role || '';
+    document.getElementById('dealSalary').value = deal.salary_value || '';
+    document.getElementById('dealFee').value = deal.fee_value || '';
+    document.getElementById('dealStage').value = deal.stage || 'Prospect Identified';
+    document.getElementById('dealCompetition').value = deal.competition || '';
+    document.getElementById('dealProbability').value = deal.probability || 50;
+    document.getElementById('dealNextAction').value = deal.next_action || '';
+    document.getElementById('dealNotes').value = deal.notes || '';
+    window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+  } catch (err) {
+    alert('Error loading deal: ' + err.message);
+  }
 }
 
 document.getElementById('dealForm').addEventListener('submit', async (e) => {
