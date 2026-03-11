@@ -330,6 +330,20 @@ def contacts_list():
     
     return render_template('contacts.html', contacts=contacts, search=search, sort=sort, order=order)
 
+@app.route('/contact/<int:contact_id>')
+def contact_detail(contact_id):
+    """Contact detail view"""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT * FROM contacts WHERE id = ?', (contact_id,))
+    contact = cursor.fetchone()
+    db.close()
+    
+    if not contact:
+        return redirect(url_for('contacts_list'))
+    
+    return render_template('contact_detail.html', contact=contact)
+
 @app.route('/api/contact', methods=['POST'])
 def api_add_contact():
     """API: Add/edit contact"""

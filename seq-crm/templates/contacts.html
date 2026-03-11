@@ -95,7 +95,7 @@
   <tbody>
     {% for contact in contacts %}
     <tr>
-      <td><strong>{{ contact.contact_name }}</strong></td>
+      <td><a href="/contact/{{ contact.id }}"><strong>{{ contact.contact_name }}</strong></a></td>
       <td>{{ contact.company }}</td>
       <td>{{ contact.type or '-' }}</td>
       <td>

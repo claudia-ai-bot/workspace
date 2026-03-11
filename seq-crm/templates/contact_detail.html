@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}{{ contact.contact_name }} - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 20px;">
+  <a href="/contacts">&larr; Back to Contacts</a>
+</div>
+
+<div class="header">
+  <h1>{{ contact.contact_name }}</h1>
+  <p>{{ contact.company }} | {{ contact.type }}</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  
+  <!-- Contact Details -->
+  <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <h2>Contact Details</h2>
+    
+    <div style="margin-top: 15px;">
+      <h4>Relationship Score</h4>
+      <p>{% for i in range(contact.relationship_score or 1) %}⭐{% endfor %}</p>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <h4>Company</h4>
+      <p>{{ contact.company }}</p>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <h4>Type</h4>
+      <p>{{ contact.type or '-' }}</p>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <h4>Phone</h4>
+      <p>{{ contact.phone or '-' }}</p>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <h4>Email</h4>
+      <p>{{ contact.email or '-' }}</p>
+    </div>
+  </div>
+  
+  <!-- Interaction Info -->
+  <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <h2>Interaction Info</h2>
+    
+    <div style="margin-top: 15px;">
+      <h4>Last Interaction</h4>
+      <p>{{ contact.last_interaction or '-' }}</p>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <h4>Interaction Type</h4>
+      <p>{{ contact.interaction_type or '-' }}</p>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <h4>Next Touch Date</h4>
+      <p>{{ contact.next_touch_date or '-' }}</p>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <h4>Personal Detail</h4>
+      <p>{{ contact.personal_detail or '-' }}</p>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <h4>Value Given</h4>
+      <p>{{ contact.value_given or '-' }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Notes -->
+{% if contact.notes %}
+<div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-top: 20px;">
+  <h2>Notes</h2>
+  <p style="white-space: pre-wrap; margin-top: 10px;">{{ contact.notes }}</p>
+</div>
+{% endif %}
+
+<!-- Actions -->
+<div style="margin-top: 20px;">
+  <button class="btn" onclick="editContact()">Edit Contact</button>
+  <a href="#" onclick="addJobFromContact('{{ contact.company }}', '{{ contact.contact_name }}'); return false;" class="btn" style="margin-left: 10px;">Add Job</a>
+</div>
+
+<!-- Edit Form (hidden by default) -->
+<div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Edit Contact</h2>
+  <form id="editForm">
+    <input type="hidden" id="contactId" value="{{ contact.id }}" />
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div class="form-group">
+        <label>Contact Name</label>
+        <input type="text" id="editContactName" value="{{ contact.contact_name }}" />
+      </div>
+      <div class="form-group">
+        <label>Company</label>
+        <input type="text" id="editCompany" value="{{ contact.company }}" />
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <input type="text" id="editType" value="{{ contact.type or '' }}" />
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" id="editPhone" value="{{ contact.phone or '' }}" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="text" id="editEmail" value="{{ contact.email or '' }}" />
+      </div>
+      <div class="form-group">
+        <label>Relationship Score (1-5)</label>
+        <select id="editRelationship">
+          <option value="1" {% if contact.relationship_score == 1 %}selected{% endif %}>⭐</option>
+          <option value="2" {% if contact.relationship_score == 2 %}selected{% endif %}>⭐⭐</option>
+          <option value="3" {% if contact.relationship_score == 3 or not contact.relationship_score %}selected{% endif %}>⭐⭐⭐</option>
+          <option value="4" {% if contact.relationship_score == 4 %}selected{% endif %}>⭐⭐⭐⭐</option>
+          <option value="5" {% if contact.relationship_score == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Last Interaction</label>
+        <input type="text" id="editLastInteraction" value="{{ contact.last_interaction or '' }}" />
+      </div>
+      <div class="form-group">
+        <label>Interaction Type</label>
+        <input type="text" id="editInteractionType" value="{{ contact.interaction_type or '' }}" />
+      </div>
+      <div class="form-group">
+        <label>Next Touch Date</label>
+        <input type="text" id="editNextTouch" value="{{ contact.next_touch_date or '' }}" />
+      </div>
+      <div class="form-group">
+        <label>Personal Detail</label>
+        <input type="text" id="editPersonalDetail" value="{{ contact.personal_detail or '' }}" />
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>Value Given</label>
+      <input type="text" id="editValueGiven" value="{{ contact.value_given or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="editNotes" rows="3">{{ contact.notes or '' }}</textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="closeEditForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<script>
+function editContact() {
+  document.getElementById('editFormContainer').style.display = 'block';
+  window.scrollTo(0, document.getElementById('editFormContainer').offsetTop);
+}
+
+function closeEditForm() {
+  document.getElementById('editFormContainer').style.display = 'none';
+}
+
+document.getElementById('editForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: {{ contact.id }},
+    contact_name: document.getElementById('editContactName').value,
+    company: document.getElementById('editCompany').value,
+    type: document.getElementById('editType').value,
+    phone: document.getElementById('editPhone').value,
+    email: document.getElementById('editEmail').value,
+    relationship_score: parseInt(document.getElementById('editRelationship').value),
+    last_interaction: document.getElementById('editLastInteraction').value,
+    interaction_type: document.getElementById('editInteractionType').value,
+    next_touch_date: document.getElementById('editNextTouch').value,
+    personal_detail: document.getElementById('editPersonalDetail').value,
+    value_given: document.getElementById('editValueGiven').value,
+    notes: document.getElementById('editNotes').value
+  };
+  
+  const response = await fetch('/api/contact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving contact');
+  }
+});
+
+function addJobFromContact(company, contactName) {
+  window.location.href = '/deals?new=1&company=' + encodeURIComponent(company) + '&contact=' + encodeURIComponent(contactName);
+}
+</script>
+
+{% endblock %}
