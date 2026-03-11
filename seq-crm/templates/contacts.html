@@ -104,7 +104,8 @@
       <td>{{ contact.last_interaction or '-' }}</td>
       <td>{{ contact.next_touch_date or '-' }}</td>
       <td>
-        <a href="#" onclick="editContactById({{ contact.id }}); return false;">Edit</a>
+        <a href="#" onclick="editContactById({{ contact.id }}); return false;">Edit</a> | 
+        <a href="#" onclick="addJobFromContact('{{ contact.company }}', '{{ contact.contact_name }}'); return false;">Add Job</a>
       </td>
     </tr>
     {% endfor %}
@@ -180,6 +181,100 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     location.reload();
   } else {
     alert('Error saving contact');
+  }
+});
+</script>
+
+<!-- Add Job Modal -->
+<div id="jobModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; padding: 25px; border-radius: 8px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+    <h2>Add Job from Contact</h2>
+    <form id="jobForm">
+      <input type="hidden" id="jobContactCompany" />
+      <input type="hidden" id="jobContactName" />
+      
+      <div class="form-group">
+        <label>Client (Company)</label>
+        <input type="text" id="jobClient" required style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;" />
+      </div>
+      
+      <div class="form-group">
+        <label>Role</label>
+        <input type="text" id="jobRole" required style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;" />
+      </div>
+      
+      <div class="form-group">
+        <label>Stage</label>
+        <select id="jobStage" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
+          <option>Prospect Identified</option>
+          <option>Intro Conversation</option>
+          <option>Role Scoped</option>
+          <option>Candidate Map Built</option>
+          <option>Shortlist Sent</option>
+          <option>Interview Stage</option>
+          <option>Offer Stage</option>
+          <option>Placement</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Probability (%)</label>
+        <input type="number" id="jobProbability" value="50" min="0" max="100" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;" />
+      </div>
+      
+      <div class="form-group">
+        <label>Next Action</label>
+        <textarea id="jobNextAction" rows="2" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="jobNotes" rows="2" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;"></textarea>
+      </div>
+      
+      <button type="submit" class="btn">Save Job</button>
+      <button type="button" class="btn btn-secondary" onclick="closeJobModal()" style="margin-left: 10px;">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function addJobFromContact(company, contactName) {
+  document.getElementById('jobClient').value = company || '';
+  document.getElementById('jobContactCompany').value = company || '';
+  document.getElementById('jobContactName').value = contactName || '';
+  document.getElementById('jobModal').style.display = 'flex';
+  document.getElementById('jobRole').focus();
+}
+
+function closeJobModal() {
+  document.getElementById('jobModal').style.display = 'none';
+}
+
+document.getElementById('jobForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    client: document.getElementById('jobClient').value,
+    role: document.getElementById('jobRole').value,
+    stage: document.getElementById('jobStage').value,
+    probability: parseInt(document.getElementById('jobProbability').value),
+    next_action: document.getElementById('jobNextAction').value,
+    notes: 'From contact: ' + document.getElementById('jobContactName').value + '\n' + document.getElementById('jobNotes').value
+  };
+  
+  const response = await fetch('/api/deal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    closeJobModal();
+    alert('Job added successfully!');
+    window.location.href = '/deals';
+  } else {
+    alert('Error saving job');
   }
 });
 </script>
