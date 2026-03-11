@@ -31,12 +31,14 @@
     
     <div class="form-group">
       <label>Client (Company) *</label>
-      <input type="text" id="dealClient" required />
+      <input type="text" id="dealClient" required onchange="loadContactsDropdown(this.value)" />
     </div>
     
     <div class="form-group">
-      <label>Contact Name</label>
-      <input type="text" id="dealContact" />
+      <label>Contact</label>
+      <select id="dealContact" onchange="updatePhoneFromContact()">
+        <option value="">-- Select Contact --</option>
+      </select>
     </div>
     
     <div class="form-group">
@@ -149,6 +151,49 @@ function showAddForm() {
   document.getElementById('dealId').value = '';
   document.getElementById('dealProbability').value = '50';
   document.getElementById('formTitle').textContent = 'Add Deal';
+  loadContactsDropdown('');
+}
+
+function loadContactsDropdown(company) {
+  const select = document.getElementById('dealContact');
+  select.innerHTML = '<option value="">-- Select Contact --</option>';
+  
+  if (!company) {
+    // Load all contacts if no company selected
+    fetch('/api/contacts-by-company?company=')
+      .then(r => r.json())
+      .then(contacts => {
+        contacts.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.contact_name;
+          opt.dataset.phone = c.phone || '';
+          opt.textContent = c.contact_name;
+          select.appendChild(opt);
+        });
+      });
+    return;
+  }
+  
+  fetch('/api/contacts-by-company?company=' + encodeURIComponent(company))
+    .then(r => r.json())
+    .then(contacts => {
+      contacts.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.contact_name;
+        opt.dataset.phone = c.phone || '';
+        opt.textContent = c.contact_name;
+        select.appendChild(opt);
+      });
+    });
+}
+
+function updatePhoneFromContact() {
+  const select = document.getElementById('dealContact');
+  const phoneField = document.getElementById('dealPhone');
+  const selectedOpt = select.options[select.selectedIndex];
+  if (selectedOpt && selectedOpt.dataset.phone) {
+    phoneField.value = selectedOpt.dataset.phone;
+  }
 }
 
 function hideForm() {
@@ -165,7 +210,10 @@ async function editJobById(id) {
     document.getElementById('formContainer').style.display = 'block';
     document.getElementById('dealId').value = deal.id;
     document.getElementById('dealClient').value = deal.client || '';
-    document.getElementById('dealContact').value = deal.contact_name || '';
+    loadContactsDropdown(deal.client || '');
+    setTimeout(() => {
+      document.getElementById('dealContact').value = deal.contact_name || '';
+    }, 100);
     document.getElementById('dealPhone').value = deal.phone || '';
     document.getElementById('dealRole').value = deal.role || '';
     document.getElementById('dealSalary').value = deal.salary_value || '';

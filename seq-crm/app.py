@@ -357,6 +357,18 @@ def api_add_contact():
         db.close()
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
+@app.route('/api/contacts-by-company')
+def api_contacts_by_company():
+    """API: Get contacts by company name"""
+    company = request.args.get('company', '')
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT id, contact_name, phone FROM contacts WHERE company LIKE ? ORDER BY contact_name', 
+                  (f'%{company}%',))
+    contacts = cursor.fetchall()
+    db.close()
+    return jsonify([dict(c) for c in contacts])
+
 @app.route('/api/contact/<int:contact_id>')
 def api_get_contact(contact_id):
     """API: Get contact by ID"""
