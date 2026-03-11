@@ -296,17 +296,23 @@ def contacts_list():
     cursor = db.cursor()
     
     search = request.args.get('search', '')
+    sort = request.args.get('sort', 'contact_name')
+    
+    # Validate sort column
+    allowed_sorts = ['contact_name', 'company', 'relationship_score', 'last_interaction', 'next_touch_date']
+    if sort not in allowed_sorts:
+        sort = 'contact_name'
     
     if search:
-        cursor.execute('SELECT * FROM contacts WHERE contact_name LIKE ? OR company LIKE ? ORDER BY contact_name', 
+        cursor.execute(f'SELECT * FROM contacts WHERE contact_name LIKE ? OR company LIKE ? ORDER BY {sort}', 
                       (f'%{search}%', f'%{search}%'))
     else:
-        cursor.execute('SELECT * FROM contacts ORDER BY contact_name')
+        cursor.execute(f'SELECT * FROM contacts ORDER BY {sort}')
     
     contacts = cursor.fetchall()
     db.close()
     
-    return render_template('contacts.html', contacts=contacts, search=search)
+    return render_template('contacts.html', contacts=contacts, search=search, sort=sort)
 
 @app.route('/api/contact', methods=['POST'])
 def api_add_contact():
