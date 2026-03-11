@@ -87,7 +87,7 @@
   <tbody>
     {% for company in companies %}
     <tr>
-      <td><strong>{{ company.name }}</strong></td>
+      <td><a href="/company/{{ company.id }}"><strong>{{ company.name }}</strong></a></td>
       <td>{{ company.tier or '-' }}</td>
       <td>{{ company.sector or '-' }}</td>
       <td>{{ company.location or '-' }}</td>
