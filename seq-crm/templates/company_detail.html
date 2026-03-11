@@ -141,7 +141,7 @@
           {% for i in range(dm.relationship_score) %}⭐{% endfor %}
         </td>
         <td>{{ dm.last_contact or '-' }}</td>
-        <td><a href="#" onclick="editDMFromTable({{ dm.id }}, '{{ dm.name }}', '{{ dm.title or '' }}', '{{ dm.role or '' }}', '{{ dm.phone or '' }}', '{{ dm.email or '' }}', '{{ dm.linkedin or '' }}', '{{ dm.hiring_signals or '' }}', {{ dm.relationship_score }}, '{{ dm.last_contact or '' }}', '{{ dm.next_action or '' }}', '{{ dm.notes or '' }}'); return false;">Edit</a></td>
+        <td><a href="#" onclick="editDMById({{ dm.id }}); return false;">Edit</a></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -274,22 +274,30 @@ function hideDMForm() {
   document.getElementById('dmFormContainer').style.display = 'none';
 }
 
-function editDMFromTable(id, name, title, role, phone, email, linkedin, hiringSignals, relationshipScore, lastContact, nextAction, notes) {
-  document.getElementById('dmFormTitle').textContent = 'Edit Decision Maker';
-  document.getElementById('dmFormContainer').style.display = 'block';
-  document.getElementById('dmId').value = id;
-  document.getElementById('dmName').value = name;
-  document.getElementById('dmTitle').value = title;
-  document.getElementById('dmRole').value = role;
-  document.getElementById('dmPhone').value = phone;
-  document.getElementById('dmEmail').value = email;
-  document.getElementById('dmLinkedIn').value = linkedin;
-  document.getElementById('dmHiringSignals').value = hiringSignals;
-  document.getElementById('dmRelationship').value = relationshipScore;
-  document.getElementById('dmLastContact').value = lastContact;
-  document.getElementById('dmNextAction').value = nextAction;
-  document.getElementById('dmNotes').value = notes;
-  window.scrollTo(0, document.getElementById('dmFormContainer').offsetTop);
+async function editDMById(id) {
+  try {
+    const response = await fetch('/api/dm/' + id);
+    if (!response.ok) throw new Error('Failed to load');
+    const dm = await response.json();
+    
+    document.getElementById('dmFormTitle').textContent = 'Edit Decision Maker';
+    document.getElementById('dmFormContainer').style.display = 'block';
+    document.getElementById('dmId').value = dm.id;
+    document.getElementById('dmName').value = dm.name || '';
+    document.getElementById('dmTitle').value = dm.title || '';
+    document.getElementById('dmRole').value = dm.role || '';
+    document.getElementById('dmPhone').value = dm.phone || '';
+    document.getElementById('dmEmail').value = dm.email || '';
+    document.getElementById('dmLinkedIn').value = dm.linkedin || '';
+    document.getElementById('dmHiringSignals').value = dm.hiring_signals || '';
+    document.getElementById('dmRelationship').value = dm.relationship_score || 1;
+    document.getElementById('dmLastContact').value = dm.last_contact || '';
+    document.getElementById('dmNextAction').value = dm.next_action || '';
+    document.getElementById('dmNotes').value = dm.notes || '';
+    window.scrollTo(0, document.getElementById('dmFormContainer').offsetTop);
+  } catch (err) {
+    alert('Error loading decision maker: ' + err.message);
+  }
 }
 
 document.getElementById('dmForm').addEventListener('submit', async (e) => {

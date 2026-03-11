@@ -217,6 +217,18 @@ def api_add_company():
         db.close()
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
+@app.route('/api/dm/<int:dm_id>')
+def api_get_dm(dm_id):
+    """API: Get decision maker by ID"""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT * FROM decision_makers WHERE id = ?', (dm_id,))
+    dm = cursor.fetchone()
+    db.close()
+    if dm:
+        return jsonify(dict(dm))
+    return jsonify({'error': 'Not found'}), 404
+
 @app.route('/api/dm', methods=['POST'])
 def api_add_dm():
     """API: Add/edit decision maker"""
