@@ -135,7 +135,8 @@
       </td>
       <td>
         <a href="/deal/{{ deal.id }}">View</a> | 
-        <a href="#" onclick="editJobById({{ deal.id }}); return false;">Edit</a>
+        <a href="#" onclick="editJobById({{ deal.id }}); return false;">Edit</a> |
+        <a href="#" onclick="deleteJobById('{{ deal.client }}', '{{ deal.role }}', {{ deal.id }}); return false;" style="color: #ef4444;">Delete</a>
       </td>
     </tr>
     {% endfor %}
@@ -147,6 +148,44 @@
 {% endif %}
 
 <script>
+// Delete modal HTML
+document.body.insertAdjacentHTML('beforeend', `
+<div id="deleteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:30px; border-radius:8px; max-width:400px;">
+    <h2 style="color:#ef4444;">Delete Job?</h2>
+    <p>Type to confirm:</p>
+    <p id="deleteConfirmText" style="background:#f1f5f9; padding:10px; border-radius:4px; font-weight:bold;"></p>
+    <input type="text" id="deleteConfirmInput" placeholder="Type to confirm" style="width:100%; padding:10px; margin:15px 0; border:1px solid #e2e8f0; border-radius:4px;" />
+    <div style="display:flex; gap:10px;">
+      <button id="confirmDeleteBtn" class="btn" style="background:#ef4444; flex:1;">Delete</button>
+      <button onclick="closeDeleteModal()" class="btn btn-secondary" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+`);
+
+let deleteJobId = null;
+
+function deleteJobById(client, role, id) {
+  deleteJobId = id;
+  document.getElementById('deleteConfirmText').textContent = client + ' - ' + role;
+  document.getElementById('deleteModal').style.display = 'flex';
+  document.getElementById('deleteConfirmInput').value = '';
+  document.getElementById('deleteConfirmInput').focus();
+  
+  document.getElementById('confirmDeleteBtn').onclick = async () => {
+    const input = document.getElementById('deleteConfirmInput').value;
+    const confirmText = client + ' - ' + role;
+    if (input !== confirmText) { alert('Name does not match'); return; }
+    const response = await fetch('/api/delete/deal/' + deleteJobId, { method: 'POST' });
+    if (response.ok) { location.reload(); } else { alert('Error deleting'); }
+  };
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
 function showAddForm() {
   document.getElementById('formContainer').style.display = 'block';
   document.getElementById('dealForm').reset();
