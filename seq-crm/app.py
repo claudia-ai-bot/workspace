@@ -369,6 +369,16 @@ def api_contacts_by_company():
     db.close()
     return jsonify([dict(c) for c in contacts])
 
+@app.route('/api/companies-list')
+def api_companies_list():
+    """API: Get all companies"""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT name FROM companies ORDER BY name')
+    companies = [c[0] for c in cursor.fetchall()]
+    db.close()
+    return jsonify(companies)
+
 @app.route('/api/contact/<int:contact_id>')
 def api_get_contact(contact_id):
     """API: Get contact by ID"""

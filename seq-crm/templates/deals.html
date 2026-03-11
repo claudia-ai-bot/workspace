@@ -31,7 +31,9 @@
     
     <div class="form-group">
       <label>Client (Company) *</label>
-      <input type="text" id="dealClient" required onchange="loadContactsDropdown(this.value)" />
+      <select id="dealClient" required onchange="loadContactsDropdown(this.value)">
+        <option value="">-- Select Company --</option>
+      </select>
     </div>
     
     <div class="form-group">
@@ -151,8 +153,24 @@ function showAddForm() {
   document.getElementById('dealId').value = '';
   document.getElementById('dealProbability').value = '50';
   document.getElementById('formTitle').textContent = 'Add Deal';
-  // Load ALL contacts immediately
+  loadCompaniesDropdown();
   loadContactsDropdown('');
+}
+
+function loadCompaniesDropdown() {
+  const select = document.getElementById('dealClient');
+  select.innerHTML = '<option value="">-- Select Company --</option>';
+  
+  fetch('/api/companies-list')
+    .then(r => r.json())
+    .then(companies => {
+      companies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    });
 }
 
 function loadContactsDropdown(company) {
@@ -212,6 +230,7 @@ async function editJobById(id) {
     document.getElementById('dealId').value = deal.id;
     document.getElementById('dealClient').value = deal.client || '';
     loadContactsDropdown(deal.client || '');
+    loadCompaniesDropdown();
     setTimeout(() => {
       document.getElementById('dealContact').value = deal.contact_name || '';
       updatePhoneFromContact();
