@@ -74,25 +74,27 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 24px;
+  margin: 4px 12px;
+  padding: 14px 20px;
   color: rgba(255,255,255,0.9);
   text-decoration: none;
   font-size: 15px;
   font-weight: 600;
   transition: all 0.2s;
-  border-left: 4px solid transparent;
+  border-radius: 8px;
+  border: none;
 }
 
 .sidebar a:hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.2);
   color: white;
   text-decoration: none;
 }
 
 .sidebar a.active {
-  background: rgba(255,255,255,0.25);
-  color: white;
-  border-left: 4px solid #fff;
+  background: white;
+  color: var(--primary);
+  font-weight: 700;
 }
 
 /* Main Content */
