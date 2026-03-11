@@ -151,6 +151,7 @@ function showAddForm() {
   document.getElementById('dealId').value = '';
   document.getElementById('dealProbability').value = '50';
   document.getElementById('formTitle').textContent = 'Add Deal';
+  // Load ALL contacts immediately
   loadContactsDropdown('');
 }
 
@@ -213,7 +214,8 @@ async function editJobById(id) {
     loadContactsDropdown(deal.client || '');
     setTimeout(() => {
       document.getElementById('dealContact').value = deal.contact_name || '';
-    }, 100);
+      updatePhoneFromContact();
+    }, 150);
     document.getElementById('dealPhone').value = deal.phone || '';
     document.getElementById('dealRole').value = deal.role || '';
     document.getElementById('dealSalary').value = deal.salary_value || '';
