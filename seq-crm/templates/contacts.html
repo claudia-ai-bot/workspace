@@ -13,13 +13,6 @@
       {% if search %}
       <a href="/contacts" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
       {% endif %}
-      <div style="display: inline; margin-left: 10px;">
-        <a href="/contacts?sort=contact_name" {% if sort == 'contact_name' %}style="font-weight: bold;"{% endif %}>Name</a> |
-        <a href="/contacts?sort=company" {% if sort == 'company' %}style="font-weight: bold;"{% endif %}>Company</a> |
-        <a href="/contacts?sort=relationship_score" {% if sort == 'relationship_score' %}style="font-weight: bold;"{% endif %}>Relationship</a> |
-        <a href="/contacts?sort=last_interaction" {% if sort == 'last_interaction' %}style="font-weight: bold;"{% endif %}>Last Contact</a> |
-        <a href="/contacts?sort=next_touch_date" {% if sort == 'next_touch_date' %}style="font-weight: bold;"{% endif %}>Next Touch</a>
-      </div>
     </form>
     <button class="btn" onclick="showAddForm()" style="margin-left: 10px;">+ Add Contact</button>
   </div>
@@ -90,12 +83,12 @@
 <table>
   <thead>
     <tr>
-      <th>Contact</th>
-      <th>Company</th>
+      <th><a href="/contacts?sort=contact_name&order={% if sort == 'contact_name' and order == 'ASC' %}DESC{% else %}ASC{% endif %}">Contact {% if sort == 'contact_name' %}{% if order == 'ASC' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+      <th><a href="/contacts?sort=company&order={% if sort == 'company' and order == 'ASC' %}DESC{% else %}ASC{% endif %}">Company {% if sort == 'company' %}{% if order == 'ASC' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
       <th>Type</th>
-      <th>Relationship</th>
-      <th>Last Interaction</th>
-      <th>Next Touch</th>
+      <th><a href="/contacts?sort=relationship_score&order={% if sort == 'relationship_score' and order == 'ASC' %}DESC{% else %}ASC{% endif %}">Relationship {% if sort == 'relationship_score' %}{% if order == 'ASC' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+      <th><a href="/contacts?sort=last_interaction&order={% if sort == 'last_interaction' and order == 'DESC' %}ASC{% else %}DESC{% endif %}">Last Interaction {% if sort == 'last_interaction' %}{% if order == 'DESC' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
+      <th><a href="/contacts?sort=next_touch_date&order={% if sort == 'next_touch_date' and order == 'DESC' %}ASC{% else %}DESC{% endif %}">Next Touch {% if sort == 'next_touch_date' %}{% if order == 'DESC' %}↑{% else %}↓{% endif %}{% endif %}</a></th>
       <th>Action</th>
     </tr>
   </thead>
