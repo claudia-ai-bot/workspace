@@ -131,14 +131,24 @@ def dashboard():
     cursor.execute('SELECT COUNT(*) as count FROM deals')
     deal_count = cursor.fetchone()['count']
     
+    cursor.execute('SELECT COUNT(*) as count FROM deals WHERE stage = "Placement"')
+    placements_count = cursor.fetchone()['count']
+    
+    from datetime import datetime
+    today = datetime.now().strftime('%d %B %Y')
+    
     db.close()
     
-    return render_template('dashboard.html', 
+    return render_template('dashboard_new.html', 
                          companies=company_count, 
                          dms=dm_count, 
                          warm=warm_count,
                          candidates=candidate_count,
-                         deals=deal_count)
+                         deals=deal_count,
+                         contacts_count=dm_count,
+                         conversations_count=warm_count,
+                         placements_count=placements_count,
+                         today=today)
 
 @app.route('/companies')
 def companies_list():
