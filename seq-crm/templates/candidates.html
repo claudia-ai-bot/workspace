@@ -148,7 +148,7 @@
         {% endif %}
       </td>
       <td>
-        <a href="/candidate/{{ candidate.id }}">View</a> | 
+ 
         <a href="#" onclick="editCandidateFromList({{ candidate.id }}, '{{ candidate.name }}', '{{ candidate.current_company or '' }}', '{{ candidate.title or '' }}', '{{ candidate.specialism or '' }}', {{ candidate.years_experience or 0 }}, '{{ candidate.salary_band or '' }}', '{{ candidate.location or '' }}', '{{ candidate.mobility or '' }}', '{{ candidate.flight_risk or '' }}', '{{ candidate.known_offers or '' }}', '{{ candidate.who_wants_them or '' }}', {{ candidate.relationship_score }}, '{{ candidate.last_contact or '' }}', '{{ candidate.next_follow_up or '' }}', '{{ candidate.notes or '' }}'); return false;">Edit</a>
       </td>
     </tr>
