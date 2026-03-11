@@ -132,7 +132,7 @@
   <tbody>
     {% for candidate in candidates %}
     <tr>
-      <td><strong>{{ candidate.name }}</strong></td>
+      <td><a href="/candidate/{{ candidate.id }}"><strong>{{ candidate.name }}</strong></a></td>
       <td>{{ candidate.current_company or '-' }}</td>
       <td>{{ candidate.title or '-' }}</td>
       <td>{{ candidate.specialism or '-' }}</td>
