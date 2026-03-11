@@ -56,9 +56,41 @@
   {% endif %}
   
   <div style="margin-top: 20px;">
-    <button class="btn" onclick="editDeal()">Edit</button>
+    <button class="btn" onclick="editDeal()">Edit Deal</button>
+    <button class="btn" style="background: #ef4444; margin-left: 10px;" onclick="showDeleteConfirm()">🗑️ Delete</button>
   </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<style>
+#deleteModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+#deleteModal.show { display: flex; }
+</style>
+
+<div id="deleteModal">
+  <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+    <h2 style="color: #ef4444;">Delete Job?</h2>
+    <p style="color: #64748b; margin: 15px 0;">This cannot be undone. Type the client + role to confirm:</p>
+    <p style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-weight: bold; margin: 10px 0;">{{ deal.client }} - {{ deal.role }}</p>
+    <input type="text" id="deleteConfirmInput" placeholder="Type to confirm" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px; margin: 15px 0;" />
+    <div style="display: flex; gap: 10px;">
+      <button class="btn" style="background: #ef4444; flex: 1;" onclick="confirmDelete()">Delete</button>
+      <button class="btn btn-secondary" style="flex: 1;" onclick="closeDeleteConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showDeleteConfirm() { document.getElementById('deleteModal').classList.add('show'); document.getElementById('deleteConfirmInput').value = ''; document.getElementById('deleteConfirmInput').focus(); }
+function closeDeleteConfirm() { document.getElementById('deleteModal').classList.remove('show'); }
+async function confirmDelete() {
+  const input = document.getElementById('deleteConfirmInput').value;
+  const confirmText = '{{ deal.client }} - {{ deal.role }}';
+  if (input !== confirmText) { alert('Name does not match. Please try again.'); return; }
+  const response = await fetch('/api/delete/deal/{{ deal.id }}', { method: 'POST' });
+  if (response.ok) { window.location.href = '/deals'; } else { alert('Error deleting deal'); closeDeleteConfirm(); }
+}
+</script>
 
 <!-- Edit Form (hidden by default) -->
 <div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
