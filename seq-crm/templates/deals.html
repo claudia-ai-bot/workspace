@@ -35,6 +35,16 @@
     </div>
     
     <div class="form-group">
+      <label>Contact Name</label>
+      <input type="text" id="dealContact" />
+    </div>
+    
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" id="dealPhone" />
+    </div>
+    
+    <div class="form-group">
       <label>Role *</label>
       <input type="text" id="dealRole" required />
     </div>
@@ -93,11 +103,12 @@
   <thead>
     <tr>
       <th>Client</th>
+      <th>Contact</th>
+      <th>Phone</th>
       <th>Role</th>
       <th>Salary</th>
       <th>Fee Value</th>
       <th>Stage</th>
-      <th>Competition</th>
       <th>Probability</th>
       <th>Action</th>
     </tr>
@@ -106,6 +117,8 @@
     {% for deal in deals %}
     <tr>
       <td><strong>{{ deal.client }}</strong></td>
+      <td>{{ deal.contact_name or '-' }}</td>
+      <td>{{ deal.phone or '-' }}</td>
       <td>{{ deal.role }}</td>
       <td>${{ "{:,.0f}".format(deal.salary_value) if deal.salary_value else '-' }}</td>
       <td>${{ "{:,.0f}".format(deal.fee_value) if deal.fee_value else '-' }}</td>
@@ -152,6 +165,8 @@ async function editJobById(id) {
     document.getElementById('formContainer').style.display = 'block';
     document.getElementById('dealId').value = deal.id;
     document.getElementById('dealClient').value = deal.client || '';
+    document.getElementById('dealContact').value = deal.contact_name || '';
+    document.getElementById('dealPhone').value = deal.phone || '';
     document.getElementById('dealRole').value = deal.role || '';
     document.getElementById('dealSalary').value = deal.salary_value || '';
     document.getElementById('dealFee').value = deal.fee_value || '';
@@ -172,6 +187,8 @@ document.getElementById('dealForm').addEventListener('submit', async (e) => {
   const data = {
     id: document.getElementById('dealId').value || null,
     client: document.getElementById('dealClient').value,
+    contact_name: document.getElementById('dealContact').value,
+    phone: document.getElementById('dealPhone').value,
     role: document.getElementById('dealRole').value,
     salary_value: document.getElementById('dealSalary').value,
     fee_value: document.getElementById('dealFee').value,

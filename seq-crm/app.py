@@ -505,21 +505,22 @@ def api_add_deal():
                 UPDATE deals 
                 SET client=?, role=?, salary_value=?, fee_value=?, stage=?,
                     competition=?, probability=?, next_action=?, notes=?,
-                    updated_at=CURRENT_TIMESTAMP
+                    contact_name=?, phone=?, updated_at=CURRENT_TIMESTAMP
                 WHERE id=?
             ''', (data.get('client'), data.get('role'), data.get('salary_value'),
                   data.get('fee_value'), data.get('stage'), data.get('competition'),
                   data.get('probability'), data.get('next_action'), data.get('notes'),
-                  data.get('id')))
+                  data.get('contact_name'), data.get('phone'), data.get('id')))
         else:
             # Add
             cursor.execute('''
                 INSERT INTO deals 
-                (client, role, salary_value, fee_value, stage, competition, probability, next_action, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (client, role, salary_value, fee_value, stage, competition, probability, next_action, notes, contact_name, phone)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (data.get('client'), data.get('role'), data.get('salary_value'),
                   data.get('fee_value'), data.get('stage'), data.get('competition'),
-                  data.get('probability'), data.get('next_action'), data.get('notes')))
+                  data.get('probability'), data.get('next_action'), data.get('notes'),
+                  data.get('contact_name'), data.get('phone')))
         
         db.commit()
         db.close()
