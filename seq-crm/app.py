@@ -289,6 +289,85 @@ def candidates_list():
     
     return render_template('candidates.html', candidates=candidates, search=search)
 
+@app.route('/contacts')
+def contacts_list():
+    """List all contacts"""
+    db = get_db()
+    cursor = db.cursor()
+    
+    search = request.args.get('search', '')
+    
+    if search:
+        cursor.execute('SELECT * FROM contacts WHERE contact_name LIKE ? OR company LIKE ? ORDER BY contact_name', 
+                      (f'%{search}%', f'%{search}%'))
+    else:
+        cursor.execute('SELECT * FROM contacts ORDER BY contact_name')
+    
+    contacts = cursor.fetchall()
+    db.close()
+    
+    return render_template('contacts.html', contacts=contacts, search=search)
+
+@app.route('/api/contact', methods=['POST'])
+def api_add_contact():
+    """API: Add/edit contact"""
+    dataAPI: Add/edit = request.json
+    db = get_db()
+    cursor = db.cursor()
+    
+    try:
+        if 'id' in data and data['id']:
+            cursor.execute('''
+                UPDATE contacts 
+                SET contact_name=?, company=?, type=?, relationship_score=?, 
+                    last_interaction=?, interaction_type=?, personal_detail=?,
+                    value_given=?, next_touch_date=?, notes=?
+                WHERE id=?
+            ''', (data.get('contact_name'), data.get('company'), data.get('type'),
+                  data.get('relationship_score'), data.get('last_interaction'),
+                  data.get('interaction_type'), data.get('personal_detail'),
+                  data.get('value_given'), data.get('next_touch_date'),
+                  data.get('notes'), data.get('id')))
+        else:
+            cursor.execute('''
+                INSERT INTO contacts 
+                (contact_name, company, type, relationship_score, last_interaction,
+                 interaction_type, personal_detail, value_given, next_touch_date, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (data.get('contact_name'), data.get('company'), data.get('type'),
+                  data.get('relationship_score'), data.get('last_interaction'),
+                  data.get('interaction_type'), data.get('personal_detail'),
+                  data.get('value_given'), data.get('next_touch_date'), data.get('notes')))
+        
+        db.commit()
+        db.close()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.close()
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+@app.route('/api/contact/<int:contact_id>')
+def api_get_contact(contact_id):
+    """API: Get contact by ID"""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT * FROM contacts WHERE id = ?', (contact_id,))
+    contact = cursor.fetchone()
+    db.close()
+    if contact:
+        return jsonify(dict(contact))
+    return jsonify({'error': 'Not found'}), 404
+
+@app.route('/api/delete/contact/<int:record_id>', methods=['POST'])
+def api_delete_contact(record_id):
+    """API: Delete contact"""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('DELETE FROM contacts WHERE id = ?', (record_id,))
+    db.commit()
+    db.close()
+    return jsonify({'status': 'success'})
+
 @app.route('/candidate/<int:candidate_id>')
 def candidate_detail(candidate_id):
     """Candidate detail page"""

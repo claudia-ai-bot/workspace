@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Contacts - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>🤝 Contacts / Relationships</h1>
+  <div style="margin-top: 15px;">
+    <form method="get" style="display: inline;">
+      <input type="text" name="search" placeholder="Search contacts..." value="{{ search }}" style="padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px; width: 200px;">
+      <button type="submit" class="btn">Search</button>
+      {% if search %}
+      <a href="/contacts" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
+      {% endif %}
+    </form>
+    <button class="btn" onclick="showAddForm()" style="margin-left: 10px;">+ Add Contact</button>
+  </div>
+</div>
+
+<!-- Add Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add Contact</h2>
+  <form id="contactForm">
+    <input type="hidden" id="contactId" />
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div class="form-group">
+        <label>Contact Name *</label>
+        <input type="text" id="contactName" required />
+      </div>
+      <div class="form-group">
+        <label>Company *</label>
+        <input type="text" id="contactCompany" required />
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <input type="text" id="contactType" placeholder="e.g., PM, Estimator, Director" />
+      </div>
+      <div class="form-group">
+        <label>Relationship Score (1-5)</label>
+        <select id="contactRelationship">
+          <option value="1">⭐ - Cold</option>
+          <option value="2">⭐⭐ - Warm</option>
+          <option value="3">⭐⭐⭐ - Active</option>
+          <option value="4">⭐⭐⭐⭐ - Strong</option>
+          <option value="5">⭐⭐⭐⭐⭐ - Key</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Last Interaction</label>
+        <input type="text" id="contactLastInteraction" placeholder="e.g., 2026-03-01" />
+      </div>
+      <div class="form-group">
+        <label>Interaction Type</label>
+        <input type="text" id="contactInteractionType" placeholder="e.g., Call, Lunch, Email" />
+      </div>
+      <div class="form-group">
+        <label>Next Touch Date</label>
+        <input type="text" id="contactNextTouch" placeholder="e.g., 2026-04-01" />
+      </div>
+      <div class="form-group">
+        <label>Personal Detail</label>
+        <input type="text" id="contactPersonalDetail" placeholder="e.g., Likes golf, Dog owner" />
+      </div>
+      <div class="form-group">
+        <label>Value Given</label>
+        <input type="text" id="contactValueGiven" placeholder="e.g., Introduced to X" />
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="contactNotes" rows="3"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Contact</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Contacts Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Contact</th>
+      <th>Company</th>
+      <th>Type</th>
+      <th>Relationship</th>
+      <th>Last Interaction</th>
+      <th>Next Touch</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for contact in contacts %}
+    <tr>
+      <td><strong>{{ contact.contact_name }}</strong></td>
+      <td>{{ contact.company }}</td>
+      <td>{{ contact.type or '-' }}</td>
+      <td>
+        {% for i in range(contact.relationship_score or 1) %}⭐{% endfor %}
+      </td>
+      <td>{{ contact.last_interaction or '-' }}</td>
+      <td>{{ contact.next_touch_date or '-' }}</td>
+      <td>
+        <a href="#" onclick="editContactById({{ contact.id }}); return false;">Edit</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not contacts %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">
+  No contacts yet. <a href="#" onclick="showAddForm(); return false;">Add one now.</a>
+</p>
+{% endif %}
+
+<script>
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('contactForm').reset();
+  document.getElementById('contactId').value = '';
+  window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+async function editContactById(id) {
+  try {
+    const response = await fetch('/api/contact/' + id);
+    if (!response.ok) throw new Error('Failed to load');
+    const c = await response.json();
+    
+    document.getElementById('formContainer').style.display = 'block';
+    document.getElementById('contactId').value = c.id;
+    document.getElementById('contactName').value = c.contact_name || '';
+    document.getElementById('contactCompany').value = c.company || '';
+    document.getElementById('contactType').value = c.type || '';
+    document.getElementById('contactRelationship').value = c.relationship_score || 1;
+    document.getElementById('contactLastInteraction').value = c.last_interaction || '';
+    document.getElementById('contactInteractionType').value = c.interaction_type || '';
+    document.getElementById('contactNextTouch').value = c.next_touch_date || '';
+    document.getElementById('contactPersonalDetail').value = c.personal_detail || '';
+    document.getElementById('contactValueGiven').value = c.value_given || '';
+    document.getElementById('contactNotes').value = c.notes || '';
+    window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+  } catch (err) {
+    alert('Error loading contact: ' + err.message);
+  }
+}
+
+document.getElementById('contactForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: document.getElementById('contactId').value || null,
+    contact_name: document.getElementById('contactName').value,
+    company: document.getElementById('contactCompany').value,
+    type: document.getElementById('contactType').value,
+    relationship_score: parseInt(document.getElementById('contactRelationship').value),
+    last_interaction: document.getElementById('contactLastInteraction').value,
+    interaction_type: document.getElementById('contactInteractionType').value,
+    next_touch_date: document.getElementById('contactNextTouch').value,
+    personal_detail: document.getElementById('contactPersonalDetail').value,
+    value_given: document.getElementById('contactValueGiven').value,
+    notes: document.getElementById('contactNotes').value
+  };
+  
+  const response = await fetch('/api/contact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving contact');
+  }
+});
+</script>
+
+{% endblock %}
