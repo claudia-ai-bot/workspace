@@ -145,6 +145,7 @@ def dashboard():
                          warm=warm_count,
                          candidates=candidate_count,
                          deals=deal_count,
+                         candidates_count=candidate_count,
                          contacts_count=dm_count,
                          conversations_count=warm_count,
                          placements_count=placements_count,
