@@ -330,6 +330,51 @@ def contacts_list():
     
     return render_template('contacts.html', contacts=contacts, search=search, sort=sort, order=order)
 
+@app.route('/leads')
+def leads_list():
+    """List all leads/intel"""
+    db = get_db()
+    cursor = db.cursor()
+    search = request.args.get('search', '')
+    if search:
+        cursor.execute('SELECT * FROM leads WHERE company LIKE ? OR intel_type LIKE ? OR what_it_means LIKE ? ORDER BY date DESC', 
+                      (f'%{search}%', f'%{search}%', f'%{search}%'))
+    else:
+        cursor.execute('SELECT * FROM leads ORDER BY date DESC')
+    leads = cursor.fetchall()
+    db.close()
+    return render_template('leads.html', leads=leads, search=search)
+
+@app.route('/api/lead', methods=['POST'])
+def api_add_lead():
+    data = request.json
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        if data.get('id'):
+            cursor.execute('''UPDATE leads SET date=?, company=?, intel_type=?, source=?, what_it_means=?, action_trigger=? WHERE id=?''',
+                         (data.get('date'), data.get('company'), data.get('intel_type'), data.get('source'),
+                          data.get('what_it_means'), data.get('action_trigger'), data.get('id')))
+        else:
+            cursor.execute('''INSERT INTO leads (date, company, intel_type, source, what_it_means, action_trigger) VALUES (?,?,?,?,?,?)''',
+                         (data.get('date'), data.get('company'), data.get('intel_type'), data.get('source'),
+                          data.get('what_it_means'), data.get('action_trigger')))
+        db.commit()
+        db.close()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.close()
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+@app.route('/api/delete/lead/<int:record_id>', methods=['POST'])
+def api_delete_lead(record_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('DELETE FROM leads WHERE id = ?', (record_id,))
+    db.commit()
+    db.close()
+    return jsonify({'status': 'success'})
+
 @app.route('/contact/<int:contact_id>')
 def contact_detail(contact_id):
     """Contact detail view"""

@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Leads / Intel - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📰 Leads / Intel</h1>
+  <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <form method="get" style="display: inline;">
+      <input type="text" name="search" placeholder="Search intel..." value="{{ search }}" style="padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; width: 220px;">
+      <button type="submit" class="btn">Search</button>
+      {% if search %}
+      <a href="/leads" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
+      {% endif %}
+    </form>
+    <button class="btn" onclick="showAddForm()">+ Add Intel</button>
+  </div>
+</div>
+
+<!-- Add Form -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add Intel</h2>
+  <form id="leadForm">
+    <input type="hidden" id="leadId" />
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="text" id="leadDate" placeholder="e.g., 2026-03-11" />
+      </div>
+      <div class="form-group">
+        <label>Company</label>
+        <input type="text" id="leadCompany" placeholder="Company name" />
+      </div>
+      <div class="form-group">
+        <label>Intel Type</label>
+        <input type="text" id="leadType" placeholder="e.g., New Project, Hiring, Expansion" />
+      </div>
+      <div class="form-group">
+        <label>Source</label>
+        <input type="text" id="leadSource" placeholder="e.g., LinkedIn, Website, Referral" />
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>What It Means</label>
+      <textarea id="leadMeaning" rows="2" placeholder="Key intelligence..."></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Action Trigger</label>
+      <textarea id="leadAction" rows="2" placeholder="What should you do?"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Leads Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Company</th>
+      <th>Intel Type</th>
+      <th>Source</th>
+      <th>What It Means</th>
+      <th>Action Trigger</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for lead in leads %}
+    <tr>
+      <td>{{ lead.date or '-' }}</td>
+      <td><strong>{{ lead.company }}</strong></td>
+      <td>{{ lead.intel_type or '-' }}</td>
+      <td>{{ lead.source or '-' }}</td>
+      <td>{{ lead.what_it_means or '-' }}</td>
+      <td>{{ lead.action_trigger or '-' }}</td>
+      <td>
+        <a href="#" onclick="editLead({{ lead.id }}); return false;">Edit</a> | 
+        <a href="#" onclick="deleteLead('{{ lead.company }}', {{ lead.id }}); return false;" style="color: #ef4444;">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not leads %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">
+  No intel yet. <a href="#" onclick="showAddForm(); return false;">Add one now.</a>
+</p>
+{% endif %}
+
+<!-- Delete Modal -->
+<div id="deleteModal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px;">
+    <h2 style="color: #ef4444;">Delete Intel?</h2>
+    <p>Type company name to confirm:</p>
+    <p id="deleteConfirmText" style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-weight: bold;"></p>
+    <input type="text" id="deleteConfirmInput" placeholder="Type to confirm" style="width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ddd; border-radius: 4px;" />
+    <div style="display: flex; gap: 10px;">
+      <button onclick="confirmDelete()" class="btn" style="background: #ef4444; flex: 1;">Delete</button>
+      <button onclick="closeDeleteModal()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('leadForm').reset();
+  document.getElementById('leadId').value = '';
+  window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+let deleteLeadId = null;
+
+function deleteLead(company, id) {
+  deleteLeadId = id;
+  document.getElementById('deleteConfirmText').textContent = company;
+  document.getElementById('deleteModal').style.display = 'flex';
+  document.getElementById('deleteConfirmInput').value = '';
+  document.getElementById('deleteConfirmInput').focus();
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
+async function confirmDelete() {
+  const input = document.getElementById('deleteConfirmInput').value;
+  const confirmText = document.getElementById('deleteConfirmText').textContent;
+  if (input !== confirmText) { alert('Name does not match'); return; }
+  await fetch('/api/delete/lead/' + deleteLeadId, { method: 'POST' });
+  location.reload();
+}
+
+function editLead(id) {
+  // For now, just show alert - can implement edit later
+  alert('Edit feature coming soon. Delete and re-add for now.');
+}
+
+document.getElementById('leadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    id: document.getElementById('leadId').value || null,
+    date: document.getElementById('leadDate').value,
+    company: document.getElementById('leadCompany').value,
+    intel_type: document.getElementById('leadType').value,
+    source: document.getElementById('leadSource').value,
+    what_it_means: document.getElementById('leadMeaning').value,
+    action_trigger: document.getElementById('leadAction').value
+  };
+  const response = await fetch('/api/lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (response.ok) { location.reload(); } else { alert('Error saving'); }
+});
+</script>
+
+{% endblock %}
