@@ -93,7 +93,7 @@
       <td>{{ company.location or '-' }}</td>
       <td>{{ company.active_projects[:50] or '-' }}...</td>
       <td>
-        <a href="/company/{{ company.id }}">View</a> | 
+ 
         <a href="#" onclick="editCompanyFromList({{ company.id }}, '{{ company.name }}', '{{ company.tier or '' }}', '{{ company.sector or '' }}', '{{ company.location or '' }}', '{{ company.active_projects or '' }}', '{{ company.upcoming_projects or '' }}', '{{ company.competitors or '' }}', '{{ company.notes or '' }}'); return false;">Edit</a>
       </td>
     </tr>
