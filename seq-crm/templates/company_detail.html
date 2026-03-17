@@ -113,13 +113,38 @@
     
     <button type="submit" class="btn">Save Changes</button>
     <button type="button" class="btn btn-secondary" onclick="closeEditForm()" style="margin-left: 10px;">Cancel</button>
+    <button type="button" class="btn" onclick="deleteCompany({{ company.id }}, '{{ company.name }}')" style="margin-left: 20px; background: #ef4444; color: white;">Delete Company</button>
   </form>
 </div>
 
-<!-- Decision Makers -->
+<script>
+function deleteCompany(id, name) {
+  const promptText = 'Type the company name to confirm deletion:';
+  const userInput = prompt(promptText);
+  if (userInput === null) return; // Cancelled
+  if (userInput.trim().toLowerCase() !== name.toLowerCase()) {
+    alert('Company name does not match. Delete cancelled.');
+    return;
+  }
+  if (confirm('Are you sure you want to delete "' + name + '"? This will also delete all associated contacts, deals, and candidates. This cannot be undone.')) {
+    fetch('/api/company/' + id, { method: 'DELETE' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('Company deleted successfully');
+          window.location.href = '/companies';
+        } else {
+          alert('Error: ' + data.message);
+        }
+      });
+  }
+}
+</script>
+
+<!-- Contacts -->
 <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-  <h2>Decision Makers ({{ dms|length }})</h2>
-  <button class="btn" onclick="showDMForm()" style="margin-top: 15px;">+ Add Decision Maker</button>
+  <h2>Contacts ({{ dms|length }})</h2>
+  <button class="btn" onclick="showDMForm()" style="margin-top: 15px;">+ Add Contact</button>
   
   {% if dms %}
   <table style="margin-top: 15px;">
@@ -159,7 +184,7 @@
 
 <!-- Add/Edit DM Form (hidden by default) -->
 <div id="dmFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-  <h2 id="dmFormTitle">Add Decision Maker</h2>
+  <h2 id="dmFormTitle">Add Contact</h2>
   <form id="dmForm">
     <input type="hidden" id="dmId" name="id" />
     <div class="form-group">
@@ -223,7 +248,7 @@
       <textarea id="dmNotes" rows="2"></textarea>
     </div>
     
-    <button type="submit" class="btn">Save Decision Maker</button>
+    <button type="submit" class="btn">Save Contact</button>
     <button type="button" class="btn btn-secondary" onclick="hideDMForm()" style="margin-left: 10px;">Cancel</button>
   </form>
 </div>
@@ -268,7 +293,7 @@ document.getElementById('editCompanyForm').addEventListener('submit', async (e) 
 });
 
 function showDMForm() {
-  document.getElementById('dmFormTitle').textContent = 'Add Decision Maker';
+  document.getElementById('dmFormTitle').textContent = 'Add Contact';
   document.getElementById('dmFormContainer').style.display = 'block';
   document.getElementById('dmForm').reset();
   document.getElementById('dmId').value = '';
@@ -286,7 +311,7 @@ async function editDMById(id) {
     if (!response.ok) throw new Error('Failed to load');
     const dm = await response.json();
     
-    document.getElementById('dmFormTitle').textContent = 'Edit Decision Maker';
+    document.getElementById('dmFormTitle').textContent = 'Edit Contact';
     document.getElementById('dmFormContainer').style.display = 'block';
     document.getElementById('dmId').value = dm.id;
     document.getElementById('dmName').value = dm.name || '';

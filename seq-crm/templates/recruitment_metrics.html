@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Recruitment Metrics - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📊 Recruitment Metrics</h1>
+</div>
+
+<!-- Key Metrics -->
+<div class="metrics-grid">
+  <div class="metric-card">
+    <h3>Total Roles</h3>
+    <div class="value">{{ total_deals }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Pipeline Value</h3>
+    <div class="value blue">${{ "{:,.0f}".format(total_fee_value) }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Fee Achieved</h3>
+    <div class="value green">${{ "{:,.0f}".format(total_fee_achieved) }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Avg Fee</h3>
+    <div class="value">${{ "{:,.0f}".format(avg_fee) }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Avg Days to Fill</h3>
+    <div class="value purple">{{ "{:.0f}".format(avg_days) }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Active Candidates</h3>
+    <div class="value">{{ active_candidates }} / {{ total_candidates }}</div>
+  </div>
+</div>
+
+<!-- Pipeline by Stage -->
+<h2>📋 Pipeline by Stage</h2>
+<div class="stage-list">
+  {% for stage in by_stage %}
+  <div class="stage-item">
+    <span class="stage-name">{{ stage[0] }}</span>
+    <span class="stage-count">{{ stage[1] }}</span>
+  </div>
+  {% endfor %}
+  {% if not by_stage %}
+  <p style="color: #64748b; text-align: center;">No deals yet</p>
+  {% endif %}
+</div>
+
+<!-- Conversion Funnel -->
+<h2>🎯 Conversion Funnel</h2>
+<div class="conversion-funnel">
+  <div class="funnel-stage">
+    <span class="funnel-label">CV Submitted</span>
+    <div class="funnel-bar-container">
+      <div class="funnel-bar" style="width: {% if submitted %}{{ (submitted / total_deals * 100) if total_deals else 0 }}{% else %}0{% endif %}%;">{{ submitted }}</div>
+    </div>
+    <span class="funnel-value">{% if total_deals %}{{ (submitted / total_deals * 100)|round }}{% else %}0{% endif %}%</span>
+  </div>
+  <div class="funnel-stage">
+    <span class="funnel-label">→ Interview</span>
+    <div class="funnel-bar-container">
+      <div class="funnel-bar" style="width: {% if submitted %}{{ (interviews / submitted * 100) if submitted else 0 }}{% else %}0{% endif %}%;">{{ interviews }}</div>
+    </div>
+    <span class="funnel-value">{{ cv_to_interview_rate }}%</span>
+  </div>
+  <div class="funnel-stage">
+    <span class="funnel-label">→ Offer</span>
+    <div class="funnel-bar-container">
+      <div class="funnel-bar" style="width: {% if interviews %}{{ (offers / interviews * 100) if interviews else 0 }}{% else %}0{% endif %}%;">{{ offers }}</div>
+    </div>
+    <span class="funnel-value">{{ interview_to_offer_rate }}%</span>
+  </div>
+  <div class="funnel-stage">
+    <span class="funnel-label">→ Placed</span>
+    <div class="funnel-bar-container">
+      <div class="funnel-bar" style="width: {% if offers %}{{ (placed / offers * 100) if offers else 0 }}{% else %}0{% endif %}%;">{{ placed }}</div>
+    </div>
+    <span class="funnel-value">{{ offer_accept_rate }}%</span>
+  </div>
+</div>
+
+<!-- Source Breakdown -->
+<h2>🔗 Sources</h2>
+<div class="source-list">
+  {% for source in by_source %}
+  <span class="source-tag">{{ source[0] }} ({{ source[1] }})</span>
+  {% endfor %}
+  {% if not by_source %}
+  <p style="color: #64748b;">No source data yet</p>
+  {% endif %}
+</div>
+
+<!-- Recent Placements -->
+<h2>🏆 Recent Placements</h2>
+<div class="recent-placements">
+  {% for p in recent_placements %}
+  <div class="placement-item">
+    <div>
+      <div class="placement-role">{{ p[0] }} - {{ p[1] }}</div>
+      <div class="placement-client">{{ p[3] }} days to fill</div>
+    </div>
+    <div class="placement-fee">${{ "{:,.0f}".format(p[2]) if p[2] else 0 }}</div>
+  </div>
+  {% endfor %}
+  {% if not recent_placements %}
+  <p style="color: #64748b; text-align: center;">No placements yet</p>
+  {% endif %}
+</div>
+
+<style>
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+.metric-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.metric-card h3 { margin: 0 0 8px 0; color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-card .value { font-size: 28px; font-weight: 700; color: #1e293b; }
+.metric-card .value.green { color: #16a34a; }
+.metric-card .value.blue { color: #2563eb; }
+.metric-card .value.purple { color: #9333ea; }
+.stage-list { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.stage-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+.stage-item:last-child { border-bottom: none; }
+.stage-name { font-weight: 500; color: #334155; }
+.stage-count { background: #f1f5f9; padding: 4px 12px; border-radius: 20px; font-weight: 600; color: #475569; }
+.conversion-funnel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.funnel-stage { display: flex; align-items: center; margin: 15px 0; }
+.funnel-label { width: 150px; font-weight: 500; color: #334155; }
+.funnel-bar-container { flex: 1; height: 30px; background: #f1f5f9; border-radius: 4px; overflow: hidden; margin-right: 15px; }
+.funnel-bar { height: 100%; background: #c45c3e; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-weight: 600; font-size: 13px; }
+.funnel-value { width: 60px; text-align: right; font-weight: 600; color: #475569; }
+.source-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.source-tag { background: #e0f2fe; color: #0369a1; padding: 8px 16px; border-radius: 20px; font-size: 14px; }
+.recent-placements { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.placement-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+.placement-item:last-child { border-bottom: none; }
+.placement-role { font-weight: 500; color: #334155; }
+.placement-client { color: #64748b; font-size: 14px; }
+.placement-fee { color: #16a34a; font-weight: 600; }
+</style>
+
+{% endblock %}

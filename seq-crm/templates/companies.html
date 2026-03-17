@@ -14,7 +14,7 @@
       <a href="/companies" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
       {% endif %}
     </form>
-    <button class="btn" onclick="showAddForm()">+ Add Company</button>
+    <button class="btn" onclick="showAddForm(); return false;">+ Add Company</button>
   </div>
 </div>
 
@@ -94,10 +94,10 @@
       <td>{{ company.tier or '-' }}</td>
       <td>{{ company.sector or '-' }}</td>
       <td>{{ company.location or '-' }}</td>
-      <td>{{ company.active_projects[:50] or '-' }}...</td>
+      <td>{{ company.active_projects[:50] if company.active_projects else '' }}...</td>
       <td>
  
-        <a href="#" onclick="editCompanyFromList({{ company.id }}, '{{ company.name }}', '{{ company.tier or '' }}', '{{ company.sector or '' }}', '{{ company.location or '' }}', '{{ company.active_projects or '' }}', '{{ company.upcoming_projects or '' }}', '{{ company.competitors or '' }}', '{{ company.notes or '' }}'); return false;">Edit</a>
+        <a href="javascript:void(0)" onclick="editCompanyFromList({{ company.id }}, '{{ company.name|replace("'","\\'") }}', '{{ (company.tier or '')|replace("'","\\'") }}', '{{ (company.sector or '')|replace("'","\\'") }}', '{{ (company.location or '')|replace("'","\\'") }}', '{{ (company.active_projects or '')|replace("'","\\'") }}', '{{ (company.upcoming_projects or '')|replace("'","\\'") }}', '{{ (company.competitors or '')|replace("'","\\'") }}', '{{ (company.notes or '')|replace("'","\\'") }}');">Edit</a>
       </td>
     </tr>
     {% endfor %}

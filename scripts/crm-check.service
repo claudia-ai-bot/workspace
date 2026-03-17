@@ -1,0 +1,7 @@
+[Unit]
+Description=CRM Health Check
+
+[Service]
+Type=oneshot
+ExecStart=/home/chris/.openclaw/workspace/scripts/crm-cron.sh
+User=chris

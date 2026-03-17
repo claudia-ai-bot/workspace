@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Activities - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📞 Activities Log</h1>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Type</th>
+      <th>Contact</th>
+      <th>Company</th>
+      <th>Outcome</th>
+      <th>Duration</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in activities %}
+    <tr>
+      <td>{{ a.created_at[:10] if a.created_at else '-' }}</td>
+      <td>{{ a.type or '-' }}</td>
+      <td>{{ a.contact_name or '-' }}</td>
+      <td>{{ a.company_name or '-' }}</td>
+      <td>{{ a.outcome or '-' }}</td>
+      <td>{{ a.duration_minutes or '-' }} min</td>
+      <td>{{ a.notes[:50] if a.notes else '-' }}{% if a.notes and a.notes|length > 50 %}...{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not activities %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">No activities recorded yet.</p>
+{% endif %}
+
+{% endblock %}

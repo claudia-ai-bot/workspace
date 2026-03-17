@@ -57,7 +57,7 @@
     <div>
       <h4>Relationship</h4>
       <p>
-        {% for i in range(candidate.relationship_score) %}⭐{% endfor %}
+        {% for i in range(candidate.relationship_score or 0) %}⭐{% endfor %}
       </p>
     </div>
     <div>
@@ -79,6 +79,7 @@
   
   <div style="margin-top: 20px;">
     <button class="btn" onclick="showEditForm()">Edit Candidate</button>
+    <button class="btn" style="background: #10b981; margin-left: 10px;" onclick="showLogCallModal()">📞 Log Call</button>
     <button class="btn" style="background: #ef4444; margin-left: 10px;" onclick="showDeleteConfirm()">🗑️ Delete</button>
   </div>
 </div>
@@ -114,6 +115,137 @@
     </div>
   </div>
 </div>
+
+<!-- Log Call Modal - Replaced with full Activity Modal -->
+<div id="logCallModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:450px;">
+    <h2>Log Activity: {{ candidate.name }}</h2>
+    <form id="callForm">
+      <input type="hidden" id="candidateId" value="{{ candidate.id }}">
+      
+      <label>Type:</label>
+      <select id="activityType" required onchange="updateCandidateActivityFields()">
+        <option value="call">📞 Call</option>
+        <option value="email">📧 Email</option>
+        <option value="meeting">🤝 Meeting</option>
+        <option value="linkedin">💼 LinkedIn Message</option>
+        <option value="interview">🎤 Interview</option>
+        <option value="reference">📋 Reference Check</option>
+        <option value="other">📌 Other</option>
+      </select><br><br>
+      
+      <div id="activityOutcomeRow">
+        <label>Outcome:</label>
+        <select id="callOutcome" style="width:100%; padding:8px;">
+          <option value="">-- Select --</option>
+          
+          <!-- Call outcomes -->
+          <optgroup id="outcomeCall" label="Call">
+            <option value="successful">✅ Successful</option>
+            <option value="voicemail">📧 Voicemail</option>
+            <option value="no_answer">❌ No Answer</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Email outcomes -->
+          <optgroup id="outcomeEmail" label="Email">
+            <option value="successful">✅ Successful</option>
+            <option value="no_reply">❌ No Reply</option>
+            <option value="bounced">⚠️ Bounced</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- LinkedIn outcomes -->
+          <optgroup id="outcomeLinkedIn" label="LinkedIn Message">
+            <option value="successful">✅ Successful</option>
+            <option value="no_reply">❌ No Reply</option>
+            <option value="inmailed">📬 InMailed</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Interview outcomes -->
+          <optgroup id="outcomeInterview" label="Interview">
+            <option value="next_stage">➡️ Moved to Next Stage</option>
+            <option value="offer_made">💼 Offer Made</option>
+            <option value="offer_accepted">🎉 Offer Accepted</option>
+            <option value="candidate_rejected">❌ Candidate Rejected</option>
+            <option value="client_rejected">🚫 Client Rejected</option>
+            <option value="withdrawn">↩️ Withdrawn</option>
+          </optgroup>
+          
+          <!-- Reference Check outcomes -->
+          <optgroup id="outcomeReference" label="Reference Check">
+            <option value="positive">✅ Positive</option>
+            <option value="neutral">➖ Neutral</option>
+            <option value="negative">❌ Negative</option>
+          </optgroup>
+        </select><br><br>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes:</label>
+        <textarea id="callNotes" rows="3" style="width:100%; padding:8px;"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button type="submit" class="btn" style="flex:1;">Save Activity</button>
+        <button type="button" onclick="document.getElementById('logCallModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showLogCallModal() {
+  document.getElementById('logCallModal').style.display = 'flex';
+  updateCandidateActivityFields();
+}
+
+function updateCandidateActivityFields() {
+  const type = document.getElementById('activityType').value;
+  const outcomeRow = document.getElementById('activityOutcomeRow');
+  const typesWithOutcome = ['email', 'interview', 'reference'];
+  outcomeRow.style.display = typesWithOutcome.includes(type) ? 'block' : 'none';
+  
+  const callGroup = document.getElementById('outcomeCall');
+  const emailGroup = document.getElementById('outcomeEmail');
+  const linkedinGroup = document.getElementById('outcomeLinkedIn');
+  
+  const interviewGroup = document.getElementById('outcomeInterview');
+  const referenceGroup = document.getElementById('outcomeReference');
+  
+  if (callGroup) callGroup.style.display = (type === 'call') ? 'block' : 'none';
+  if (emailGroup) emailGroup.style.display = (type === 'email') ? 'block' : 'none';
+  if (linkedinGroup) linkedinGroup.style.display = (type === 'linkedin') ? 'block' : 'none';
+  
+  if (interviewGroup) interviewGroup.style.display = (type === 'interview') ? 'block' : 'none';
+  if (referenceGroup) referenceGroup.style.display = (type === 'reference') ? 'block' : 'none';
+}
+
+document.getElementById('callForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const type = document.getElementById('activityType').value;
+  const outcome = document.getElementById('activityOutcomeRow').style.display !== 'none' 
+    ? document.getElementById('callOutcome').value 
+    : null;
+  
+  const data = {
+    type: type,
+    candidate_id: document.getElementById('candidateId').value,
+    outcome: outcome,
+    notes: document.getElementById('callNotes').value
+  };
+  await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  location.reload();
+});
+</script>
 
 <!-- Edit Form (hidden by default) -->
 <div id="editFormContainer" style="display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px;">

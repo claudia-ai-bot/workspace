@@ -57,6 +57,7 @@
   
   <div style="margin-top: 20px;">
     <button class="btn" onclick="editDeal()">Edit Deal</button>
+    <button class="btn" style="background: #8b5cf6; margin-left: 10px;" onclick="showSendCVModal()">📤 Send CV</button>
     <button class="btn" style="background: #ef4444; margin-left: 10px;" onclick="showDeleteConfirm()">🗑️ Delete</button>
   </div>
 </div>
@@ -92,6 +93,61 @@ async function confirmDelete() {
 }
 </script>
 
+<!-- Send CV Modal -->
+<div id="sendCVModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:450px;">
+    <h2>📤 Send CV - {{ deal.role }} @ {{ deal.client }}</h2>
+    <form id="sendCVForm">
+      <input type="hidden" id="dealId" value="{{ deal.id }}">
+      <input type="hidden" id="dealCompanyId" value="{{ deal.company_id }}">
+      
+      <div class="form-group">
+        <label>Select Candidate:</label>
+        <select id="cvCandidateId" required style="width:100%; padding:8px;">
+          <option value="">-- Select Candidate --</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes:</label>
+        <textarea id="cvNotes" rows="3" style="width:100%; padding:8px;"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button type="submit" class="btn" style="flex:1;">Send CV</button>
+        <button type="button" onclick="document.getElementById('sendCVModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+async function showSendCVModal() {
+  document.getElementById('sendCVModal').style.display = 'flex';
+  const res = await fetch('/api/candidates-list');
+  const candidates = await res.json();
+  const select = document.getElementById('cvCandidateId');
+  candidates.forEach(c => {
+    select.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>';
+  });
+}
+
+document.getElementById('sendCVForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await fetch('/api/submission', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      deal_id: document.getElementById('dealId').value,
+      company_id: document.getElementById('dealCompanyId').value,
+      candidate_id: document.getElementById('cvCandidateId').value,
+      notes: document.getElementById('cvNotes').value
+    })
+  });
+  location.reload();
+});
+</script>
+
 <!-- Edit Form (hidden by default) -->
 <div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
   <h2>Edit Deal</h2>
@@ -119,13 +175,14 @@ async function confirmDelete() {
     <div class="form-group">
       <label>Stage</label>
       <select id="editStage">
-        <option {% if deal.stage == 'Prospect Identified' %}selected{% endif %}>Prospect Identified</option>
-        <option {% if deal.stage == 'Intro Conversation' %}selected{% endif %}>Intro Conversation</option>
-        <option {% if deal.stage == 'Role Scoped' %}selected{% endif %}>Role Scoped</option>
-        <option {% if deal.stage == 'Candidate Map Built' %}selected{% endif %}>Candidate Map Built</option>
-        <option {% if deal.stage == 'Shortlist Sent' %}selected{% endif %}>Shortlist Sent</option>
-        <option {% if deal.stage == 'Interview Stage' %}selected{% endif %}>Interview Stage</option>
-        <option {% if deal.stage == 'Offer Stage' %}selected{% endif %}>Offer Stage</option>
+        <option {% if deal.stage == 'Lead Generation' %}selected{% endif %}>Lead Generation</option>
+        <option {% if deal.stage == 'Client Visit' %}selected{% endif %}>Client Visit</option>
+        <option {% if deal.stage == 'Job Order' %}selected{% endif %}>Job Order</option>
+        <option {% if deal.stage == 'Sourcing' %}selected{% endif %}>Sourcing</option>
+        <option {% if deal.stage == 'CV Send' %}selected{% endif %}>CV Send</option>
+        <option {% if deal.stage == 'Screening' %}selected{% endif %}>Screening</option>
+        <option {% if deal.stage == 'Interview' %}selected{% endif %}>Interview</option>
+        <option {% if deal.stage == 'Offer' %}selected{% endif %}>Offer</option>
         <option {% if deal.stage == 'Placement' %}selected{% endif %}>Placement</option>
       </select>
     </div>

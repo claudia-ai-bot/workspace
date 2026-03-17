@@ -6,7 +6,7 @@
 
 <div class="header">
   <h1>📊 My Dashboard</h1>
-  <p>Week of {{ today }}</p>
+  <p>{{ today }}</p>
 </div>
 
 <!-- Weekly Targets -->
@@ -16,7 +16,7 @@
     <div class="value">{{ contacts_count }}<span style="font-size: 18px; color: #64748b;">/20</span></div>
     <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 20/week</p>
     <div style="background: #e8ebe9; height: 8px; border-radius: 4px; margin-top: 10px;">
-      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {{ (contacts_count / 20 * 100)|round }}%;"></div>
+      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {% if (contacts_count / 20 * 100)|round > 100 %}100%{% else %}{{ (contacts_count / 20 * 100)|round }}%{% endif %};"></div>
     </div>
   </div>
   
@@ -25,7 +25,7 @@
     <div class="value">{{ conversations_count }}<span style="font-size: 18px; color: #64748b;">/15</span></div>
     <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 15/week</p>
     <div style="background: #e8ebe9; height: 8px; border-radius: 4px; margin-top: 10px;">
-      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {{ (conversations_count / 15 * 100)|round }}%;"></div>
+      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {% if (conversations_count / 15 * 100)|round > 100 %}100%{% else %}{{ (conversations_count / 15 * 100)|round }}%{% endif %};"></div>
     </div>
   </div>
   
@@ -34,7 +34,7 @@
     <div class="value">{{ candidates_count }}<span style="font-size: 18px; color: #64748b;">/5</span></div>
     <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 5/week</p>
     <div style="background: #e8ebe9; height: 8px; border-radius: 4px; margin-top: 10px;">
-      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {{ (candidates_count / 5 * 100)|round }}%;"></div>
+      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {% if (candidates_count / 5 * 100)|round > 100 %}100%{% else %}{{ (candidates_count / 5 * 100)|round }}%{% endif %};"></div>
     </div>
   </div>
   
@@ -43,7 +43,7 @@
     <div class="value">{{ deals  }}<span style="font-size: 18px; color: #64748b;">/3</span></div>
     <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 3/week</p>
     <div style="background: #e8ebe9; height: 8px; border-radius: 4px; margin-top: 10px;">
-      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {{ (deals  / 3 * 100)|round }}%;"></div>
+      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {% if (deals / 3 * 100)|round > 100 %}100%{% else %}{{ (deals / 3 * 100)|round }}%{% endif %};"></div>
     </div>
   </div>
   
@@ -54,8 +54,101 @@
   </div>
 </div>
 
+<!-- Activity Breakdown This Week -->
+<div class="cards" style="margin-top: 20px;">
+  <div class="card" style="background: #f0fdf4;">
+    <h3>📞 Calls</h3>
+    <div class="value" style="color: #16a34a;">{{ calls_count }}</div>
+  </div>
+  <div class="card" style="background: #eef2ff;">
+    <h3>🤝 Meetings</h3>
+    <div class="value" style="color: #4f46e5;">{{ meetings_count }}</div>
+  </div>
+  <div class="card" style="background: #fffbeb;">
+    <h3>🏢 Visits</h3>
+    <div class="value" style="color: #d97706;">{{ visits_count }}</div>
+  </div>
+  <div class="card" style="background: #faf5ff;">
+    <h3>📤 CVs Sent</h3>
+    <div class="value" style="color: #9333ea;">{{ cvs_sent_count }}</div>
+  </div>
+  <div class="card" style="background: #f0fdf4;">
+    <h3>🎈 Float CVs</h3>
+    <div class="value" style="color: #16a34a;">{{ cvs_float_count }}</div>
+  </div>
+</div>
+
+<!-- Complete Week Button -->
+<div style="margin: 20px 0; text-align: center;">
+  <button class="btn" onclick="showCompleteWeekModal()" style="font-size: 16px; padding: 12px 32px;">
+    ✅ Complete This Week
+  </button>
+</div>
+
+<!-- Complete Week Modal -->
+<div id="completeWeekModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:28px; border-radius:12px; width:480px;">
+    <h2 style="margin-bottom:16px;">✅ Complete Week</h2>
+    <p style="color:#666; margin-bottom:20px;">Saving this week's stats to Weekly Reviews</p>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+      <div><strong>Contacts:</strong> {{ contacts_count }}</div>
+      <div><strong>Conversations:</strong> {{ conversations_count }}</div>
+      <div><strong>Candidates:</strong> {{ candidates_count }}</div>
+      <div><strong>Deals:</strong> {{ deals }}</div>
+    </div>
+    
+    <div style="margin-bottom:16px;">
+      <label style="display:block; font-weight:500; margin-bottom:6px;">🎉 Wins</label>
+      <textarea id="weekWins" rows="2" placeholder="What went well?" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="display:block; font-weight:500; margin-bottom:6px;">📉 Losses / Lessons</label>
+      <textarea id="weekLosses" rows="2" placeholder="What didn't go well?" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+    </div>
+    
+    <div style="display:flex; gap:10px;">
+      <button onclick="submitCompleteWeek()" class="btn">Save Week</button>
+      <button onclick="document.getElementById('completeWeekModal').style.display='none'" class="btn" style="background:#999;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showCompleteWeekModal() {
+  document.getElementById('completeWeekModal').style.display = 'flex';
+}
+
+async function submitCompleteWeek() {
+  const data = {
+    contacts_added: {{ contacts_count }},
+    conversations: {{ conversations_count }},
+    candidates: {{ candidates_count }},
+    deals: {{ deals }},
+    wins: document.getElementById('weekWins').value,
+    losses: document.getElementById('weekLosses').value
+  };
+  
+  const res = await fetch('/api/complete-week', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  
+  if (res.ok) {
+    const data = await res.json();
+    alert('Week saved! Moving to next week...');
+    document.getElementById('completeWeekModal').style.display='none';
+    // Redirect to show next week
+    window.location.href = '/?week=' + data.next_week;
+  } else {
+    alert('Error saving week');
+  }
+}
+</script>
+
 <!-- Rules Banner -->
-<div style="background: linear-gradient(135deg, #0f766e 0%, #0d5f5a 100%); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px;">
+<div style="background: linear-gradient(135deg, #5C6249, #848C67); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px;">
   <p style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">RULES TO OPERATE BY</p>
   <div style="display: flex; flex-wrap: wrap; gap: 16px; font-weight: 500;">
     <span>🎯 Control talent → Control market</span>

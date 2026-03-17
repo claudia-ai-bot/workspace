@@ -1,0 +1,10 @@
+[Unit]
+Description=CRM Health Check Timer
+Requires=crm-check.service
+
+[Timer]
+OnCalendar=*-*-* 22:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers

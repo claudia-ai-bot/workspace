@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📊 Analytics</h1>
+</div>
+
+<div class="metrics-grid">
+  <div class="metric-card">
+    <h3>Companies</h3>
+    <div class="value">{{ companies_count }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Contacts</h3>
+    <div class="value">{{ contacts_count }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Candidates</h3>
+    <div class="value">{{ candidates_count }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Deals</h3>
+    <div class="value">{{ deals_count }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Pipeline Value</h3>
+    <div class="value">${{ "{:,.0f}".format(weighted_pipeline) }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>CVs Submitted</h3>
+    <div class="value">{{ cv_submitted }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Shortlisted</h3>
+    <div class="value">{{ cv_shortlisted }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Interviews</h3>
+    <div class="value">{{ interview }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Offers</h3>
+    <div class="value">{{ offer }}</div>
+  </div>
+  <div class="metric-card">
+    <h3>Placements</h3>
+    <div class="value">{{ placed }}</div>
+  </div>
+</div>
+
+<style>
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+.metric-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.metric-card h3 { margin: 0 0 8px 0; color: #64748b; font-size: 12px; text-transform: uppercase; }
+.metric-card .value { font-size: 26px; font-weight: 700; color: #1e293b; }
+</style>
+
+{% endblock %}

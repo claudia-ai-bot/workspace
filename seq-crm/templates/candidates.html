@@ -149,7 +149,8 @@
       </td>
       <td>
  
-        <a href="#" onclick="editCandidateFromList({{ candidate.id }}, '{{ candidate.name }}', '{{ candidate.current_company or '' }}', '{{ candidate.title or '' }}', '{{ candidate.specialism or '' }}', {{ candidate.years_experience or 0 }}, '{{ candidate.salary_band or '' }}', '{{ candidate.location or '' }}', '{{ candidate.mobility or '' }}', '{{ candidate.flight_risk or '' }}', '{{ candidate.known_offers or '' }}', '{{ candidate.who_wants_them or '' }}', {{ candidate.relationship_score }}, '{{ candidate.last_contact or '' }}', '{{ candidate.next_follow_up or '' }}', '{{ candidate.notes or '' }}'); return false;">Edit</a>
+        <a href="#" onclick="editCandidateFromList({{ candidate.id }}, '{{ candidate.name }}', '{{ candidate.current_company or '' }}', '{{ candidate.title or '' }}', '{{ candidate.specialism or '' }}', {{ candidate.years_experience or 0 }}, '{{ candidate.salary_band or '' }}', '{{ candidate.location or '' }}', '{{ candidate.mobility or '' }}', '{{ candidate.flight_risk or '' }}', '{{ candidate.known_offers or '' }}', '{{ candidate.who_wants_them or '' }}', {{ candidate.relationship_score if candidate.relationship_score is not none else 'null' }}, '{{ candidate.last_contact or '' }}', '{{ candidate.next_follow_up or '' }}', '{{ candidate.notes or '' }}'); return false;">Edit</a>
+        | <a href="#" onclick="showActivityModal('{{ candidate.name }}', {{ candidate.id }}); return false;">📝 Activity</a>
       </td>
     </tr>
     {% endfor %}
@@ -225,6 +226,141 @@ document.getElementById('candidateForm').addEventListener('submit', async (e) =>
     location.reload();
   } else {
     alert('Error saving candidate');
+  }
+});
+</script>
+
+<!-- Activity Modal for Candidate -->
+<div id="activityModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;">
+  <div style="background:white;padding:20px;margin:50px auto;max-width:450px;border-radius:8px;">
+    <h2>Log Activity: <span id="activityCandidateName"></span></h2>
+    <form id="activityModalForm">
+      <input type="hidden" id="activityCandidateId" />
+      
+      <label>Type:</label>
+      <select id="activityType" required onchange="updateCandidateActivityFields()">
+        <option value="call">📞 Call</option>
+        <option value="email">📧 Email</option>
+        <option value="meeting">🤝 Meeting</option>
+        <option value="linkedin">💼 LinkedIn Message</option>
+        <option value="interview">🎤 Interview</option>
+        <option value="reference">📋 Reference Check</option>
+        <option value="other">📌 Other</option>
+      </select><br><br>
+      
+      <div id="activityOutcomeRow">
+        <label>Outcome:</label>
+        <select id="activityOutcome">
+          <option value="">-- Select --</option>
+          
+          <!-- Call outcomes -->
+          <optgroup id="candidateOutcomeCall" label="Call">
+            <option value="successful">✅ Successful</option>
+            <option value="voicemail">📧 Voicemail</option>
+            <option value="no_answer">❌ No Answer</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Email outcomes -->
+          <optgroup id="candidateOutcomeEmail" label="Email">
+            <option value="introduction">👋 Introduction Sent</option>
+            <option value="general">💬 General Update</option>
+            <option value="job_description">📋 Job Description Sent</option>
+            <option value="job_brief">📝 Job Brief Sent</option>
+            <option value="cv_requested">📄 CV Requested</option>
+            <option value="cv_received">✅ CV Received</option>
+            <option value="send_offer">💼 Send Offer</option>
+            <option value="no_response">❌ No Response</option>
+          </optgroup>
+          
+          <!-- LinkedIn outcomes -->
+          <optgroup id="candidateOutcomeLinkedIn" label="LinkedIn Message">
+            <option value="successful">✅ Successful</option>
+            <option value="no_reply">❌ No Reply</option>
+            <option value="inmailed">📬 InMailed</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Interview outcomes -->
+          <optgroup id="candidateOutcomeInterview" label="Interview">
+            <option value="next_stage">➡️ Moved to Next Stage</option>
+            <option value="offer_made">💼 Offer Made</option>
+            <option value="offer_accepted">🎉 Offer Accepted</option>
+            <option value="candidate_rejected">❌ Candidate Rejected</option>
+            <option value="client_rejected">🚫 Client Rejected</option>
+            <option value="withdrawn">↩️ Withdrawn</option>
+          </optgroup>
+          
+          <!-- Reference Check outcomes -->
+          <optgroup id="candidateOutcomeReference" label="Reference Check">
+            <option value="positive">✅ Positive</option>
+            <option value="neutral">➖ Neutral</option>
+            <option value="negative">❌ Negative</option>
+          </optgroup>
+        </select><br><br>
+      </div>
+      
+      <label>Notes:</label>
+      <textarea id="activityNotes" rows="3" placeholder="Activity details..."></textarea><br><br>
+      
+      <button type="submit" class="btn">Save Activity</button>
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('activityModal').style.display='none'" style="margin-left:10px;">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function showActivityModal(candidateName, candidateId) {
+  document.getElementById('activityCandidateName').textContent = candidateName;
+  document.getElementById('activityCandidateId').value = candidateId;
+  document.getElementById('activityModal').style.display = 'block';
+  updateCandidateActivityFields();
+}
+
+function updateCandidateActivityFields() {
+  const type = document.getElementById('activityType').value;
+  const outcomeRow = document.getElementById('activityOutcomeRow');
+  const typesWithOutcome = ['email', 'interview', 'reference'];
+  outcomeRow.style.display = typesWithOutcome.includes(type) ? 'block' : 'none';
+  
+  const callGroup = document.getElementById('candidateOutcomeCall');
+  const emailGroup = document.getElementById('candidateOutcomeEmail');
+  const linkedinGroup = document.getElementById('candidateOutcomeLinkedIn');
+  const interviewGroup = document.getElementById('candidateOutcomeInterview');
+  const referenceGroup = document.getElementById('candidateOutcomeReference');
+  
+  if (callGroup) callGroup.style.display = (type === 'call') ? 'block' : 'none';
+  if (emailGroup) emailGroup.style.display = (type === 'email') ? 'block' : 'none';
+  if (linkedinGroup) linkedinGroup.style.display = (type === 'linkedin') ? 'block' : 'none';
+  if (interviewGroup) interviewGroup.style.display = (type === 'interview') ? 'block' : 'none';
+  if (referenceGroup) referenceGroup.style.display = (type === 'reference') ? 'block' : 'none';
+}
+
+document.getElementById('activityModalForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const candidateId = document.getElementById('activityCandidateId').value;
+  
+  const data = {
+    type: document.getElementById('activityType').value,
+    candidate_id: candidateId,
+
+    outcome: document.getElementById('activityOutcomeRow').style.display !== 'none' ? document.getElementById('activityOutcome').value : null,
+    notes: document.getElementById('activityNotes').value
+  };
+  
+  const response = await fetch('/api/activity', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    document.getElementById('activityModal').style.display = 'none';
+    alert('Activity logged!');
+  } else {
+    alert('Error logging activity');
   }
 });
 </script>

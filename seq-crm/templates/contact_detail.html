@@ -87,8 +87,224 @@
 <!-- Actions -->
 <div style="margin-top: 20px;">
   <button class="btn" onclick="editContact()">Edit Contact</button>
+  <button class="btn" style="background: #10b981; margin-left: 10px;" onclick="showLogCallModal()">📞 Log Call</button>
+  <button class="btn" style="background: #6366f1; margin-left: 10px;" onclick="showLogMeetingModal()">🤝 Log Meeting</button>
+  <button class="btn" style="background: #f59e0b; margin-left: 10px;" onclick="showLogVisitModal()">🏢 Log Visit</button>
+  <button class="btn" style="background: #8b5cf6; margin-left: 10px;" onclick="showFloatCVModal()">🎈 Float CV</button>
   <a href="#" onclick="addJobFromContact('{{ contact.company }}', '{{ contact.contact_name }}'); return false;" class="btn" style="margin-left: 10px;">Add Job</a>
 </div>
+
+<!-- Log Call Modal -->
+<div id="logCallModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:450px;">
+    <h2>📞 Log Call - {{ contact.contact_name }}</h2>
+    <form id="callForm">
+      <input type="hidden" id="contactId" value="{{ contact.id }}">
+      <input type="hidden" id="companyId" value="{{ contact.company_id }}">
+      
+      <div class="form-group">
+        <label>Duration (minutes):</label>
+        <input type="number" id="callDuration" style="width:100%; padding:8px;">
+      </div>
+      
+      <div class="form-group">
+        <label>Outcome:</label>
+        <select id="callOutcome" style="width:100%; padding:8px;">
+          <option value="">-- Select --</option>
+          <option value="successful">✅ Successful</option>
+          <option value="voicemail">📧 Voicemail</option>
+          <option value="no_answer">❌ No Answer</option>
+          <option value="callback">🔄 Callback</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes:</label>
+        <textarea id="callNotes" rows="3" style="width:100%; padding:8px;"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button type="submit" class="btn" style="flex:1;">Save</button>
+        <button type="button" onclick="document.getElementById('logCallModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Log Meeting Modal -->
+<div id="logMeetingModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:450px;">
+    <h2>🤝 Log Meeting - {{ contact.contact_name }}</h2>
+    <form id="meetingForm">
+      <input type="hidden" id="meetingContactId" value="{{ contact.id }}">
+      <input type="hidden" id="meetingCompanyId" value="{{ contact.company_id }}">
+      
+      <div class="form-group">
+        <label>Duration (minutes):</label>
+        <input type="number" id="meetingDuration" style="width:100%; padding:8px;">
+      </div>
+      
+      <div class="form-group">
+        <label>Outcome:</label>
+        <select id="meetingOutcome" style="width:100%; padding:8px;">
+          <option value="">-- Select --</option>
+          <option value="productive">✅ Productive</option>
+          <option value="neutral">➖ Neutral</option>
+          <option value="follow_up">🔄 Follow Up Needed</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes:</label>
+        <textarea id="meetingNotes" rows="3" style="width:100%; padding:8px;"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button type="submit" class="btn" style="flex:1;">Save</button>
+        <button type="button" onclick="document.getElementById('logMeetingModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Log Visit Modal -->
+<div id="logVisitModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:450px;">
+    <h2>🏢 Log Visit - {{ contact.contact_name }}</h2>
+    <form id="visitForm">
+      <input type="hidden" id="visitContactId" value="{{ contact.id }}">
+      <input type="hidden" id="visitCompanyId" value="{{ contact.company_id }}">
+      
+      <div class="form-group">
+        <label>Outcome:</label>
+        <select id="visitOutcome" style="width:100%; padding:8px;">
+          <option value="">-- Select --</option>
+          <option value="successful">✅ Successful Site Visit</option>
+          <option value="informational">ℹ️ Informational</option>
+          <option value="follow_up">🔄 Follow Up Needed</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes:</label>
+        <textarea id="visitNotes" rows="3" style="width:100%; padding:8px;"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button type="submit" class="btn" style="flex:1;">Save</button>
+        <button type="button" onclick="document.getElementById('logVisitModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Float CV Modal -->
+<div id="floatCVModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:450px;">
+    <h2>🎈 Float CV - {{ contact.contact_name }}</h2>
+    <form id="floatCVForm">
+      <input type="hidden" id="contactCompanyId" value="{{ contact.company_id }}">
+      
+      <div class="form-group">
+        <label>Select Candidate:</label>
+        <select id="cvCandidateId" required style="width:100%; padding:8px;">
+          <option value="">-- Select Candidate --</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes:</label>
+        <textarea id="cvNotes" rows="3" style="width:100%; padding:8px;"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button type="submit" class="btn" style="flex:1;">Float CV</button>
+        <button type="button" onclick="document.getElementById('floatCVModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showLogCallModal() { document.getElementById('logCallModal').style.display = 'flex'; }
+function showLogMeetingModal() { document.getElementById('logMeetingModal').style.display = 'flex'; }
+function showLogVisitModal() { document.getElementById('logVisitModal').style.display = 'flex'; }
+
+async function showFloatCVModal() {
+  document.getElementById('floatCVModal').style.display = 'flex';
+  // Load candidates
+  const candRes = await fetch('/api/candidates-list');
+  const candidates = await candRes.json();
+  const candSelect = document.getElementById('cvCandidateId');
+  candidates.forEach(c => {
+    candSelect.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>';
+  });
+}
+
+document.getElementById('floatCVForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  // Create Float CV activity
+  await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      type: 'float_cv',
+      contact_id: document.getElementById('contactId')?.value || null,
+      company_id: document.getElementById('contactCompanyId').value,
+      candidate_id: document.getElementById('cvCandidateId').value,
+      notes: document.getElementById('cvNotes').value
+    })
+  });
+  location.reload();
+});
+
+document.getElementById('callForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      type: 'call', contact_id: document.getElementById('contactId').value,
+      company_id: document.getElementById('companyId').value,
+      duration_minutes: document.getElementById('callDuration').value || null,
+      outcome: document.getElementById('callOutcome').value || null,
+      notes: document.getElementById('callNotes').value
+    })
+  });
+  location.reload();
+});
+
+document.getElementById('meetingForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      type: 'meeting', contact_id: document.getElementById('meetingContactId').value,
+      company_id: document.getElementById('meetingCompanyId').value,
+      duration_minutes: document.getElementById('meetingDuration').value || null,
+      outcome: document.getElementById('meetingOutcome').value || null,
+      notes: document.getElementById('meetingNotes').value
+    })
+  });
+  location.reload();
+});
+
+document.getElementById('visitForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      type: 'visit', contact_id: document.getElementById('visitContactId').value,
+      company_id: document.getElementById('visitCompanyId').value,
+      outcome: document.getElementById('visitOutcome').value || null,
+      notes: document.getElementById('visitNotes').value
+    })
+  });
+  location.reload();
+});
+</script>
 
 <!-- Edit Form (hidden by default) -->
 <div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">

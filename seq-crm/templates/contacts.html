@@ -105,7 +105,8 @@
       <td>{{ contact.next_touch_date or '-' }}</td>
       <td>
         <a href="#" onclick="editContactById({{ contact.id }}); return false;">Edit</a> | 
-        <a href="#" onclick="addJobFromContact('{{ contact.company }}', '{{ contact.contact_name }}'); return false;">Add Job</a>
+        <a href="#" onclick="addJobFromContact('{{ contact.company }}', '{{ contact.contact_name }}'); return false;">Add Job</a> |
+        <a href="#" onclick="showCallModal('{{ contact.contact_name }}', {{ contact.id }}); return false;">📞</a>
       </td>
     </tr>
     {% endfor %}
@@ -206,13 +207,14 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
       <div class="form-group">
         <label>Stage</label>
         <select id="jobStage" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
-          <option>Prospect Identified</option>
-          <option>Intro Conversation</option>
-          <option>Role Scoped</option>
-          <option>Candidate Map Built</option>
-          <option>Shortlist Sent</option>
-          <option>Interview Stage</option>
-          <option>Offer Stage</option>
+          <option>Lead Generation</option>
+          <option>Client Visit</option>
+          <option>Job Order</option>
+          <option>Sourcing</option>
+          <option>CV Send</option>
+          <option>Screening</option>
+          <option>Interview</option>
+          <option>Offer</option>
           <option>Placement</option>
         </select>
       </div>
@@ -277,6 +279,81 @@ document.getElementById('jobForm').addEventListener('submit', async (e) => {
     alert('Error saving job');
   }
 });
+
+// Call Modal
+function showCallModal(name, id) {
+  document.getElementById('callContactName').textContent = name;
+  document.getElementById('callContactId').value = id;
+  document.getElementById('callDuration').value = '';
+  document.getElementById('callOutcome').value = '';
+  document.getElementById('callNotes').value = '';
+  document.getElementById('callModal').style.display = 'flex';
+}
+
+function closeCallModal() {
+  document.getElementById('callModal').style.display = 'none';
+}
+
+document.getElementById('callForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const contactId = document.getElementById('callContactId').value;
+  
+  const data = {
+    type: 'call',
+    contact_id: contactId,
+    duration_minutes: document.getElementById('callDuration').value || null,
+    outcome: document.getElementById('callOutcome').value || null,
+    notes: document.getElementById('callNotes').value
+  };
+  
+  const response = await fetch('/api/activity', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    closeCallModal();
+    location.reload();
+  } else {
+    alert('Error saving call');
+  }
+});
 </script>
+
+<!-- Call Modal -->
+<div id="callModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:25px; border-radius:8px; width:400px; max-width:90%;">
+    <h2>📞 Log Call - <span id="callContactName"></span></h2>
+    <form id="callForm">
+      <input type="hidden" id="callContactId" />
+      
+      <div class="form-group">
+        <label>Duration (minutes)</label>
+        <input type="number" id="callDuration" style="width:100%; padding:8px; border:1px solid #e2e8f0; border-radius:4px;">
+      </div>
+      
+      <div class="form-group">
+        <label>Outcome</label>
+        <select id="callOutcome" style="width:100%; padding:8px; border:1px solid #e2e8f0; border-radius:4px;">
+          <option value="">-- Select Outcome --</option>
+          <option value="voicemail">📬 Voicemail</option>
+          <option value="callback">🔄 Callback</option>
+          <option value="connected">✅ Connected</option>
+          <option value="no_answer">❌ No Answer</option>
+          <option value="wrong_number">❌ Wrong Number</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="callNotes" rows="3" style="width:100%; padding:8px; border:1px solid #e2e8f0; border-radius:4px;"></textarea>
+      </div>
+      
+      <button type="submit" class="btn">Save Call</button>
+      <button type="button" class="btn btn-secondary" onclick="closeCallModal()" style="margin-left:10px;">Cancel</button>
+    </form>
+  </div>
+</div>
 
 {% endblock %}
