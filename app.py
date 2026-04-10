@@ -2150,13 +2150,14 @@ def api_add_contact():
                 UPDATE contacts 
                 SET contact_name=?, company=?, type=?, relationship_score=?, 
                     last_interaction=?, interaction_type=?, personal_detail=?,
-                    value_given=?, next_touch_date=?, notes=?
+                    value_given=?, next_touch_date=?, notes=?, phone=?, email=?
                 WHERE id=?
             ''', (data.get('contact_name'), data.get('company'), data.get('type'),
                   data.get('relationship_score'), data.get('last_interaction'),
                   data.get('interaction_type'), data.get('personal_detail'),
                   data.get('value_given'), data.get('next_touch_date'),
-                  data.get('notes'), data.get('id')))
+                  data.get('notes'), data.get('phone'), data.get('email'),
+                  data.get('id')))
         else:
             cursor.execute('''
                 INSERT INTO contacts 
@@ -2781,8 +2782,6 @@ def mc():
 @app.route('/v3')
 def v3():
     return send_from_directory('static/mission', 'final.html')
-def mission_control():
-    return send_from_directory('static/mission', 'final.html')
 
 @app.route('/mc-test')
 def mc_test():
@@ -2885,24 +2884,36 @@ def analytics():
     cursor.execute('SELECT COUNT(*) as count FROM deals')
     deals_count = cursor.fetchone()['count']
     
-    weighted_pipeline = deals_count * 50000
-    total_deals = deals_count
-    cv_submitted = max(candidates_count // 2, 0)
-    cv_shortlisted = max(cv_submitted // 3, 0)
-    interview = max(cv_shortlisted // 2, 0)
-    offer = max(interview // 2, 0)
-    placed = max(offer // 2, 0)
-    cv_submitted_pct = 100 if candidates_count else 0
-    shortlist_rate = 33 if cv_submitted else 0
-    interview_rate = 50 if cv_shortlisted else 0
-    offer_rate = 50 if interview else 0
-    win_rate = 50 if offer else 0
+    # Real pipeline from deals
+    cursor.execute('SELECT COALESCE(SUM(fee_value), 0) FROM deals')
+    weighted_pipeline = cursor.fetchone()[0] or 0
+    cursor.execute('SELECT COALESCE(SUM(fee_achieved), 0) FROM deals')
+    total_fee_achieved = cursor.fetchone()[0] or 0
+    
+    # Real funnel from submissions table
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'cv_submitted'")
+    cv_submitted = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'shortlisted'")
+    cv_shortlisted = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'interview'")
+    interview = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'offer'")
+    offer = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'placed'")
+    placed = cursor.fetchone()[0]
+    
+    # Real conversion rates from submissions data
+    cv_submitted_pct = min(cv_submitted / max(candidates_count, 1) * 100, 100) if candidates_count else 0
+    shortlist_rate = min(cv_shortlisted / max(cv_submitted, 1) * 100, 100) if cv_submitted else 0
+    interview_rate = min(interview / max(cv_shortlisted, 1) * 100, 100) if cv_shortlisted else 0
+    offer_rate = min(offer / max(interview, 1) * 100, 100) if interview else 0
+    win_rate = min(placed / max(offer, 1) * 100, 100) if offer else 0
     cv_bar_pct = min(cv_submitted_pct, 100)
     shortlist_bar_pct = min(shortlist_rate, 100)
     interview_bar_pct = min(interview_rate, 100)
     offer_bar_pct = min(offer_rate, 100)
     win_bar_pct = min(win_rate, 100)
-    at_risk_clients = max(companies_count // 10, 0)
+    at_risk_clients = 0  # No data yet for at-risk calc
     
     db.close()
     return render_template('analytics.html', 
@@ -3060,19 +3071,28 @@ def recruitment_metrics():
     candidates_count = cursor.fetchone()['count']
     cursor.execute('SELECT COUNT(*) as count FROM deals')
     total_deals = cursor.fetchone()['count']
-    cursor.execute('SELECT SUM(fee_value) as total FROM deals')
-    total_fee_value = cursor.fetchone()['total'] or 0
-    cursor.execute('SELECT AVG(fee_value) as avg FROM deals')
-    avg_fee = cursor.fetchone()['avg'] or 0
-    cursor.execute('SELECT AVG(days_to_fill) as avg FROM deals')
-    avg_days = cursor.fetchone()['avg'] or 0
+    cursor.execute('SELECT COALESCE(SUM(fee_value), 0) FROM deals')
+    total_fee_value = cursor.fetchone()[0] or 0
+    cursor.execute('SELECT COALESCE(AVG(fee_value), 0) FROM deals')
+    avg_fee = cursor.fetchone()[0] or 0
+    cursor.execute('SELECT COALESCE(AVG(days_to_fill), 0) FROM deals WHERE days_to_fill IS NOT NULL')
+    avg_days = cursor.fetchone()[0] or 0
+    cursor.execute('SELECT COALESCE(SUM(fee_achieved), 0) FROM deals')
+    total_fee_achieved = cursor.fetchone()[0] or 0
     cursor.execute("SELECT stage, COUNT(*) as count FROM deals GROUP BY stage")
     by_stage = cursor.fetchall()
-    # Funnel metrics - use deals data
-    submitted = total_deals
-    interviews = max(1, total_deals // 2)
-    offers = max(1, interviews // 2)
-    placed = max(1, offers // 2)
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'cv_submitted'")
+    submitted = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'interview'")
+    interviews = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'offer'")
+    offers = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM submissions WHERE stage = 'placed'")
+    placed = cursor.fetchone()[0]
+    # Real conversion rates
+    cv_to_interview_rate = min(interviews / max(submitted, 1) * 100, 100) if submitted else 0
+    interview_to_offer_rate = min(offers / max(interviews, 1) * 100, 100) if interviews else 0
+    offer_accept_rate = min(placed / max(offers, 1) * 100, 100) if offers else 0
     db.close()
     return render_template('recruitment_metrics.html',
                           companies_count=companies_count,
@@ -3080,7 +3100,7 @@ def recruitment_metrics():
                           candidates_count=candidates_count,
                           total_deals=total_deals,
                           total_fee_value=total_fee_value,
-                          total_fee_achieved=0,
+                          total_fee_achieved=total_fee_achieved,
                           avg_fee=avg_fee,
                           avg_days=avg_days,
                           by_stage=by_stage,
@@ -3090,18 +3110,11 @@ def recruitment_metrics():
                           interviews=interviews,
                           offers=offers,
                           placed=placed,
-                          cv_to_interview_rate=50,
-                          interview_to_offer_rate=50,
-                          offer_accept_rate=50,
+                          cv_to_interview_rate=cv_to_interview_rate,
+                          interview_to_offer_rate=interview_to_offer_rate,
+                          offer_accept_rate=offer_accept_rate,
                           by_source=[],
                           recent_placements=[])
-
-def cron_jobs():
-    import os
-    jobs_path = '/home/chris/.openclaw/cron/jobs.json'
-    if os.path.exists(jobs_path):
-        return send_file(jobs_path, mimetype='application/json')
-    return '{"jobs": []}', 404
 
 # Activity tracking endpoint for Mission Control
 @app.route('/api/mc-activity')
