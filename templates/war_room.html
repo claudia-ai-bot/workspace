@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+{% block title %}War Room — SEQ CRM{% endblock %}
+{% block content %}
+<style>
+  .war-header {
+    background: linear-gradient(135deg, #0f1923 0%, #1a2d42 50%, #0f1923 100%);
+    color: white;
+    padding: 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .war-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+  .war-header * { position: relative; z-index: 1; }
+  .war-header h1 { font-size: 36px; font-weight: 800; margin-bottom: 4px; }
+  .war-header h1 span { color: var(--accent); }
+  .war-header p { color: rgba(255,255,255,0.6); font-size: 14px; }
+  
+  .countdown-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .countdown-unit {
+    text-align: center;
+    background: rgba(255,255,255,0.08);
+    padding: 16px 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    min-width: 90px;
+  }
+  .countdown-unit .num {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    font-family: 'Inter', monospace;
+  }
+  .countdown-unit .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 6px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  
+  .war-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .war-card-title {
+    background: var(--primary);
+    color: white;
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .war-card-body { padding: 20px; }
+  
+  .target-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .target-row:last-child { border-bottom: none; }
+  .target-priority {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+    color: white;
+    flex-shrink: 0;
+  }
+  .priority-hot { background: #e74c3c; }
+  .priority-warm { background: var(--accent); }
+  .priority-build { background: var(--primary); }
+  .target-info { flex: 1; }
+  .target-name { font-weight: 700; font-size: 15px; color: var(--text); }
+  .target-detail { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+  .target-action {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .action-call { background: #fee2e2; color: #991b1b; }
+  .action-visit { background: #dbeafe; color: #1e40af; }
+  .action-research { background: #fef3c7; color: #92400e; }
+  .action-network { background: #dcfce7; color: #166534; }
+  
+  .week-block {
+    padding: 16px;
+    border-radius: 10px;
+    border-left: 4px solid var(--accent);
+    background: #fafafa;
+    margin-bottom: 12px;
+  }
+  .week-block:last-child { margin-bottom: 0; }
+  .week-block h4 { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+  .week-block ul { list-style: none; padding: 0; }
+  .week-block li {
+    font-size: 13px;
+    padding: 4px 0;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .week-block li::before { content: '→'; color: var(--accent); font-weight: 700; }
+  
+  .intel-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .intel-item:last-child { border-bottom: none; }
+  .intel-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .tag-project { background: #dbeafe; color: #1e40af; }
+  .tag-hiring { background: #fee2e2; color: #991b1b; }
+  .tag-completion { background: #fef3c7; color: #92400e; }
+  .intel-text { font-size: 14px; font-weight: 600; color: var(--text); }
+  .intel-sub { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+  
+  .stat-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0 auto 12px;
+  }
+  .stat-ring .ring-value { font-size: 36px; font-weight: 800; }
+  .stat-ring .ring-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
+  
+  .pipeline-bar {
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    margin: 16px 0 8px;
+  }
+  .pipeline-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    transition: width 0.6s ease;
+  }
+  .pipeline-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-light);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  .quote-block {
+    background: linear-gradient(135deg, #1a2d42, #0f1923);
+    color: white;
+    padding: 24px 28px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.6;
+    text-align: center;
+    position: relative;
+  }
+  .quote-block::before { content: '"'; font-size: 60px; position: absolute; top: -8px; left: 16px; color: var(--accent); opacity: 0.4; }
+  .quote-author { font-style: normal; font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 12px; display: block; }
+
+  .readiness-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  .readiness-item {
+    text-align: center;
+    padding: 16px 8px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    border: 1px solid var(--border);
+  }
+  .readiness-icon { font-size: 28px; margin-bottom: 8px; }
+  .readiness-label { font-size: 11px; font-weight: 600; color: var(--text-light); }
+  .readiness-status { font-size: 20px; margin-top: 6px; }
+</style>
+
+<div class="war-header">
+  <h1>⚔️ <span>War</span> Room</h1>
+  <p>Strategic Command Center — Lead Group Construction Recruitment, Gold Coast</p>
+  <div class="countdown-row" id="countdown"></div>
+</div>
+
+<div class="quote-block">
+  Every expert was once a beginner. But not every beginner had 83 companies mapped, 61 contacts identified, and 36 projects tracked before Day 1.
+  <span class="quote-author">— Your unfair advantage starts now</span>
+</div>
+
+<!-- Readiness Check -->
+<div class="war-card" style="margin-bottom: 24px;">
+  <div class="war-card-title">🎯 Day 1 Readiness</div>
+  <div class="war-card-body">
+    <div class="readiness-grid">
+      <div class="readiness-item">
+        <div class="readiness-icon">🏢</div>
+        <div class="readiness-label">Companies Mapped</div>
+        <div class="readiness-status" style="font-weight: 800; color: var(--accent);">{{ stats.companies }}</div>
+      </div>
+      <div class="readiness-item">
+        <div class="readiness-icon">👤</div>
+        <div class="readiness-label">Decision Makers</div>
+        <div class="readiness-status" style="font-weight: 800; color: var(--accent);">{{ stats.contacts }}</div>
+      </div>
+      <div class="readiness-item">
+        <div class="readiness-icon">🏗️</div>
+        <div class="readiness-label">Projects Tracked</div>
+        <div class="readiness-status" style="font-weight: 800; color: var(--accent);">{{ stats.projects }}</div>
+      </div>
+      <div class="readiness-item">
+        <div class="readiness-icon">📰</div>
+        <div class="readiness-label">Active Leads</div>
+        <div class="readiness-status" style="font-weight: 800; color: var(--accent);">{{ stats.leads }}</div>
+      </div>
+      <div class="readiness-item">
+        <div class="readiness-icon">💼</div>
+        <div class="readiness-label">Candidates</div>
+        <div class="readiness-status" style="font-weight: 800; color: var(--accent);">{{ stats.candidates }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Priority Targets -->
+  <div class="war-card">
+    <div class="war-card-title">🎯 Priority Targets — Week 1 Calls</div>
+    <div class="war-card-body">
+      {% for t in targets %}
+      <div class="target-row">
+        <div class="target-priority {{ t.priority_class }}">{{ loop.index }}</div>
+        <div class="target-info">
+          <div class="target-name"><a href="/companies/{{ t.id }}">{{ t.name }}</a></div>
+          <div class="target-detail">{{ t.sector or '—' }} · {{ t.project_count }} project{{ 's' if t.project_count != 1 }} · {{ t.contact_count }} contact{{ 's' if t.contact_count != 1 }}</div>
+        </div>
+        <span class="target-action {{ t.action_class }}">{{ t.action }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Market Intel -->
+  <div class="war-card">
+    <div class="war-card-title">📡 Market Intelligence</div>
+    <div class="war-card-body">
+      {% for intel in market_intel %}
+      <div class="intel-item">
+        <span class="intel-tag {{ intel.tag_class }}">{{ intel.tag }}</span>
+        <div class="intel-text">{{ intel.title }}</div>
+        <div class="intel-sub">{{ intel.detail }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- 30-Day Attack Plan -->
+  <div class="war-card">
+    <div class="war-card-title">📋 30-Day Attack Plan</div>
+    <div class="war-card-body">
+      <div class="week-block" style="border-left-color: #e74c3c;">
+        <h4>🔴 Week 1 — Announce & Intel</h4>
+        <ul>
+          <li>LinkedIn launch post: "I only do construction. Gold Coast & SEQ."</li>
+          <li>Call top 10 builders — introduce yourself, learn their pain</li>
+          <li>Map hiring managers for all Tier 1 companies</li>
+          <li>Coffee meeting: 2 PMs from active GC projects</li>
+        </ul>
+      </div>
+      <div class="week-block" style="border-left-color: var(--accent);">
+        <h4>🟠 Week 2 — Relationships</h4>
+        <ul>
+          <li>Site visits: Paradiso Place, The Landmark, Como Varsity Lakes</li>
+          <li>LinkedIn content: Market intel post (project completions, hiring signals)</li>
+          <li>10 candidate headhunting conversations</li>
+          <li>Follow up all Week 1 calls with value-add intel</li>
+        </ul>
+      </div>
+      <div class="week-block" style="border-left-color: var(--warning);">
+        <h4>🟡 Week 3 — Pipeline</h4>
+        <ul>
+          <li>Target: 3 active job briefs minimum</li>
+          <li>Submit first shortlists to clients</li>
+          <li>LinkedIn: Profile tips for construction professionals</li>
+          <li>Candidate database: 30+ qualified construction professionals</li>
+        </ul>
+      </div>
+      <div class="week-block" style="border-left-color: var(--success);">
+        <h4>🟢 Week 4 — Momentum</h4>
+        <ul>
+          <li>First placement in progress (or very close)</li>
+          <li>20+ client relationships established</li>
+          <li>Known as "the GC construction recruiter" in market</li>
+          <li>Pipeline review: adjust strategy based on learnings</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline Readiness -->
+  <div>
+    <div class="war-card" style="margin-bottom: 20px;">
+      <div class="war-card-title">📊 Pipeline Readiness</div>
+      <div class="war-card-body">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 8px;">Database Coverage</div>
+          <div class="pipeline-bar">
+            <div class="pipeline-seg" style="width: {{ stats.tier1_pct }}%; background: var(--accent);">T1</div>
+            <div class="pipeline-seg" style="width: {{ stats.tier2_pct }}%; background: var(--primary);">T2</div>
+            <div class="pipeline-seg" style="width: {{ stats.tier3_pct }}%; background: #94a3b8;">T3</div>
+            <div class="pipeline-seg" style="width: {{ stats.untiered_pct }}%; background: #cbd5e1;">?</div>
+          </div>
+          <div class="pipeline-legend">
+            <div class="legend-item"><div class="legend-dot" style="background: var(--accent);"></div>Tier 1 ({{ stats.tier1 }})</div>
+            <div class="legend-item"><div class="legend-dot" style="background: var(--primary);"></div>Tier 2 ({{ stats.tier2 }})</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #94a3b8;"></div>Tier 3 ({{ stats.tier3 }})</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #cbd5e1;"></div>Untiered ({{ stats.untiered }})</div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 24px;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 12px;">Contact Quality</div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 600;">Verified contacts</span>
+            <span style="font-size: 13px; font-weight: 700; color: var(--accent);">{{ stats.verified_contacts }} / {{ stats.contacts }}</span>
+          </div>
+          <div style="height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden;">
+            <div style="height: 100%; background: var(--accent); width: {{ stats.verified_pct }}%; border-radius: 4px; transition: width 0.6s;"></div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-light); margin-top: 4px;">{{ stats.contacts - stats.verified_contacts }} contacts still need enrichment</div>
+        </div>
+        
+        <div style="margin-top: 24px;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 12px;">Sector Mix</div>
+          {% for sector in sectors %}
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="font-size: 13px; min-width: 120px; font-weight: 600;">{{ sector.name }}</span>
+            <div style="flex: 1; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden;">
+              <div style="height: 100%; background: {{ sector.color }}; width: {{ sector.pct }}%; border-radius: 4px;"></div>
+            </div>
+            <span style="font-size: 12px; color: var(--text-light); min-width: 30px; text-align: right;">{{ sector.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- 2026 Completion Alerts -->
+    <div class="war-card">
+      <div class="war-card-title" style="background: #e74c3c;">⚠️ 2026 Completions — Hiring Now</div>
+      <div class="war-card-body">
+        {% for p in completions_2026 %}
+        <div class="target-row">
+          <div class="target-info">
+            <div class="target-name">{{ p.name }}</div>
+            <div class="target-detail">{{ p.builder }} · PM: {{ p.pm or 'TBC' }}</div>
+          </div>
+          <span class="target-action action-call">Call PM</span>
+        </div>
+        {% endfor %}
+        <div style="margin-top: 12px; padding: 12px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #991b1b;">
+          💡 Projects completing in 2026 = teams winding down = candidates becoming available. These PMs know who's looking.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Countdown to May 4, 2026
+  function updateCountdown() {
+    const target = new Date('2026-05-04T08:00:00+10:00');
+    const now = new Date();
+    const diff = target - now;
+    
+    if (diff <= 0) {
+      document.getElementById('countdown').innerHTML = '<div class="countdown-unit"><div class="num" style="color: #2ecc71;">🚀</div><div class="label">You\'re Live!</div></div>';
+      return;
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    document.getElementById('countdown').innerHTML = `
+      <div class="countdown-unit"><div class="num">${days}</div><div class="label">Days</div></div>
+      <div class="countdown-unit"><div class="num">${hours}</div><div class="label">Hours</div></div>
+      <div class="countdown-unit"><div class="num">${mins}</div><div class="label">Minutes</div></div>
+      <div class="countdown-unit"><div class="num">${secs}</div><div class="label">Seconds</div></div>
+    `;
+  }
+  
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+
+{% endblock %}

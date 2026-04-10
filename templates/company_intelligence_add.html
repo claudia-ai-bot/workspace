@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Add Company Intelligence - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+input, textarea, select { background: #0d1117; border-color: #30363d; color: #e6edf3; }
+label { color: #8b949e; }
+.btn { background: #238636; border: none; color: white; }
+.btn:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+h1, h2, h3, a { color: #00d4ff; }
+
+.form-section {
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 24px; margin-bottom: 20px;
+}
+.form-section h3 { margin-bottom: 16px; color: #e6edf3; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 10px 14px; border: 1px solid #30363d; border-radius: 6px;
+  background: #0d1117; color: #e6edf3; font-family: inherit;
+}
+.form-group textarea { min-height: 100px; resize: vertical; }
+
+.help-text { font-size: 12px; color: #6e7681; margin-top: 4px; }
+</style>
+
+<div class="header">
+  <h1>➕ Add Company Intelligence</h1>
+  <p style="color: #8b949e; margin-top: 8px;">Capture what makes this company unique</p>
+</div>
+
+<form method="POST">
+  <!-- Company Selection -->
+  <div class="form-section">
+    <h3>🏢 Select Company</h3>
+    <div class="form-group">
+      <label for="company_id">Company *</label>
+      <select name="company_id" required>
+        <option value="">Select a company...</option>
+        {% for company in companies %}
+        <option value="{{ company.id }}">{{ company.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Core Attributes -->
+  <div class="form-section">
+    <h3>🎯 Core Attributes</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="project_types">Project Types</label>
+        <select name="project_types">
+          <option value="">Select...</option>
+          <option value="Residential">Residential</option>
+          <option value="Commercial">Commercial</option>
+          <option value="Civil">Civil</option>
+          <option value="Industrial">Industrial</option>
+          <option value="Residential,Commercial">Mixed (Residential + Commercial)</option>
+          <option value="Commercial,Civil">Mixed (Commercial + Civil)</option>
+          <option value="Residential,Civil">Mixed (Residential + Civil)</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="pace">Pace</label>
+        <select name="pace">
+          <option value="">Select...</option>
+          <option value="Fast-paced">Fast-paced</option>
+          <option value="Methodical">Methodical</option>
+          <option value="Varied">Varied</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="team_style">Team Style</label>
+        <select name="team_style">
+          <option value="">Select...</option>
+          <option value="Collaborative">Collaborative</option>
+          <option value="Autonomous">Autonomous</option>
+          <option value="Hierarchical">Hierarchical</option>
+          <option value="Flat">Flat</option>
+          <option value="Team-oriented">Team-oriented</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="client_relationship">Client Relationship</label>
+        <select name="client_relationship">
+          <option value="">Select...</option>
+          <option value="Hands-on">Hands-on</option>
+          <option value="Distance">Distance</option>
+          <option value="Partner">Partner</option>
+          <option value="Transactional">Transactional</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="size_profile">Size Profile</label>
+        <select name="size_profile">
+          <option value="">Select...</option>
+          <option value="Large">Large</option>
+          <option value="Corporate">Corporate</option>
+          <option value="SME">SME</option>
+          <option value="Boutique">Boutique</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="growth_culture">Growth Culture</label>
+        <select name="growth_culture">
+          <option value="">Select...</option>
+          <option value="Career-pathed flatarchy">Career-pathed flatarchy</option>
+          <option value="Promotes from within">Promotes from within</option>
+          <option value="Static">Static</option>
+          <option value="Rapid promotion">Rapid promotion</option>
+          <option value="Lateral moves encouraged">Lateral moves encouraged</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Candidate Profile -->
+  <div class="form-section">
+    <h3>👤 Ideal Candidate Profile</h3>
+    <div class="form-group">
+      <label for="ideal_candidate_profile">What type of candidate thrives here?</label>
+      <textarea name="ideal_candidate_profile" placeholder="e.g., Hands-on recruiter who thrives in fast environments, loves variety and building relationships..."></textarea>
+    </div>
+  </div>
+
+  <!-- What They Value -->
+  <div class="form-section">
+    <h3>💎 What They Value</h3>
+    <div class="form-group">
+      <label for="what_they_value">What does this company value most?</label>
+      <textarea name="what_they_value" placeholder="e.g., Speed, Quality, Relationships, Innovation..."></textarea>
+    </div>
+  </div>
+
+  <!-- Common Pitfalls -->
+  <div class="form-section" style="border-left: 3px solid #e74c3c;">
+    <h3>⚠️ Common Pitfalls</h3>
+    <div class="form-group">
+      <label for="common_pitfalls">Why do people leave? What trips candidates up?</label>
+      <textarea name="common_pitfalls" placeholder="e.g., Burnout from pace, misaligned expectations, lack of career progression..."></textarea>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="form-section">
+    <h3>📝 Notes</h3>
+    <div class="form-group">
+      <label for="notes">Any other intelligence</label>
+      <textarea name="notes" placeholder="Additional notes about the company culture, management style, etc."></textarea>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 12px; margin-top: 20px;">
+    <button type="submit" class="btn">Save Intelligence</button>
+    <a href="/company-intelligence" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Command — SEQ CRM</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;--bg4:#222236;--border:#2a2a40;--blue:#4a9eff;--green:#34d399;--yellow:#fbbf24;--red:#f87171;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--white:#fff;--purple:#a78bfa;--orange:#fb923c}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;min-height:100vh}
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:4px;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:10}
+  .sidebar .logo{font-size:1.1rem;font-weight:700;color:var(--white);padding:0 8px 16px;border-bottom:1px solid var(--border);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .sidebar a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;text-decoration:none;color:var(--text2);font-size:0.88rem;font-weight:500;transition:all .15s}
+  .sidebar a:hover{background:var(--bg3);color:var(--white)}
+  .sidebar a.active{background:var(--bg4);color:var(--blue)}
+  .main{margin-left:240px;flex:1;padding:32px}
+  .page-header{margin-bottom:28px}
+  .page-header h1{font-size:1.6rem;font-weight:700;color:var(--white);margin-bottom:6px}
+  .page-header p{color:var(--text2);font-size:0.92rem}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+  .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .stat-card .stat-label{font-size:0.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+  .stat-card .stat-value{font-size:1.8rem;font-weight:700;color:var(--white)}
+  .stat-card .stat-sub{font-size:0.8rem;color:var(--text3);margin-top:4px}
+  .thesis-box{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--border);border-left:4px solid var(--orange);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+  .thesis-box .thesis-label{font-size:0.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;font-weight:600}
+  .thesis-box .thesis-text{font-size:1.05rem;color:var(--white);font-weight:600;line-height:1.5;font-style:italic}
+  .angles{margin-bottom:28px}
+  .angle-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+  .angle-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s}
+  .angle-header:hover{background:var(--bg3)}
+  .angle-header h3{font-size:1rem;font-weight:600;color:var(--white);display:flex;align-items:center;gap:10px}
+  .angle-header h3 .angle-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;font-size:0.82rem;font-weight:700}
+  .angle-header h3 .angle-num.blue{background:rgba(74,158,255,0.15);color:var(--blue)}
+  .angle-header h3 .angle-num.red{background:rgba(248,113,113,0.15);color:var(--red)}
+  .angle-header h3 .angle-num.green{background:rgba(52,211,153,0.15);color:var(--green)}
+  .angle-header h3 .angle-num.yellow{background:rgba(251,191,36,0.15);color:var(--yellow)}
+  .angle-header h3 .angle-num.purple{background:rgba(167,139,250,0.15);color:var(--purple)}
+  .angle-header .angle-progress{font-size:0.8rem;color:var(--text3)}
+  .angle-posts{padding:0 20px 16px}
+  .topic-row{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:10px 12px;border-radius:8px;margin-top:4px;background:var(--bg3);font-size:0.88rem}
+  .topic-row:hover{background:var(--bg4)}
+  .topic-name{color:var(--text);font-weight:500}
+  .topic-status{display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:600;padding:4px 10px;border-radius:20px}
+  .topic-status.status-written{background:rgba(52,211,153,0.12);color:var(--green)}
+  .topic-status.status-posted{background:rgba(74,158,255,0.12);color:var(--blue)}
+  .topic-status.status-pending{background:rgba(251,191,36,0.12);color:var(--yellow)}
+  .topic-date{color:var(--text3);font-size:0.78rem}
+  .schedule-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:28px}
+  .schedule-box h3{font-size:1rem;font-weight:600;color:var(--white);margin-bottom:16px}
+  .schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .schedule-day{background:var(--bg3);border-radius:8px;padding:14px 12px;text-align:center;min-width:100px}
+  .schedule-day .day-name{font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px}
+  .schedule-day .day-task{font-size:0.82rem;color:var(--text2);line-height:1.4}
+  .schedule-day .day-time{font-size:0.72rem;color:var(--text3);margin-top:6px;font-weight:500}
+  .add-btn{background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:10px 12px;text-align:center;cursor:pointer;color:var(--text3);font-size:0.82rem;margin-top:8px;transition:all .15s}
+  .add-btn:hover{background:var(--bg4);color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="logo">🦄 SEQ CRM</div>
+    <a href="/today">📊 Today</a>
+    <a href="/war-room">⚔️ War Room</a>
+    <a href="/pipeline-command">🎯 Pipeline Command</a>
+    <a href="/network-radar">🎯 Network Radar</a>
+    <a href="/content-command" class="active">📝 Content Command</a>
+    <a href="/the-vault">🔐 The Vault</a>
+    <a href="/pre-launch">🚀 Pre-Launch</a>
+    <a href="/call-campaign">📞 Call Campaign</a>
+    <a href="/revenue-modeler">💰 Revenue Modeler</a>
+    <a href="/outreach">💌 Outreach Command</a>
+    <a href="/lead-command">📈 Lead Intelligence</a>
+    <a href="/call-summariser">📞 Call Summariser</a>
+  </nav>
+
+  <div class="main">
+    <div class="page-header">
+      <h1>📝 Content Command</h1>
+      <p>Your content system — one core idea expanded across every angle until they know your name.</p>
+    </div>
+
+    <div class="thesis-box">
+      <div class="thesis-label">Core Thesis</div>
+      <div class="thesis-text">"Gold Coast construction companies are losing $500K per year on bad hires — and every recruiter is using the same broken playbook."</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Topics</div>
+        <div class="stat-value">30</div>
+        <div class="stat-sub">5 angles × 6 pieces</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Written</div>
+        <div class="stat-value" id="writtenCount">0</div>
+        <div class="stat-sub">drafts ready to publish</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Posted</div>
+        <div class="stat-value" id="postedCount">0</div>
+        <div class="stat-sub">live on LinkedIn</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Current Phase</div>
+        <div class="stat-value" id="phase">Pre-launch</div>
+        <div class="stat-sub" id="phaseTarget">Target: 500 followers, 2-3 inbound DMs</div>
+      </div>
+    </div>
+
+    <div class="angles" id="anglesContainer">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="schedule-box">
+      <h3>📅 Weekly Content Schedule (90 min/week)</h3>
+      <div class="schedule-grid">
+        <div class="schedule-day">
+          <div class="day-name">Monday</div>
+          <div class="day-task">Write + post LinkedIn</div>
+          <div class="day-time">30 min</div>
+        </div>
+        <div class="schedule-day">
+          <div class="day-name">Tuesday</div>
+          <div class="day-task">Repurpose to X, IG, Threads</div>
+          <div class="day-time">15 min</div>
+        </div>
+        <div class="schedule-day">
+          <div class="day-name">Wednesday</div>
+          <div class="day-task">Write + post LinkedIn #2</div>
+          <div class="day-time">30 min</div>
+        </div>
+        <div class="schedule-day">
+          <div class="day-name">Thursday</div>
+          <div class="day-task">Repurpose to X, IG, Threads</div>
+          <div class="day-time">15 min</div>
+        </div>
+        <div class="schedule-day">
+          <div class="day-name">Friday</div>
+          <div class="day-task">Engage — 10 comments on construction/developer posts</div>
+          <div class="day-time">15 min</div>
+        </div>
+        <div class="schedule-day">
+          <div class="day-name">Saturday</div>
+          <div class="day-task">Weekly newsletter</div>
+          <div class="day-time">5 min</div>
+        </div>
+        <div class="schedule-day">
+          <div class="day-name">Sunday</div>
+          <div class="day-task">Rest</div>
+          <div class="day-time">0 min</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="schedule-box" style="margin-bottom:80px">
+      <h3>📊 Authority Building Arc</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px">
+        <div style="background:var(--bg3);padding:16px;border-radius:8px">
+          <div style="font-weight:600;color:var(--orange);margin-bottom:4px">Month 1 — May</div>
+          <div style="font-style:italic;color:var(--text2);font-size:0.85rem;margin-bottom:6px">"Who is this guy?"</div>
+          <div style="font-size:0.78rem;color:var(--text3)">500 followers, 2-3 inbound DMs</div>
+        </div>
+        <div style="background:var(--bg3);padding:16px;border-radius:8px">
+          <div style="font-weight:600;color:var(--blue);margin-bottom:4px">Month 2 — June</div>
+          <div style="font-style:italic;color:var(--text2);font-size:0.85rem;margin-bottom:6px">"He actually knows something"</div>
+          <div style="font-size:0.78rem;color:var(--text3)">1,000 followers, 1-2 warm conversations</div>
+        </div>
+        <div style="background:var(--bg3);padding:16px;border-radius:8px">
+          <div style="font-weight:600;color:var(--green);margin-bottom:4px">Month 3 — July</div>
+          <div style="font-style:italic;color:var(--text2);font-size:0.85rem;margin-bottom:6px">"We should work with Chris"</div>
+          <div style="font-size:0.78rem;color:var(--text3)">First content-driven placement</div>
+        </div>
+        <div style="background:var(--bg3);padding:16px;border-radius:8px">
+          <div style="font-weight:600;color:var(--purple);margin-bottom:4px">Month 4+</div>
+          <div style="font-style:italic;color:var(--text2);font-size:0.85rem;margin-bottom:6px">"Chris is the guy"</div>
+          <div style="font-size:0.78rem;color:var(--text3)">300+ companies, 500+ contacts in CRM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ANGLES = [
+  {
+    name: "The Problem",
+    desc: "Gold Coast is bleeding talent",
+    numClass: "red",
+    topics: [
+      "Why Gold Coast builders can't find anyone",
+      "The $500K mistake every construction company makes",
+      "3 signs your next hire is going to walk",
+      "SEQ construction boom but your site is understaffed — here's why",
+      "JobPost, ghosting interviews, $40k wasted",
+      "The candidate shortage isn't real. Your process is."
+    ]
+  },
+  {
+    name: "The Old Playbook",
+    desc: "Why recruiters fail",
+    numClass: "orange",
+    topics: [
+      "Your recruiter sends 50 resumes. None of them work.",
+      "The recruiter's secret: they don't know construction. They know LinkedIn.",
+      "Why 90% of construction recruiters are just job board reposters",
+      "The 'we'll find you someone' lie",
+      "LinkedIn recruiting is broken for builders",
+      "When a recruiter who doesn't know crutches calls your site foreman"
+    ]
+  },
+  {
+    name: "The System",
+    desc: "What you do differently",
+    numClass: "blue",
+    topics: [
+      "How I built a database of 170 Gold Coast construction companies",
+      "AI meets recruitment: tracking every builder, PM, and estimator in SEQ",
+      "My CRM knows which projects are hiring before LinkedIn does",
+      "Why I spend 60% of my time researching, not calling",
+      "The talent radar: how I spot a great candidate before they're looking",
+      "81/19 split means I'm hungry — here's what that means for you"
+    ]
+  },
+  {
+    name: "Proof & Results",
+    desc: "Case studies and observations",
+    numClass: "green",
+    topics: [
+      "3 signs a construction recruiter actually knows stuff",
+      "The best placement I ever made (and how I found him)",
+      "15 years watching people hire (and fire) — lessons learned",
+      "Red flags in a construction job interview",
+      "The one question that tells me if a candidate will last",
+      "What separates a 10-year PM from a 2-year disaster"
+    ]
+  },
+  {
+    name: "Lifestyle & Personality",
+    desc: "You're not a corporate dinosaur",
+    numClass: "purple",
+    topics: [
+      "Recruiter, runner, caravan. My morning routine on the Gold Coast",
+      "Why I chose Gold Coast construction over Sydney finance",
+      "The recruiter who actually goes to the pub with the candidates",
+      "Building a life that doesn't need retirement",
+      "What my LandCruiser says about my recruiting style",
+      "My partner asked if I actually enjoy my job. Here's what I said."
+    ]
+  }
+];
+
+function loadContent() {
+  const saved = localStorage.getItem('content_command_progress');
+  return saved ? JSON.parse(saved) : {};
+}
+
+function saveContent(data) {
+  localStorage.setItem('content_command_progress', JSON.stringify(data));
+}
+
+function renderAngles() {
+  const progress = loadContent();
+  const container = document.getElementById('anglesContainer');
+  let writtenTotal = 0;
+  let postedTotal = 0;
+
+  let html = '';
+  ANGLES.forEach((angle, angleIdx) => {
+    const angleKey = `angle_${angleIdx}`;
+    const angleProgress = angle.topics.map((_, ti) => {
+      const key = `${angleKey}_${ti}`;
+      return progress[key] || 'pending';
+    });
+    const angleWritten = angleProgress.filter(s => s === 'written' || s === 'posted').length;
+    const anglePosted = angleProgress.filter(s => s === 'posted').length;
+    writtenTotal += angleWritten;
+    postedTotal += anglePosted;
+
+    html += `<div class="angle-section">
+      <div class="angle-header">
+        <h3><span class="angle-num ${angle.numClass}">${angleIdx + 1}</span> ${angle.name} <span style="color:var(--text3);font-weight:400;font-size:0.82rem;margin-left:8px">${angle.desc}</span></h3>
+        <div class="angle-progress">${angleWritten}/6 topics ${anglePosted > 0 ? `• ${anglePosted} posted` : ''}</div>
+      </div>
+      <div class="angle-posts">`;
+
+    angle.topics.forEach((topic, ti) => {
+      const key = `${angleKey}_${ti}`;
+      const status = progress[key] || 'pending';
+      const statusLabel = status === 'posted' ? '✅ Posted' : status === 'written' ? '📝 Written' : '⏳ Pending';
+      const statusClass = status === 'posted' ? 'status-posted' : status === 'written' ? 'status-written' : 'status-pending';
+
+      html += `<div class="topic-row">
+        <div class="topic-name">${topic}</div>
+        <span class="topic-status ${statusClass}">${statusLabel}</span>
+        <div class="topic-date" style="min-width:120px">${progress[key + '_date'] || '—'}</div>
+        <div style="display:flex;gap:6px">
+          <button onclick="setStatus('${key}','written')" style="background:transparent;border:1px solid var(--green);color:var(--green);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.72rem;font-weight:600">✍ Write</button>
+          <button onclick="setStatus('${key}','posted')" style="background:transparent;border:1px solid var(--blue);color:var(--blue);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.72rem;font-weight:600">📤 Post</button>
+        </div>
+      </div>`;
+    });
+
+    html += `<div class="add-btn" onclick="askAI(${angleIdx})">+ Ask AI to draft this angle →</div></div></div>`;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('writtenCount').textContent = writtenTotal;
+  document.getElementById('postedCount').textContent = postedTotal;
+
+  if (writtenTotal > 4 && postedTotal > 2) {
+    document.getElementById('phase').textContent = 'Pre-launch';
+    document.getElementById('phaseTarget').textContent = 'Target: 400 followers, 2 inbound DMs';
+  }
+}
+
+function setStatus(key, status) {
+  const progress = loadContent();
+  progress[key] = status;
+  const today = new Date().toLocaleDateString('en-AU', {day:'2-digit',month:'short',year:'numeric'});
+  progress[key + '_date'] = today;
+  saveContent(progress);
+  renderAngles();
+}
+
+function askAI(angleIdx) {
+  const firstPending = ANGLES[angleIdx].topics.findIndex((_, ti) => {
+    const progress = loadContent();
+    return !progress[`angle_${angleIdx}_${ti}`] || progress[`angle_${angleIdx}_${ti}`] === 'pending';
+  });
+  if (firstPending === -1) {
+    alert('All topics in this angle are done!');
+    return;
+  }
+  const topic = ANGLES[angleIdx].topics[firstPending];
+  const msg = `Draft a LinkedIn post on this topic: "${topic}"\n\nCore thesis: Gold Coast construction companies are losing $500K/year on bad hires — and every recruiter is using the same broken playbook.\n\nRules:\n- 200-400 words\n- First sentence must make builders/PMs stop scrolling\n- No corporate fluff\n- End with a question or observation, not a CTA`;
+  
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(msg);
+    alert('Prompt copied! Paste it in your AI assistant to generate this post.\n\nTopic: ' + topic);
+  } else {
+    alert('Ask AI to draft: ' + topic);
+  }
+}
+
+renderAngles();
+</script>
+</body>
+</html>

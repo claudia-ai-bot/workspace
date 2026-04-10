@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Weekly Reviews - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📝 Weekly Reviews</h1>
+  <button class="btn" onclick="showAddForm()">+ Add Review</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Week</th>
+      <th>Wins</th>
+      <th>Losses</th>
+      <th>New Intel</th>
+      <th>Contacts Added</th>
+      <th>Conversations</th>
+      <th>Candidates</th>
+      <th>Deals</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in reviews %}
+    <tr>
+      <td>{{ r.week_start[:10] if r.week_start else '-' }} - {{ r.week_end[:10] if r.week_end else '-' }}</td>
+      <td>{{ r.wins or 0 }}</td>
+      <td>{{ r.losses or 0 }}</td>
+      <td>{{ r.new_intel or 0 }}</td>
+      <td>{{ r.contacts_added or 0 }}</td>
+      <td>{{ r.conversations or 0 }}</td>
+      <td>{{ r.candidates or 0 }}</td>
+      <td>{{ r.deals or 0 }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not reviews %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">No weekly reviews yet.</p>
+{% endif %}
+
+{% endblock %}

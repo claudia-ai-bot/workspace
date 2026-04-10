@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📞 Call Campaign Command Center — Elevate Talent</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-hover: #1a1a25;
+            --accent: #00d4aa;
+            --accent-dim: #00d4aa33;
+            --warning: #ff6b35;
+            --text: #e4e4e7;
+            --text-dim: #71717a;
+            --border: #27272a;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        h1 { 
+            font-size: 2em; 
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--accent), #00a8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle { color: var(--text-dim); font-size: 1.1em; }
+        
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-value { font-size: 2.5em; font-weight: 700; color: var(--accent); }
+        .stat-label { color: var(--text-dim); font-size: 0.9em; margin-top: 5px; }
+        
+        .section-title {
+            font-size: 1.3em;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .lead-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .lead-card:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+        
+        .lead-card.completed {
+            opacity: 0.5;
+            border-color: var(--accent-dim);
+        }
+        
+        .lead-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .lead-name { font-size: 1.2em; font-weight: 600; }
+        .lead-company { color: var(--accent); margin-top: 5px; }
+        
+        .score-badge {
+            background: var(--accent);
+            color: var(--bg-dark);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9em;
+        }
+        
+        .score-badge.high { background: #00d4aa; }
+        .score-badge.med { background: #ff9f43; }
+        
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .contact-item {
+            background: var(--bg-hover);
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .contact-item .icon { font-size: 1.2em; }
+        .contact-item .label { color: var(--text-dim); font-size: 0.8em; }
+        .contact-item .value { font-weight: 500; }
+        
+        .intel-box {
+            background: var(--bg-hover);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .intel-label { 
+            color: var(--accent); 
+            font-size: 0.8em; 
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .script-box {
+            background: var(--bg-hover);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 3px solid #ff9f43;
+        }
+        
+        .script-label {
+            color: #ff9f43;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .script-text {
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        
+        .warm-intro {
+            background: linear-gradient(135deg, var(--accent-dim), #00a8ff22);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid var(--accent-dim);
+        }
+        
+        .warm-intro-label {
+            color: var(--accent);
+            font-size: 0.8em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .checkbox-container input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+        
+        .checkbox-container label {
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-dark);
+        }
+        
+        .btn-primary:hover { opacity: 0.85; }
+        
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .needs-research {
+            background: linear-gradient(135deg, #ff6b3522, #ff9f4322);
+            border-color: var(--warning);
+        }
+        
+        .needs-research .intel-box {
+            border-left-color: var(--warning);
+        }
+        
+        .research-note {
+            color: var(--warning);
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+        
+        .motivation {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-hover));
+            border: 1px solid var(--accent-dim);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .motivation h2 { 
+            color: var(--accent);
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+        
+        .motivation p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: var(--text);
+        }
+        
+        .countdown {
+            font-size: 0.9em;
+            color: var(--text-dim);
+            margin-top: 15px;
+        }
+        
+        .countdown span { color: var(--accent); font-weight: 600; }
+        
+        .progress-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            height: 30px;
+            background: var(--bg-hover);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #00a8ff);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--bg-dark);
+        }
+        
+        @media (max-width: 768px) {
+            .lead-header { flex-direction: column; gap: 10px; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .contact-info { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📞 Call Campaign Command Center</h1>
+            <p class="subtitle">Elevate Talent — SEQ Construction Recruitment</p>
+        </header>
+        
+        <div class="motivation">
+            <h2>🎯 Today's Mission</h2>
+            <p>35 days until Day 1 at Lead Group. You've got <strong>16 hot leads</strong> with scores 50+. 
+            <strong>6 are ready to contact NOW</strong> with emails in hand. Time to build relationships.</p>
+            <div class="countdown">May 4, 2026 — <span id="days-left">35</span> days to go</div>
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-header">
+                <span>Campaign Progress</span>
+                <span id="progress-text">0 / 16 contacted</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
+            </div>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="total-leads">16</div>
+                <div class="stat-label">Hot Leads</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="ready-now">6</div>
+                <div class="stat-label">Ready to Contact</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="need-research">10</div>
+                <div class="stat-label">Need Research</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-score">74</div>
+                <div class="stat-label">Avg Score %</div>
+            </div>
+        </div>
+        
+        <!-- READY TO CONTACT NOW -->
+        <h3 class="section-title">✅ Ready to Contact NOW</h3>
+        
+        <div id="ready-leads"></div>
+        
+        <!-- NEEDS RESEARCH -->
+        <h3 class="section-title">🔍 Needs Phone/Email Research</h3>
+        
+        <div id="research-leads"></div>
+        
+        <!-- EMAIL TEMPLATE -->
+        <h3 class="section-title">📧 Quick Email Template</h3>
+        
+        <div class="intel-box" style="border-left-color: #00a8ff;">
+            <div class="intel-label" style="color: #00a8ff;">Cold Outreach — Initial Contact</div>
+            <div class="script-text">
+                <strong>Subject:</strong> [Company Name] + SEQ Project Opportunity<br><br>
+                Hi [First Name],<br><br>
+                I noticed [Company] is [active on Project X / hiring for Role Y] — exactly the kind of connection I make as a recruiter focused on SEQ construction.<br><br>
+                I'm Chris — I help construction companies build teams that deliver. Whether you're hiring now or watching the market, a 10-minute call won't cost you anything.<br><br>
+                Worth a quick chat this week?<br><br>
+                Cheers,<br>
+                Chris<br>
+                <em>Principal Consultant | Elevate Talent<br>
+                M: [Your Mobile] | SEQ + Gold Coast specialist</em>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Lead data — 6 ready to contact
+        const readyLeads = [
+            {
+                score: 90,
+                company: "UGL Group",
+                sector: "Civil Infrastructure",
+                location: "Gold Coast",
+                name: "Michael Bland",
+                title: "Construction Director",
+                email: "info@uglgroup.com",
+                intel: "Active recruiter on Adzuna for Gold Coast Project Director",
+                script: "Hi Michael, I'm Chris with Elevate Talent. I saw UGL Group is building out the Gold Coast team — I specialize in SEQ construction recruitment and wanted to introduce myself. Do you have 5 minutes for a quick chat about your hiring needs?"
+            },
+            {
+                score: 85,
+                company: "AECOM",
+                sector: "Civil Infrastructure",
+                location: "Gold Coast",
+                name: "Ben McHugh",
+                title: "Program Director",
+                email: "ben.mchugh@aecom.com",
+                intel: "Adzuna listing for Gold Coast Construction Manager",
+                script: "Hi Ben, Chris here from Elevate Talent. I noticed AECOM is hiring for Gold Coast projects — I'm a SEQ construction specialist recruiter. Mind if I ping you for a quick chat about your hiring pipeline?"
+            },
+            {
+                score: 85,
+                company: "Alder Group",
+                sector: "Civil Infrastructure",
+                location: "Gold Coast",
+                name: "Nathanael Edwards",
+                title: "Senior Project Manager",
+                email: "vgrad@aldergroup.com",
+                intel: "Adzuna listing for Gold Coast Project Manager role",
+                script: "Hi Nathanael, Chris from Elevate Talent here. I saw Alder Group is growing — I work with construction companies across SEQ. Do you have 5 minutes to discuss your team needs?"
+            },
+            {
+                score: 77,
+                company: "Stantec",
+                sector: "Civil Infrastructure",
+                location: "Carrara",
+                name: "Carol Young",
+                title: "Director of Client Programs",
+                email: "carol.young@stantec.com",
+                intel: "Actively hiring: Project Manager in Carrara",
+                script: "Hi Carol, Chris with Elevate Talent. Stantec's Carrara Project Manager role caught my eye — I specialize in matching construction talent with SEQ companies. Can we connect for a quick chat?"
+            },
+            {
+                score: 72,
+                company: "Veolia",
+                sector: "Industrial",
+                location: "Gold Coast",
+                name: "Terry Casey",
+                title: "Procurement & Contracts Manager",
+                email: "rebecca.lee@veolia.com",
+                intel: "Gold Coast Contract Manager position active on Adzuna",
+                script: "Hi Terry/Rebecca, Chris from Elevate Talent. I see Veolia is growing the Gold Coast team — I'm a SEQ construction recruiter looking to connect. Worth a 10-minute call?"
+            },
+            {
+                score: 65,
+                company: "Fulton Hogan",
+                sector: "Construction",
+                location: "Ormeau",
+                name: "Cherie Leckner",
+                title: "Director of Construction",
+                email: "cherie.leckner@fultonhogan.com",
+                intel: "Ormeau Senior Project Manager listing on Adzuna",
+                script: "Hi Cherie, Chris here from Elevate Talent. Fulton Hogan's Ormeau project caught my attention — I specialize in construction recruitment across SEQ. Mind if I give you a quick call?"
+            }
+        ];
+        
+        // Leads needing research
+        const researchLeads = [
+            { score: 88, company: "Golding Contractors", sector: "Civil Infrastructure", location: "Gold Coast", name: "Marcel van Huyssteen", title: "Senior Manager, Commercial & Procurement", intel: "Gold Coast Commercial Manager — need email/phone" },
+            { score: 85, company: "Abergeldie Complex Infrastructure", sector: "Civil Infrastructure", location: "Gold Coast", name: "Scott Fellowes", title: "Business Development Manager - QLD", intel: "2 roles: Project Manager + Senior Project Manager (Gold Coast)" },
+            { score: 60, company: "Lendlease", sector: "Construction", location: "Brisbane", name: "Matt Eastman", title: "GM Construction - QLD/NT", intel: "Multiple roles via Workday careers portal" },
+            { score: 58, company: "Harrison Development Group", sector: "Construction", location: "SEQ", name: "Stephen Harrison", title: "Director", intel: "Multiple project manager roles on Harper Harrison careers page" }
+        ];
+        
+        // Track completed leads in localStorage
+        let completed = JSON.parse(localStorage.getItem('callCampaign_completed') || '[]');
+        
+        function renderLeads() {
+            // Render ready leads
+            const readyContainer = document.getElementById('ready-leads');
+            readyContainer.innerHTML = readyLeads.map((lead, i) => `
+                <div class="lead-card ${completed.includes('ready-' + i) ? 'completed' : ''}" id="lead-ready-${i}">
+                    <div class="lead-header">
+                        <div>
+                            <div class="lead-name">${lead.name}</div>
+                            <div class="lead-company">${lead.company} — ${lead.title}</div>
+                        </div>
+                        <div class="score-badge ${lead.score >= 80 ? 'high' : 'med'}">${lead.score}%</div>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span class="icon">📧</span>
+                            <div>
+                                <div class="label">EMAIL</div>
+                                <div class="value">${lead.email}</div>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">📍</span>
+                            <div>
+                                <div class="label">LOCATION</div>
+                                <div class="value">${lead.location}</div>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">🏗️</span>
+                            <div>
+                                <div class="label">SECTOR</div>
+                                <div class="value">${lead.sector}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="intel-box">
+                        <div class="intel-label">Intel</div>
+                        <div>${lead.intel}</div>
+                    </div>
+                    
+                    <div class="script-box">
+                        <div class="script-label">📞 Call Script</div>
+                        <div class="script-text">"${lead.script}"</div>
+                    </div>
+                    
+                    <div class="warm-intro">
+                        <div class="warm-intro-label">💡 Opening Line for Email</div>
+                        <div class="script-text">
+                            I noticed ${lead.company} is ${lead.intel.toLowerCase()} — exactly the kind of connection I make as a recruiter focused on SEQ construction.
+                        </div>
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="check-ready-${i}" ${completed.includes('ready-' + i) ? 'checked' : ''} onchange="toggleComplete('ready', ${i})">
+                        <label for="check-ready-${i}">Mark as contacted</label>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="window.open('mailto:${lead.email}?subject=${encodeURIComponent(lead.company + ' + SEQ Project Opportunity')}&body=${encodeURIComponent('Hi ' + lead.name.split(' ')[0] + ',\n\nI noticed ' + lead.company + ' is ' + lead.intel.toLowerCase() + ' — exactly the kind of connection I make as a recruiter focused on SEQ construction.\n\nI\'m Chris — I help construction companies build teams that deliver. Whether you\'re hiring now or watching the market, a 10-minute call won\'t cost you anything.\n\nWorth a quick chat this week?\n\nCheers,\nChris\n\nPrincipal Consultant | Elevate Talent\nSEQ + Gold Coast specialist')}', '_blank')">📧 Send Email</button>
+                        <button class="btn btn-secondary" onclick="copyScript(${i}, 'ready')">📋 Copy Script</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Render research leads
+            const researchContainer = document.getElementById('research-leads');
+            researchContainer.innerHTML = researchLeads.map((lead, i) => `
+                <div class="lead-card needs-research ${completed.includes('research-' + i) ? 'completed' : ''}" id="lead-research-${i}">
+                    <div class="lead-header">
+                        <div>
+                            <div class="lead-name">${lead.name}</div>
+                            <div class="lead-company">${lead.company} — ${lead.title}</div>
+                        </div>
+                        <div class="score-badge">${lead.score}%</div>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span class="icon">📍</span>
+                            <div>
+                                <div class="label">LOCATION</div>
+                                <div class="value">${lead.location}</div>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">🏗️</span>
+                            <div>
+                                <div class="label">SECTOR</div>
+                                <div class="value">${lead.sector}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="intel-box">
+                        <div class="intel-label" style="color: var(--warning);">Intel</div>
+                        <div>${lead.intel}</div>
+                        <div class="research-note">🔍 Need to find contact details via LinkedIn or company website</div>
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="check-research-${i}" ${completed.includes('research-' + i) ? 'checked' : ''} onchange="toggleComplete('research', ${i})">
+                        <label for="check-research-${i}">Mark as researched</label>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="window.open('https://www.linkedin.com/search/results/people/?keywords=' + encodeURIComponent('${lead.name} ${lead.company}'), '_blank')">🔍 LinkedIn Search</button>
+                        <button class="btn btn-secondary" onclick="window.open('https://www.google.com/search?q=' + encodeURIComponent('${lead.name} ${lead.company} ${lead.title} contact email'), '_blank')">🔍 Google Research</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            updateProgress();
+        }
+        
+        function toggleComplete(type, index) {
+            const key = type + '-' + index;
+            if (completed.includes(key)) {
+                completed = completed.filter(k => k !== key);
+            } else {
+                completed.push(key);
+            }
+            localStorage.setItem('callCampaign_completed', JSON.stringify(completed));
+            
+            const card = document.getElementById('lead-' + type + '-' + index);
+            if (completed.includes(key)) {
+                card.classList.add('completed');
+            } else {
+                card.classList.remove('completed');
+            }
+            
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const total = readyLeads.length + researchLeads.length;
+            const done = completed.length;
+            const pct = Math.round((done / total) * 100);
+            document.getElementById('progress-fill').style.width = pct + '%';
+            document.getElementById('progress-fill').textContent = pct + '%';
+            document.getElementById('progress-text').textContent = done + ' / ' + total + ' completed';
+        }
+        
+        function copyScript(index, type) {
+            const leads = type === 'ready' ? readyLeads : researchLeads;
+            const lead = leads[index];
+            navigator.clipboard.writeText(lead.script || lead.intel);
+        }
+        
+        // Days until May 4, 2026
+        const may4 = new Date('2026-05-04');
+        const today = new Date();
+        const days = Math.ceil((may4 - today) / (1000 * 60 * 60 * 24));
+        document.getElementById('days-left').textContent = days;
+        
+        renderLeads();
+    </script>
+</body>
+</html>

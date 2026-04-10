@@ -1,0 +1,161 @@
+{
+  "companies": [
+    {
+      "id": "gc-001",
+      "name": "Goldspan Group",
+      "location": "Surfers Paradise",
+      "sector": "Residential/Mixed-use",
+      "website": "goldspan.com.au",
+      "key_contacts": [
+        {
+          "name": "David Mitchell",
+          "role": "Development Director",
+          "title": "Senior",
+          "linkedin": "linkedin.com/in/davidmitchell-gc",
+          "email": "d.mitchell@goldspan.com.au",
+          "phone": "+61 7 5550 1234"
+        },
+        {
+          "name": "Sarah Chen",
+          "role": "Project Manager",
+          "title": "Senior PM",
+          "linkedin": "linkedin.com/in/sarahchen-pm",
+          "email": "s.chen@goldspan.com.au",
+          "phone": "+61 7 5550 1235"
+        }
+      ],
+      "current_projects": [
+        "Surfers Paradise Towers (155 units, $85M)"
+      ],
+      "pipeline_projects": [
+        "Broadbeach Commercial Hub (Stage 2, $120M)"
+      ],
+      "hiring_needs": "Senior Estimator, Safety Director, Engineering Lead",
+      "last_contact": "2026-02-15",
+      "status": "cold",
+      "notes": "Major GC developer, consistent pipeline. CEO is Michael Ford (worth researching)."
+    },
+    {
+      "id": "gc-002",
+      "name": "Helix Construction",
+      "location": "Robina",
+      "sector": "Commercial/Industrial",
+      "website": "helixconstruction.com.au",
+      "key_contacts": [
+        {
+          "name": "James Morrison",
+          "role": "Operations Manager",
+          "title": "Senior",
+          "linkedin": "linkedin.com/in/jmorrison-construction",
+          "email": "j.morrison@helix.com.au",
+          "phone": "+61 7 5575 2345"
+        }
+      ],
+      "current_projects": [
+        "Robina Industrial Park Expansion (12,000 sqm, $45M)"
+      ],
+      "pipeline_projects": [
+        "M1 Corridor Logistics Hub (TBA)"
+      ],
+      "hiring_needs": "Senior PM, Estimator, Safety Manager",
+      "last_contact": "2026-01-30",
+      "status": "cold",
+      "notes": "Strong commercial track record. James is approachable via LinkedIn."
+    },
+    {
+      "id": "gc-003",
+      "name": "Broadwater Developers",
+      "location": "Main Beach",
+      "sector": "Luxury Residential",
+      "website": "broadwaterdev.com.au",
+      "key_contacts": [
+        {
+          "name": "Patricia Grant",
+          "role": "Project Director",
+          "title": "Director",
+          "linkedin": "linkedin.com/in/pgrant-director",
+          "email": "p.grant@broadwater.com.au",
+          "phone": "+61 7 5591 3456"
+        },
+        {
+          "name": "Tom Richards",
+          "role": "Senior Estimator",
+          "title": "Senior",
+          "linkedin": "linkedin.com/in/trichards-estimator",
+          "email": "t.richards@broadwater.com.au",
+          "phone": "+61 7 5591 3457"
+        }
+      ],
+      "current_projects": [
+        "The Pinnacle Main Beach (48 luxury apartments, $95M)"
+      ],
+      "pipeline_projects": [
+        "Southport Waterfront Redevelopment (approval expected Q2)"
+      ],
+      "hiring_needs": "HR Manager (luxury projects experience), Safety Director, Planning Engineer",
+      "last_contact": "2026-03-02",
+      "status": "warm",
+      "notes": "Patricia very responsive. Southport project = major hiring phase coming (Q2-Q3)."
+    },
+    {
+      "id": "gc-004",
+      "name": "Apex Engineering & Contracting",
+      "location": "Nerang",
+      "sector": "Heavy/Civil",
+      "website": "apexengineering.com.au",
+      "key_contacts": [
+        {
+          "name": "Robert Carlisle",
+          "role": "Chief Operations Officer",
+          "title": "COO",
+          "linkedin": "linkedin.com/in/rcarlisle-coo",
+          "email": "r.carlisle@apexeng.com.au",
+          "phone": "+61 7 5527 4567"
+        }
+      ],
+      "current_projects": [
+        "Nerang River Bridge Upgrade ($180M, govt contract)"
+      ],
+      "pipeline_projects": [
+        "M1 Widening - Stage 3 (tendering)"
+      ],
+      "hiring_needs": "Senior Project Manager (civil), Safety Manager, Engineering Manager",
+      "last_contact": "2026-02-28",
+      "status": "cold",
+      "notes": "Government contracts. Robert harder to reach but worth the effort. High-value hires."
+    },
+    {
+      "id": "gc-005",
+      "name": "Meridian Property Group",
+      "location": "Southport",
+      "sector": "Mixed-use/Hospitality",
+      "website": "meridianproperty.com.au",
+      "key_contacts": [
+        {
+          "name": "Lisa Wong",
+          "role": "Development Manager",
+          "title": "Senior",
+          "linkedin": "linkedin.com/in/lwong-development",
+          "email": "l.wong@meridian.com.au",
+          "phone": "+61 7 5550 5678"
+        }
+      ],
+      "current_projects": [
+        "Southport Central Plaza (hotel + retail, $200M)"
+      ],
+      "pipeline_projects": [
+        "Broadbeach Entertainment Precinct (planning stage)"
+      ],
+      "hiring_needs": "Senior Estimator, Planning Director, Safety Director, HR Manager",
+      "last_contact": "2026-01-15",
+      "status": "cold",
+      "notes": "Major developer. Southport Central = months away from approved (green light soon). Lisa is contact point."
+    }
+  ],
+  "metadata": {
+    "created": "2026-03-10",
+    "total": 5,
+    "region": "Gold Coast",
+    "status": "sample_data"
+  }
+}

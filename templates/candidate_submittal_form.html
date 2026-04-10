@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Submittal - {{ candidate.name }} - SEQ CRM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { color: #1e3a5f; margin-bottom: 5px; }
+    h2 { color: #1e3a5f; margin: 20px 0 10px; font-size: 18px; }
+    .header { background: #1e3a5f; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+    .header h1 { color: white; }
+    .header p { opacity: 0.9; }
+    .card { background: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: 600; margin-bottom: 5px; color: #1e3a5f; }
+    input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+    textarea { min-height: 80px; resize: vertical; }
+    .btn { background: #ff6b35; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: 600; }
+    .btn:hover { background: #e55a2b; }
+    .btn-secondary { background: #64748b; }
+    .btn-secondary:hover { background: #475569; }
+    .buttons { display: flex; gap: 10px; margin-top: 20px; }
+    .candidate-data { background: #f1f5f9; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+    .candidate-data p { margin: 5px 0; }
+    .label { font-weight: 600; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📄 Generate Candidate Submittal</h1>
+      <p>Create a polished submittal for {{ candidate.name }}</p>
+    </div>
+    <div class="card">
+      <a href="/candidate/{{ candidate.id }}" style="color: #64748b;">&larr; Back to Candidate</a>
+      
+      <div class="candidate-data" style="margin-top: 15px;">
+        <p><span class="label">Name:</span> {{ candidate.name }}</p>
+        <p><span class="label">Title:</span> {{ candidate.title or 'TBD' }}</p>
+        <p><span class="label">Company:</span> {{ candidate.current_company or 'TBD' }}</p>
+        <p><span class="label">Location:</span> {{ candidate.location or 'TBD' }}</p>
+        <p><span class="label">Salary Band:</span> {{ candidate.salary_band or 'TBD' }}</p>
+        <p><span class="label">Specialism:</span> {{ candidate.specialism or 'TBD' }}</p>
+        <p><span class="label">Years Experience:</span> {{ candidate.years_experience or 'TBD' }}</p>
+      </div>
+
+      <form method="POST">
+        <h2>Submittal Details</h2>
+        
+        <div class="form-group">
+          <label>Availability *</label>
+          <input type="text" name="availability" placeholder="e.g., 2 weeks notice, Immediate, 1 month notice" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Why Good Fit *</label>
+          <textarea name="why_good_fit" placeholder="Brief overview of why this candidate is a strong fit for the role..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Key Strength 1 *</label>
+          <input type="text" name="strength_1" placeholder="e.g., 10+ years commercial construction experience" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Key Strength 2 *</label>
+          <input type="text" name="strength_2" placeholder="e.g., Strong track record with Tier 1 contractors" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Key Strength 3 *</label>
+          <input type="text" name="strength_3" placeholder="e.g., Excellent stakeholder management skills" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Interview Notes</label>
+          <textarea name="interview_notes" placeholder="Notes from interview(s) - key conversations, candidate's interest level, concerns raised..."></textarea>
+        </div>
+        
+        <div class="buttons">
+          <button type="submit" class="btn">Generate Submittal</button>
+          <a href="/candidate/{{ candidate.id }}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

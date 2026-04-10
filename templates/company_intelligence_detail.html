@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}{{ company.name }} - Company Intelligence - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+/* Dark theme */
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+.card { background: #161b22; border-color: #30363d; }
+th { background: #1f2937; color: #e6edf3; }
+td { border-color: #30363d; color: #e6edf3; }
+tr:hover { background: #1f2937; }
+input, textarea, select { background: #0d1117; border-color: #30363d; color: #e6edf3; }
+label { color: #8b949e; }
+.btn { background: #238636; border: none; color: white; }
+.btn:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+h1, h2, h3, a { color: #00d4ff; }
+.badge { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.badge-type { background: rgba(0,212,255,0.15); color: #00d4ff; }
+.badge-pace { background: rgba(255,107,53,0.15); color: #ff6b35; }
+.badge-size { background: rgba(46,204,113,0.15); color: #2ecc71; }
+.badge-style { background: rgba(155,89,182,0.15); color: #9b59b6; }
+.badge-growth { background: rgba(52,152,219,0.15); color: #3498db; }
+
+.intel-section {
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px;
+}
+.intel-section h3 { font-size: 16px; margin-bottom: 12px; color: #e6edf3; }
+
+.profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.profile-item { background: #0d1117; padding: 12px; border-radius: 6px; }
+.profile-item strong { display: block; color: #00d4ff; font-size: 12px; margin-bottom: 4px; }
+.profile-item span { color: #8b949e; font-size: 14px; }
+
+.candidate-match {
+  display: flex; align-items: center; gap: 12px; padding: 12px; background: #0d1117; border-radius: 8px; margin-bottom: 8px;
+}
+.match-score {
+  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+}
+.score-high { background: #238636; color: white; }
+.score-med { background: #f1c40f; color: #0d1117; }
+.score-low { background: #30363d; color: #8b949e; }
+
+.match-reasons { font-size: 12px; color: #8b949e; }
+.match-reasons span { display: inline-block; background: rgba(0,212,255,0.15); color: #00d4ff; padding: 2px 6px; border-radius: 4px; margin-right: 4px; }
+
+.job-card {
+  background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 12px;
+}
+.job-card h4 { color: #e6edf3; margin-bottom: 8px; }
+.job-card .job-meta { font-size: 12px; color: #8b949e; }
+</style>
+
+<div class="header">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1>🏢 {{ company.name }}</h1>
+      <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+        {% if company.project_types %}
+          {% for t in company.project_types.split(',') %}
+            <span class="badge badge-type">{{ t.strip() }}</span>
+          {% endfor %}
+        {% endif %}
+        {% if company.pace %}<span class="badge badge-pace">{{ company.pace }}</span>{% endif %}
+        {% if company.size_profile %}<span class="badge badge-size">{{ company.size_profile }}</span>{% endif %}
+        {% if company.team_style %}<span class="badge badge-style">{{ company.team_style }}</span>{% endif %}
+        {% if company.growth_culture %}<span class="badge badge-growth">{{ company.growth_culture }}</span>{% endif %}
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <a href="/company/{{ company.id }}" class="btn btn-secondary">Company Profile</a>
+      <a href="/company-intelligence/{{ company.id }}/edit" class="btn">Edit Intel</a>
+    </div>
+  </div>
+</div>
+
+<!-- Company Intel Profile -->
+<div class="intel-section">
+  <h3>🎯 Intelligence Profile</h3>
+  <div class="profile-grid">
+    <div class="profile-item">
+      <strong>Project Types</strong>
+      <span>{{ company.project_types or 'Not specified' }}</span>
+    </div>
+    <div class="profile-item">
+      <strong>Pace</strong>
+      <span>{{ company.pace or 'Not specified' }}</span>
+    </div>
+    <div class="profile-item">
+      <strong>Team Style</strong>
+      <span>{{ company.team_style or 'Not specified' }}</span>
+    </div>
+    <div class="profile-item">
+      <strong>Client Relationship</strong>
+      <span>{{ company.client_relationship or 'Not specified' }}</span>
+    </div>
+    <div class="profile-item">
+      <strong>Size Profile</strong>
+      <span>{{ company.size_profile or 'Not specified' }}</span>
+    </div>
+    <div class="profile-item">
+      <strong>Growth Culture</strong>
+      <span>{{ company.growth_culture or 'Not specified' }}</span>
+    </div>
+  </div>
+</div>
+
+{% if company.ideal_candidate_profile %}
+<div class="intel-section">
+  <h3>👤 Ideal Candidate Profile</h3>
+  <p style="color: #e6edf3; line-height: 1.6;">{{ company.ideal_candidate_profile }}</p>
+</div>
+{% endif %}
+
+{% if company.common_pitfalls %}
+<div class="intel-section" style="border-left: 3px solid #e74c3c;">
+  <h3>⚠️ Common Pitfalls</h3>
+  <p style="color: #e6edf3; line-height: 1.6;">{{ company.common_pitfalls }}</p>
+</div>
+{% endif %}
+
+{% if company.what_they_value %}
+<div class="intel-section">
+  <h3>💎 What They Value</h3>
+  <p style="color: #e6edf3; line-height: 1.6;">{{ company.what_they_value }}</p>
+</div>
+{% endif %}
+
+{% if company.notes %}
+<div class="intel-section">
+  <h3>📝 Notes</h3>
+  <p style="color: #e6edf3; line-height: 1.6;">{{ company.notes }}</p>
+</div>
+{% endif %}
+
+<!-- Matching Candidates -->
+<div class="intel-section">
+  <h3>🎯 Matching Candidates ({{ matches|length }})</h3>
+  
+  {% if matches %}
+    {% for match in matches %}
+    <div class="candidate-match">
+      <div class="match-score {% if match.score >= 8 %}score-high{% elif match.score >= 6 %}score-med{% else %}score-low{% endif %}">
+        {{ match.score }}
+      </div>
+      <div style="flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <strong style="color: #e6edf3;">{{ match.candidate.name }}</strong>
+          <span style="color: #8b949e; font-size: 12px;">{{ match.candidate.title or 'No title' }} | {{ match.candidate.specialism or 'No specialism' }}</span>
+        </div>
+        <div class="match-reasons" style="margin-top: 4px;">
+          {% for r in match.reasons %}
+          <span>{{ r }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <a href="/candidate/{{ match.candidate.id }}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">View</a>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color: #8b949e; text-align: center; padding: 20px;">No matching candidates found. Add more candidate details to see matches.</p>
+  {% endif %}
+</div>
+
+<!-- Active Jobs -->
+{% if jobs %}
+<div class="intel-section">
+  <h3>💼 Active Jobs ({{ jobs|length }})</h3>
+  
+  {% for job in jobs %}
+  <div class="job-card">
+    <h4>{{ job.title if job.title else 'Untitled Job' }}</h4>
+    <div class="job-meta">
+      {% if job.location %}{{ job.location }} | {% endif %}
+      {% if job.status %}{{ job.status }}{% endif %}
+      {% if job.salary %}| {{ job.salary }}{% endif %}
+    </div>
+    <a href="/job/{{ job.id }}" style="margin-top: 8px; display: inline-block; font-size: 13px;">View Job →</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div style="margin-top: 20px;">
+  <a href="/company-intelligence" class="btn btn-secondary">← Back to Company Intelligence</a>
+</div>
+
+{% endblock %}

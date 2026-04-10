@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Companies - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>🏢 Companies</h1>
+  <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <form method="get" style="display: inline;">
+      <input type="text" name="search" placeholder="Search companies..." value="{{ search }}" style="padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; width: 220px;">
+      <button type="submit" class="btn">Search</button>
+      {% if search %}
+      <a href="/companies" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
+      {% endif %}
+    </form>
+    <button class="btn" onclick="showAddForm(); return false;">+ Add Company</button>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <label>Tier:</label>
+    <select id="filterTier" onchange="applyFilters()">
+      <option value="">All</option>
+      <option value="T1">T1</option>
+      <option value="T2">T2</option>
+      <option value="T3">T3</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+      <option value="SME">SME</option>
+      <option value="Developer">Developer</option>
+      <option value="Consultant">Consultant</option>
+      <option value="Government">Government</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Sector:</label>
+    <select id="filterSector" onchange="applyFilters()">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Location:</label>
+    <select id="filterLocation" onchange="applyFilters()">
+      <option value="">All</option>
+      <option value="Gold Coast">Gold Coast</option>
+      <option value="Brisbane">Brisbane</option>
+      <option value="SEQ">SEQ</option>
+    </select>
+  </div>
+  <button class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+  <span id="filterCount" class="filter-count">Showing all companies</span>
+</div>
+
+<style>
+.filter-bar {
+  background: #1e3a5f;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-group label {
+  color: #00d4ff;
+  font-weight: 600;
+  font-size: 13px;
+}
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #2a5a8a;
+  border-radius: 4px;
+  background: #0f2847;
+  color: #fff;
+  font-size: 13px;
+  min-width: 120px;
+}
+.filter-group select:focus {
+  outline: none;
+  border-color: #00d4ff;
+}
+.filter-count {
+  color: #00d4ff;
+  font-size: 13px;
+  margin-left: auto;
+  font-weight: 500;
+}
+</style>
+
+<!-- Add/Edit Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add/Edit Company</h2>
+  <form id="companyForm">
+    <input type="hidden" id="companyId" name="id" />
+    
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" id="companyName" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Tier</label>
+      <select id="companyTier">
+        <option value="T1">T1 - Major</option>
+        <option value="T2">T2 - Mid-Tier</option>
+        <option value="T3">T3 - Smaller</option>
+        <option value="Developer">Developer</option>
+        <option value="Government">Government</option>
+        <option value="Consultant">Consultant</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Sector</label>
+      <input type="text" id="companySector" placeholder="Commercial, Residential, etc." />
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="companyLocation" placeholder="Gold Coast suburb" />
+    </div>
+    
+    <div class="form-group">
+      <label>Active Projects</label>
+      <textarea id="companyActiveProjects" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Upcoming Projects</label>
+      <textarea id="companyUpcomingProjects" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Competitors</label>
+      <input type="text" id="companyCompetitors" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="companyNotes" rows="2"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Company</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Companies Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Company</th>
+      <th>Tier</th>
+      <th>Sector</th>
+      <th>Location</th>
+      <th>Active Projects</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for company in companies %}
+    <tr>
+      <td>
+        <a href="/company/{{ company.id }}"><strong>{{ company.name }}</strong></a>
+        {% if company.contact_count and company.contact_count > 0 %}
+          <span style="display:inline-block; background:#1e3a5f; color:#00d4ff; font-size:11px; font-weight:600; border-radius:10px; padding:1px 7px; margin-left:6px;">{{ company.contact_count }}</span>
+        {% endif %}
+      </td>
+      <td>{{ company.tier or '-' }}</td>
+      <td>{{ company.sector or '-' }}</td>
+      <td>{{ company.location or '-' }}</td>
+      <td><a href="/projects?company={{ company.name|urlencode }}" style="color: var(--primary); font-weight: 600;">{{ company.active_projects[:50] if company.active_projects else '' }}{% if company.active_projects and company.active_projects|length > 50 %}...{% endif %}</a></td>
+      <td>
+ 
+        <a href="javascript:void(0)" onclick="editCompanyFromList({{ company.id }}, '{{ company.name|replace("'","\\'") }}', '{{ (company.tier or '')|replace("'","\\'") }}', '{{ (company.sector or '')|replace("'","\\'") }}', '{{ (company.location or '')|replace("'","\\'") }}', '{{ (company.active_projects or '')|replace("'","\\'") }}', '{{ (company.upcoming_projects or '')|replace("'","\\'") }}', '{{ (company.competitors or '')|replace("'","\\'") }}', '{{ (company.notes or '')|replace("'","\\'") }}');">Edit</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+  populateSectorFilter();
+  updateFilterCount();
+});
+
+function populateSectorFilter() {
+  const table = document.querySelector('table tbody');
+  const sectorSelect = document.getElementById('filterSector');
+  const sectors = new Set();
+  
+  table.querySelectorAll('tr').forEach(row => {
+    const sectorCell = row.cells[2]; // Sector is the 3rd column (index 2)
+    if (sectorCell && sectorCell.textContent.trim() && sectorCell.textContent.trim() !== '-') {
+      sectors.add(sectorCell.textContent.trim());
+    }
+  });
+  
+  // Sort sectors alphabetically
+  const sortedSectors = Array.from(sectors).sort();
+  sortedSectors.forEach(sector => {
+    const option = document.createElement('option');
+    option.value = sector;
+    option.textContent = sector;
+    sectorSelect.appendChild(option);
+  });
+}
+
+function applyFilters() {
+  const tierFilter = document.getElementById('filterTier').value;
+  const sectorFilter = document.getElementById('filterSector').value;
+  const locationFilter = document.getElementById('filterLocation').value;
+  
+  const table = document.querySelector('table tbody');
+  const rows = table.querySelectorAll('tr');
+  let visibleCount = 0;
+  
+  rows.forEach(row => {
+    const tierCell = row.cells[1]; // Tier is the 2nd column
+    const sectorCell = row.cells[2]; // Sector is the 3rd column
+    const locationCell = row.cells[3]; // Location is the 4th column
+    
+    const tierMatch = !tierFilter || (tierCell && tierCell.textContent.trim() === tierFilter);
+    const sectorMatch = !sectorFilter || (sectorCell && sectorCell.textContent.toLowerCase().includes(sectorFilter.toLowerCase()));
+    const locationMatch = !locationFilter || (locationCell && locationCell.textContent.toLowerCase().includes(locationFilter.toLowerCase()));
+    
+    if (tierMatch && sectorMatch && locationMatch) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  updateFilterCount(visibleCount);
+}
+
+function clearFilters() {
+  document.getElementById('filterTier').value = '';
+  document.getElementById('filterSector').value = '';
+  document.getElementById('filterLocation').value = '';
+  applyFilters();
+}
+
+function updateFilterCount(visibleCount) {
+  const table = document.querySelector('table tbody');
+  const totalRows = table.querySelectorAll('tr').length;
+  const countElement = document.getElementById('filterCount');
+  
+  if (visibleCount === undefined || visibleCount === totalRows) {
+    countElement.textContent = `Showing all ${totalRows} companies`;
+  } else {
+    countElement.textContent = `Showing ${visibleCount} of ${totalRows} companies`;
+  }
+}
+
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('companyForm').reset();
+  document.getElementById('companyId').value = '';
+  document.getElementById('companyName').value = '';
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+function editCompanyFromList(id, name, tier, sector, location, activeProjects, upcomingProjects, competitors, notes) {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('companyId').value = id;
+  document.getElementById('companyName').value = name;
+  document.getElementById('companyTier').value = tier;
+  document.getElementById('companySector').value = sector;
+  document.getElementById('companyLocation').value = location;
+  document.getElementById('companyActiveProjects').value = activeProjects;
+  document.getElementById('companyUpcomingProjects').value = upcomingProjects;
+  document.getElementById('companyCompetitors').value = competitors;
+  document.getElementById('companyNotes').value = notes;
+  window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+}
+
+document.getElementById('companyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: document.getElementById('companyId').value || null,
+    name: document.getElementById('companyName').value,
+    tier: document.getElementById('companyTier').value,
+    sector: document.getElementById('companySector').value,
+    location: document.getElementById('companyLocation').value,
+    active_projects: document.getElementById('companyActiveProjects').value,
+    upcoming_projects: document.getElementById('companyUpcomingProjects').value,
+    competitors: document.getElementById('companyCompetitors').value,
+    notes: document.getElementById('companyNotes').value
+  };
+  
+  const response = await fetch('/api/company', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving company');
+  }
+});
+</script>
+
+{% endblock %}

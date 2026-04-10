@@ -1,0 +1,620 @@
+{% extends "base.html" %}
+
+{% block title %}{{ company.name }} - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 20px;">
+  <a href="/companies">&larr; Back to Companies</a>
+</div>
+
+<div class="header">
+  <h1>{{ company.name }}</h1>
+  <p>{{ company.tier }} | {{ company.sector }} | {{ company.location }}</p>
+</div>
+
+<!-- Quick Actions -->
+<div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+  <span style="color: white; font-weight: bold; margin-right: 10px;">⚡ Quick Actions:</span>
+  <button class="btn" style="background: white; color: #3b82f6; font-weight: bold;" onclick="showLogActivityModal('company', {{ company.id }})">📞 Log Call</button>
+  <button class="btn" style="background: white; color: #3b82f6; font-weight: bold;" onclick="showScheduleFollowUp('company', {{ company.id }})">📅 Schedule Follow-up</button>
+  <button class="btn" style="background: white; color: #3b82f6; font-weight: bold;" onclick="showLogActivityModal('meeting', {{ company.id }})">🤝 Log Meeting</button>
+</div>
+
+<!-- Company Details -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h2>Company Overview</h2>
+    <button class="btn" onclick="editCompany()">Edit</button>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div>
+      <h4>Tier</h4>
+      <p>{{ company.tier or '-' }}</p>
+    </div>
+    <div>
+      <h4>Sector</h4>
+      <p>{{ company.sector or '-' }}</p>
+    </div>
+    <div>
+      <h4>Location</h4>
+      <p>{{ company.location or '-' }}</p>
+    </div>
+    <div>
+      <h4>Website</h4>
+      <p>{% if company.website %}<a href="{{ company.website }}" target="_blank" rel="noopener noreferrer" style="color:#00d4ff;">{{ company.website }} ↗</a>{% else %}-{% endif %}</p>
+    </div>
+    <div>
+      <h4>Competitors</h4>
+      <p>{{ company.competitors or 'None' }}</p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <p>{{ company.notes or 'None' }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Projects Section -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>🏗️ Projects</h2>
+  {% if projects %}
+  <table style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr style="border-bottom: 2px solid #1e3a5f;">
+        <th style="text-align:left; padding:8px;">Project</th>
+        <th style="text-align:left; padding:8px;">Phase</th>
+        <th style="text-align:left; padding:8px;">Value</th>
+        <th style="text-align:left; padding:8px;">Status</th>
+        <th style="text-align:left; padding:8px;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in projects %}
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding:8px;"><strong>{{ p.name }}</strong><br><small>{{ p.address or '' }}</small></td>
+        <td style="padding:8px;">{{ p.phase or 'Unknown' }}</td>
+        <td style="padding:8px;">{{ p.value or '-' }}</td>
+        <td style="padding:8px;">{{ p.status or '-' }}</td>
+        <td style="padding:8px;"><a href="/project/{{ p.id }}" style="color:#ff6b35;">View →</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#999;">No projects linked to this company.</p>
+  {% endif %}
+</div>
+
+<!-- Edit Form (hidden by default) -->
+<div id="editFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Edit Company</h2>
+  <form id="editCompanyForm">
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" id="editCompanyName" value="{{ company.name }}" disabled />
+    </div>
+    
+    <div class="form-group">
+      <label>Tier</label>
+      <select id="editCompanyTier">
+        <option value="T1" {% if company.tier == 'T1' %}selected{% endif %}>T1 - Major</option>
+        <option value="T2" {% if company.tier == 'T2' %}selected{% endif %}>T2 - Mid-Tier</option>
+        <option value="T3" {% if company.tier == 'T3' %}selected{% endif %}>T3 - Smaller</option>
+        <option value="Developer" {% if company.tier == 'Developer' %}selected{% endif %}>Developer</option>
+        <option value="Government" {% if company.tier == 'Government' %}selected{% endif %}>Government</option>
+        <option value="Consultant" {% if company.tier == 'Consultant' %}selected{% endif %}>Consultant</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Sector</label>
+      <input type="text" id="editCompanySector" value="{{ company.sector or '' }}" placeholder="Commercial, Residential, etc." />
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="editCompanyLocation" value="{{ company.location or '' }}" placeholder="Gold Coast suburb" />
+    </div>
+    
+    <div class="form-group">
+      <label>Website</label>
+      <input type="text" id="editCompanyWebsite" value="{{ company.website or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Active Projects</label>
+      <textarea id="editCompanyActiveProjects" rows="2">{{ company.active_projects or '' }}</textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Upcoming Projects</label>
+      <textarea id="editCompanyUpcomingProjects" rows="2">{{ company.upcoming_projects or '' }}</textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Competitors</label>
+      <input type="text" id="editCompanyCompetitors" value="{{ company.competitors or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="editCompanyNotes" rows="3">{{ company.notes or '' }}</textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="closeEditForm()" style="margin-left: 10px;">Cancel</button>
+    <button type="button" class="btn" onclick="deleteCompany({{ company.id }}, '{{ company.name }}')" style="margin-left: 20px; background: #ef4444; color: white;">Delete Company</button>
+  </form>
+</div>
+
+<script>
+function deleteCompany(id, name) {
+  const promptText = 'Type the company name to confirm deletion:';
+  const userInput = prompt(promptText);
+  if (userInput === null) return; // Cancelled
+  if (userInput.trim().toLowerCase() !== name.toLowerCase()) {
+    alert('Company name does not match. Delete cancelled.');
+    return;
+  }
+  if (confirm('Are you sure you want to delete "' + name + '"? This will also delete all associated contacts, deals, and candidates. This cannot be undone.')) {
+    fetch('/api/company/' + id, { method: 'DELETE' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('Company deleted successfully');
+          window.location.href = '/companies';
+        } else {
+          alert('Error: ' + data.message);
+        }
+      });
+  }
+}
+</script>
+
+<!-- Contacts -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Contacts ({{ dms|length }})</h2>
+  <button class="btn" onclick="showDMForm()" style="margin-top: 15px;">+ Add Contact</button>
+  
+  {% if dms %}
+  <table style="margin-top: 15px;">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Title</th>
+        <th>Role</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Relationship</th>
+        <th>Last Contact</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for dm in dms %}
+      <tr>
+        <td><strong>{{ dm.name }}</strong></td>
+        <td>{{ dm.title or '-' }}</td>
+        <td>{{ dm.role or '-' }}</td>
+        <td>{{ dm.phone or '-' }}</td>
+        <td>{{ dm.email or '-' }}</td>
+        <td>
+          {% for i in range(dm.relationship_score) %}⭐{% endfor %}
+        </td>
+        <td>{{ dm.last_contact or '-' }}</td>
+        <td><a href="#" onclick="editDMById({{ dm.id }}); return false;">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="margin-top: 15px; color: #64748b;">No decision makers added yet.</p>
+  {% endif %}
+</div>
+
+<!-- Add/Edit DM Form (hidden by default) -->
+<div id="dmFormContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2 id="dmFormTitle">Add Contact</h2>
+  <form id="dmForm">
+    <input type="hidden" id="dmId" name="id" />
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="dmName" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="dmTitle" placeholder="e.g., Director, Manager" />
+    </div>
+    
+    <div class="form-group">
+      <label>Role</label>
+      <input type="text" id="dmRole" placeholder="e.g., Development Director, Project Manager" />
+    </div>
+    
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="tel" id="dmPhone" />
+    </div>
+    
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="dmEmail" />
+    </div>
+    
+    <div class="form-group">
+      <label>LinkedIn</label>
+      <input type="text" id="dmLinkedIn" />
+    </div>
+    
+    <div class="form-group">
+      <label>Hiring Signals</label>
+      <textarea id="dmHiringSignals" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Relationship (1-5)</label>
+      <select id="dmRelationship">
+        <option value="1">1 - Cold</option>
+        <option value="2">2</option>
+        <option value="3">3 - Warm</option>
+        <option value="4">4</option>
+        <option value="5">5 - Hot</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Last Contact</label>
+      <input type="date" id="dmLastContact" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Action</label>
+      <textarea id="dmNextAction" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="dmNotes" rows="2"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Contact</button>
+    <button type="button" class="btn btn-secondary" onclick="hideDMForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<script>
+function editCompany() {
+  document.getElementById('editFormContainer').style.display = 'block';
+  window.scrollTo(0, document.getElementById('editFormContainer').offsetTop);
+}
+
+function closeEditForm() {
+  document.getElementById('editFormContainer').style.display = 'none';
+}
+
+document.getElementById('editCompanyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: {{ company.id }},
+    name: '{{ company.name }}',
+    tier: document.getElementById('editCompanyTier').value,
+    sector: document.getElementById('editCompanySector').value,
+    location: document.getElementById('editCompanyLocation').value,
+    website: document.getElementById('editCompanyWebsite').value,
+    active_projects: document.getElementById('editCompanyActiveProjects').value,
+    upcoming_projects: document.getElementById('editCompanyUpcomingProjects').value,
+    competitors: document.getElementById('editCompanyCompetitors').value,
+    notes: document.getElementById('editCompanyNotes').value
+  };
+  
+  const response = await fetch('/api/company', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving company');
+  }
+});
+
+function showDMForm() {
+  document.getElementById('dmFormTitle').textContent = 'Add Contact';
+  document.getElementById('dmFormContainer').style.display = 'block';
+  document.getElementById('dmForm').reset();
+  document.getElementById('dmId').value = '';
+  document.getElementById('dmRelationship').value = '1';
+  window.scrollTo(0, document.getElementById('dmFormContainer').offsetTop);
+}
+
+function hideDMForm() {
+  document.getElementById('dmFormContainer').style.display = 'none';
+}
+
+async function editDMById(id) {
+  try {
+    const response = await fetch('/api/dm/' + id);
+    if (!response.ok) throw new Error('Failed to load');
+    const dm = await response.json();
+    
+    document.getElementById('dmFormTitle').textContent = 'Edit Contact';
+    document.getElementById('dmFormContainer').style.display = 'block';
+    document.getElementById('dmId').value = dm.id;
+    document.getElementById('dmName').value = dm.name || '';
+    document.getElementById('dmTitle').value = dm.title || '';
+    document.getElementById('dmRole').value = dm.role || '';
+    document.getElementById('dmPhone').value = dm.phone || '';
+    document.getElementById('dmEmail').value = dm.email || '';
+    document.getElementById('dmLinkedIn').value = dm.linkedin || '';
+    document.getElementById('dmHiringSignals').value = dm.hiring_signals || '';
+    document.getElementById('dmRelationship').value = dm.relationship_score || 1;
+    document.getElementById('dmLastContact').value = dm.last_contact || '';
+    document.getElementById('dmNextAction').value = dm.next_action || '';
+    document.getElementById('dmNotes').value = dm.notes || '';
+    window.scrollTo(0, document.getElementById('dmFormContainer').offsetTop);
+  } catch (err) {
+    alert('Error loading decision maker: ' + err.message);
+  }
+}
+
+document.getElementById('dmForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: document.getElementById('dmId').value || null,
+    company_id: {{ company.id }},
+    name: document.getElementById('dmName').value,
+    title: document.getElementById('dmTitle').value,
+    role: document.getElementById('dmRole').value,
+    phone: document.getElementById('dmPhone').value,
+    email: document.getElementById('dmEmail').value,
+    linkedin: document.getElementById('dmLinkedIn').value,
+    hiring_signals: document.getElementById('dmHiringSignals').value,
+    relationship_score: parseInt(document.getElementById('dmRelationship').value),
+    last_contact: document.getElementById('dmLastContact').value,
+    next_action: document.getElementById('dmNextAction').value,
+    notes: document.getElementById('dmNotes').value
+  };
+  
+  const response = await fetch('/api/dm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving decision maker');
+  }
+});
+</script>
+
+<!-- Activity Timeline Section -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>📋 Activity Timeline</h2>
+  <div id="activityTimeline" style="margin-top: 15px;">
+    <p style="color: #64748b;">Loading activities...</p>
+  </div>
+</div>
+
+<!-- Quick Action Modals -->
+<!-- Log Activity Modal -->
+<div id="logActivityModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:450px;">
+    <h2 id="activityModalTitle">Log Activity</h2>
+    <form id="activityForm">
+      <input type="hidden" id="activityCompanyId" value="{{ company.id }}">
+      <input type="hidden" id="activityContactId">
+      <input type="hidden" id="activityCandidateId">
+      <input type="hidden" id="activityDealId">
+      
+      <label>Type:</label>
+      <select id="activityType" required style="width:100%; padding:8px; margin-bottom:15px;">
+        <option value="call">📞 Call</option>
+        <option value="meeting">🤝 Meeting</option>
+        <option value="visit">🏢 Site Visit</option>
+        <option value="email">📧 Email</option>
+        <option value="linkedin">💼 LinkedIn</option>
+      </select>
+      
+      <label>Contact (optional):</label>
+      <select id="activityContactSelect" style="width:100%; padding:8px; margin-bottom:15px;">
+        <option value="">-- No specific contact --</option>
+        {% for dm in dms %}
+        <option value="{{ dm.id }}">{{ dm.name }} ({{ dm.title or dm.role }})</option>
+        {% endfor %}
+      </select>
+      
+      <label>Outcome:</label>
+      <select id="activityOutcome" style="width:100%; padding:8px; margin-bottom:15px;">
+        <option value="">-- Select --</option>
+        <option value="successful">✅ Successful</option>
+        <option value="voicemail">📧 Voicemail</option>
+        <option value="no_answer">❌ No Answer</option>
+        <option value="callback">🔄 Callback Scheduled</option>
+        <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+        <option value="follow_up_required">📌 Follow-up Required</option>
+      </select>
+      
+      <label>Notes:</label>
+      <textarea id="activityNotes" rows="3" style="width:100%; padding:8px; margin-bottom:15px;"></textarea>
+      
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn" style="flex:1;">Save Activity</button>
+        <button type="button" onclick="closeLogActivityModal()" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Schedule Follow-up Modal -->
+<div id="scheduleFollowUpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:400px;">
+    <h2>Schedule Follow-up</h2>
+    <form id="followUpForm">
+      <input type="hidden" id="followUpTable" value="decision_makers">
+      <input type="hidden" id="followUpRecordId">
+      
+      <label>Follow-up Date:</label>
+      <input type="date" id="followUpDate" required style="width:100%; padding:8px; margin-bottom:15px;">
+      
+      <label>Notes:</label>
+      <textarea id="followUpNotes" rows="2" style="width:100%; padding:8px; margin-bottom:15px;"></textarea>
+      
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn" style="flex:1;">Set Reminder</button>
+        <button type="button" onclick="document.getElementById('scheduleFollowUpModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Load activity timeline on page load
+document.addEventListener('DOMContentLoaded', function() {
+  loadActivityTimeline();
+});
+
+async function loadActivityTimeline() {
+  const container = document.getElementById('activityTimeline');
+  try {
+    const response = await fetch('/api/activities/company/{{ company.id }}');
+    const data = await response.json();
+    
+    if (!data.activities || data.activities.length === 0) {
+      container.innerHTML = '<p style="color: #64748b;">No activities recorded yet.</p>';
+      return;
+    }
+    
+    let html = '<div style="border-left: 3px solid #3b82f6; padding-left: 20px; margin-left: 10px;">';
+    data.activities.forEach(activity => {
+      const typeIcon = {
+        'call': '📞',
+        'meeting': '🤝',
+        'visit': '🏢',
+        'email': '📧',
+        'linkedin': '💼'
+      }[activity.type] || '📋';
+      
+      const outcomeBadge = activity.outcome ? {
+        'successful': '✅',
+        'voicemail': '📧',
+        'no_answer': '❌',
+        'callback': '🔄',
+        'meeting_scheduled': '📅',
+        'follow_up_required': '📌'
+      }[activity.outcome] : '';
+      
+      const date = new Date(activity.created_at).toLocaleDateString('en-AU', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      
+      html += `
+        <div style="margin-bottom: 20px; position: relative;">
+          <div style="position: absolute; left: -26px; top: 0; background: white; border: 2px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px;">${typeIcon}</div>
+          <div style="font-size: 12px; color: #64748b;">${date}</div>
+          <div style="font-weight: bold; text-transform: capitalize;">${activity.type} ${outcomeBadge}</div>
+          ${activity.notes ? `<div style="color: #374151; margin-top: 5px;">${activity.notes}</div>` : ''}
+          ${activity.contact_name ? `<div style="font-size: 12px; color: #3b82f6; margin-top: 5px;">👤 ${activity.contact_name}</div>` : ''}
+        </div>
+      `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<p style="color: #ef4444;">Error loading activities</p>';
+  }
+}
+
+function showLogActivityModal(type, companyId) {
+  document.getElementById('activityModalTitle').textContent = 'Log ' + (type === 'meeting' ? 'Meeting' : 'Call');
+  if (type !== 'company') {
+    document.getElementById('activityType').value = type;
+  }
+  document.getElementById('activityCompanyId').value = companyId;
+  document.getElementById('logActivityModal').style.display = 'flex';
+}
+
+function closeLogActivityModal() {
+  document.getElementById('logActivityModal').style.display = 'none';
+  document.getElementById('activityForm').reset();
+}
+
+function showScheduleFollowUp(table, recordId) {
+  document.getElementById('followUpTable').value = table;
+  document.getElementById('followUpRecordId').value = recordId;
+  // Default to tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('followUpDate').value = tomorrow.toISOString().split('T')[0];
+  document.getElementById('scheduleFollowUpModal').style.display = 'flex';
+}
+
+document.getElementById('activityForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    type: document.getElementById('activityType').value,
+    company_id: document.getElementById('activityCompanyId').value,
+    contact_id: document.getElementById('activityContactSelect').value || null,
+    notes: document.getElementById('activityNotes').value,
+    outcome: document.getElementById('activityOutcome').value || null
+  };
+  
+  const response = await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    closeLogActivityModal();
+    loadActivityTimeline();
+  } else {
+    alert('Error saving activity');
+  }
+});
+
+document.getElementById('followUpForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    table: 'decision_makers',  // Using company level for now
+    id: {{ company.id }},
+    next_action: document.getElementById('followUpDate').value
+  };
+  
+  // Save as activity note instead
+  const activityData = {
+    type: 'follow_up_scheduled',
+    company_id: {{ company.id }},
+    notes: 'Follow-up scheduled: ' + document.getElementById('followUpDate').value + 
+           (document.getElementById('followUpNotes').value ? ' - ' + document.getElementById('followUpNotes').value : ''),
+    outcome: 'follow_up_required'
+  };
+  
+  const response = await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(activityData)
+  });
+  
+  if (response.ok) {
+    document.getElementById('scheduleFollowUpModal').style.display = 'none';
+    alert('Follow-up scheduled!');
+    loadActivityTimeline();
+  } else {
+    alert('Error scheduling follow-up');
+  }
+});
+</script>
+
+{% endblock %}

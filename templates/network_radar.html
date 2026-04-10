@@ -1,0 +1,629 @@
+{% extends "base.html" %}
+
+{% block title %}Network Radar — SEQ CRM{% endblock %}
+
+{% block content %}
+<style>
+  .radar-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a5080 100%);
+    color: white;
+    padding: 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .radar-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .radar-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .radar-header p {
+    opacity: 0.8;
+    font-size: 15px;
+  }
+  .countdown-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.15);
+    padding: 8px 16px;
+    border-radius: 24px;
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .countdown-badge .days {
+    color: #ff6b35;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #f0f0f0;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+  }
+  .stat-card.blind::after { background: #e74c3c; }
+  .stat-card.gaps::after { background: #f39c12; }
+  .stat-card.partial::after { background: #3498db; }
+  .stat-card.covered::after { background: #2ecc71; }
+  .stat-card.total::after { background: #1e3a5f; }
+  .stat-card.score::after { background: #9b59b6; }
+
+  .stat-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1e3a5f;
+    line-height: 1;
+  }
+  .stat-sub {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+  }
+
+  /* Coverage Meter */
+  .coverage-meter {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .meter-bar {
+    height: 24px;
+    background: #f0f0f0;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+  }
+  .meter-segment {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    transition: width 0.3s;
+  }
+  .meter-segment.blind { background: #e74c3c; }
+  .meter-segment.gaps { background: #f39c12; }
+  .meter-segment.partial { background: #3498db; }
+  .meter-segment.covered { background: #2ecc71; }
+
+  .meter-legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .meter-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #555;
+  }
+  .meter-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Sprint Plan */
+  .sprint-plan {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .sprint-plan h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .week-card {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #1e3a5f;
+  }
+  .week-card.active {
+    border-left-color: #ff6b35;
+    background: #fff5f0;
+  }
+  .week-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .week-card p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+  }
+  .week-tasks {
+    margin-top: 8px;
+  }
+  .week-task {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 13px;
+  }
+  .week-task::before {
+    content: '→';
+    color: #1e3a5f;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Company Table */
+  .radar-table-wrap {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .radar-table-wrap h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e3a5f;
+    padding: 20px 24px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 24px 16px;
+  }
+  .filter-tab {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #e0e0e0;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-tab:hover, .filter-tab.active {
+    background: #1e3a5f;
+    color: white;
+    border-color: #1e3a5f;
+  }
+
+  .radar-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .radar-table th {
+    background: #f8f8f8;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    border-bottom: 2px solid #eee;
+  }
+  .radar-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f5f5f5;
+    vertical-align: middle;
+  }
+  .radar-table tr:hover {
+    background: #fafbff;
+  }
+  .coverage-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .coverage-pill.blind { background: #ffebee; color: #e74c3c; }
+  .coverage-pill.gaps { background: #fff3e0; color: #e67e22; }
+  .coverage-pill.partial { background: #e3f2fd; color: #3498db; }
+  .coverage-pill.full { background: #e8f5e9; color: #2ecc71; }
+
+  .tier-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tier-badge.t1 { background: #1e3a5f; color: white; }
+  .tier-badge.t2 { background: #3498db; color: white; }
+  .tier-badge.t3 { background: #27ae60; color: white; }
+  .tier-badge.govt { background: #8e44ad; color: white; }
+  .tier-badge.dev { background: #e67e22; color: white; }
+  .tier-badge.consult { background: #95a5a6; color: white; }
+
+  .dot-indicator {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .dot.filled.email { background: #3498db; }
+  .dot.filled.phone { background: #2ecc71; }
+  .dot.filled.linkedin { background: #0077b5; }
+  .dot.empty { background: #ddd; }
+
+  /* Quick wins */
+  .quick-wins {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 2px solid #ff6b35;
+  }
+  .quick-wins h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .win-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .win-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #ff6b35;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .win-details {
+    flex: 1;
+  }
+  .win-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e3a5f;
+  }
+  .win-role {
+    font-size: 13px;
+    color: #666;
+    margin-top: 2px;
+  }
+  .win-action {
+    padding: 6px 12px;
+    background: #1e3a5f;
+    color: white;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .win-action:hover {
+    background: #ff6b35;
+  }
+
+  .score-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: conic-gradient(#2ecc71 var(--pct, 0%), #eee var(--pct, 0%));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .score-ring-inner {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: #1e3a5f;
+  }
+</style>
+
+<div class="radar-header">
+  <h1>🎯 Network Radar</h1>
+  <p>Coverage analysis for your SEQ construction recruitment network</p>
+  <div class="countdown-badge">
+    🚀 Day 1 at Lead Group: <span class="days" id="countdown"></span> days to go
+  </div>
+</div>
+
+<!-- Key Stats -->
+<div class="stats-grid">
+  <div class="stat-card total">
+    <div class="stat-label">Total Companies</div>
+    <div class="stat-value">{{ stats.total_companies }}</div>
+    <div class="stat-sub">mapped & tracked</div>
+  </div>
+  <div class="stat-card blind">
+    <div class="stat-label">🔴 Blind Spots</div>
+    <div class="stat-value">{{ stats.blind }}</div>
+    <div class="stat-sub">no contacts at all</div>
+  </div>
+  <div class="stat-card gaps">
+    <div class="stat-label">🟠 Coverage Gaps</div>
+    <div class="stat-value">{{ stats.gaps }}</div>
+    <div class="stat-sub">named but no contact info</div>
+  </div>
+  <div class="stat-card partial">
+    <div class="stat-label">🔵 Partial</div>
+    <div class="stat-value">{{ contacts_by_status.get('partial', 0) }}</div>
+    <div class="stat-sub">email OR phone, not both</div>
+  </div>
+  <div class="stat-card covered">
+    <div class="stat-label">🟢 Ready</div>
+    <div class="stat-value">{{ contacts_by_status.get('covered', 0) }}</div>
+    <div class="stat-sub">email AND phone</div>
+  </div>
+  <div class="stat-card score">
+    <div class="stat-label">Coverage Score</div>
+    <div class="stat-value">{{ coverage_score }}%</div>
+    <div class="stat-sub">avg per company</div>
+  </div>
+</div>
+
+<!-- Coverage Meter -->
+<div class="coverage-meter">
+  <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #1e3a5f;">Company Coverage Breakdown</h3>
+  <div class="meter-bar">
+    {% if stats.total_companies > 0 %}
+    <div class="meter-segment blind" style="width: {{ (stats.blind / stats.total_companies * 100) | round(0) }}%">
+      {% if stats.blind / stats.total_companies > 0.08 %}{{ stats.blind }}{% endif %}
+    </div>
+    <div class="meter-segment gaps" style="width: {{ (stats.gaps / stats.total_companies * 100) | round(0) }}%">
+      {% if stats.gaps / stats.total_companies > 0.08 %}{{ stats.gaps }}{% endif %}
+    </div>
+    <div class="meter-segment partial" style="width: {{ ((contacts_by_status.get('partial', 0)) / stats.total_companies * 100) | round(0) if (stats.total_companies > 0) else 0 }}%">
+    </div>
+    <div class="meter-segment covered" style="width: {{ ((contacts_by_status.get('covered', 0)) / stats.total_companies * 100) | round(0) if (stats.total_companies > 0) else 0 }}%">
+      {% if contacts_by_status.get('covered', 0) / stats.total_companies > 0.05 %}{{ contacts_by_status.get('covered', 0) }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <div class="meter-legend">
+    <div class="meter-legend-item">
+      <div class="meter-legend-dot" style="background: #e74c3c"></div>
+      No contacts ({{ stats.blind }})
+    </div>
+    <div class="meter-legend-item">
+      <div class="meter-legend-dot" style="background: #f39c12"></div>
+      Named, no details ({{ stats.gaps }})
+    </div>
+    <div class="meter-legend-item">
+      <div class="meter-legend-dot" style="background: #3498db"></div>
+      Partial ({{ contacts_by_status.get('partial', 0) }})
+    </div>
+    <div class="meter-legend-item">
+      <div class="meter-legend-dot" style="background: #2ecc71"></div>
+      Ready ({{ contacts_by_status.get('covered', 0) }})
+    </div>
+  </div>
+</div>
+
+<!-- Quick Wins -->
+<div class="quick-wins">
+  <h2>⚡ Quick Wins — Contactable RIGHT NOW</h2>
+  <p style="font-size: 13px; color: #666; margin-bottom: 16px;">
+    These contacts have email and/or phone. No excuse — send the intro today.
+  </p>
+  {% for c in quick_wins %}
+  <div class="win-card">
+    <div class="win-number">{{ loop.index }}</div>
+    <div class="win-details">
+      <div class="win-name">{{ c.name }}</div>
+      <div class="win-role">{{ c.title }} @ {{ c.company }} ({{ c.tier }})</div>
+    </div>
+    {% if c.email %}
+    <a href="mailto:{{ c.email }}" class="win-action">📧 Email</a>
+    {% endif %}
+    {% if c.phone %}
+    <a href="tel:{{ c.phone }}" class="win-action">📞 Call</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Sprint Plan -->
+<div class="sprint-plan">
+  <h2>🗓️ 31-Day Network Sprint to Day 1</h2>
+  <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
+    Target: <strong>{{ (stats.blind + stats.gaps) }}</strong> companies need coverage. <strong>{{ weekly_target }}/week</strong> to have every company warm before Day 1.
+  </p>
+
+  {% for week in sprint_weeks %}
+  <div class="week-card {% if loop.index == 1 %}active{% endif %}">
+    <h4>{{ week.label }} {% if loop.index == 1 %}🔥 THIS WEEK{% endif %}</h4>
+    <p>{{ week.goal }}</p>
+    <div class="week-tasks">
+      {% for task in week.tasks %}
+      <div class="week-task">{{ task }}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="week-card" style="border-left-color: #2ecc71; background: #f0fff4;">
+    <h4>🎯 May 4 — Day 1 at Lead Group</h4>
+    <p>Walk in with every major SEQ builder mapped, key contacts identified, and a pipeline worth $10M+ in potential placements.</p>
+    <div class="week-tasks">
+      <div class="week-task">50+ warm contacts ready for coffee chats</div>
+      <div class="week-task">Every T1/T2 company has at least email-level contact</div>
+      <div class="week-task">Top 10 candidates pre-positioned at target firms</div>
+    </div>
+  </div>
+</div>
+
+<!-- Company Radar Table -->
+<div class="radar-table-wrap">
+  <h2>
+    📡 Full Network Map
+    <span style="font-size: 13px; font-weight: 400; color: #999;">{{ companies|length }} companies</span>
+  </h2>
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="filterTable('all')">All ({{ companies|length }})</button>
+    <button class="filter-tab" onclick="filterTable('blind')">🔴 Blind ({{ stats.blind }})</button>
+    <button class="filter-tab" onclick="filterTable('gaps')">🟠 Gaps ({{ stats.gaps }})</button>
+    <button class="filter-tab" onclick="filterTable('partial')">🔵 Partial</button>
+    <button class="filter-tab" onclick="filterTable('full')">🟢 Ready</button>
+  </div>
+  <table class="radar-table" id="radarTable">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Tier</th>
+        <th>Contacts</th>
+        <th>Channels</th>
+        <th>Status</th>
+        <th>Priority</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in companies %}
+      <tr data-status="{{ c.status }}" data-priority="{{ c.priority }}">
+        <td>
+          <strong>{{ c.name }}</strong>
+        </td>
+        <td>
+          <span class="tier-badge {{ c.tier_class }}">{{ c.tier_display }}</span>
+        </td>
+        <td>
+          <strong style="font-size: 18px;">{{ c.contact_count }}</strong>
+          {% if c.top_contact %}
+          <div style="font-size: 12px; color: #999;">{{ c.top_contact }}</div>
+          {% endif %}
+        </td>
+        <td>
+          <div class="dot-indicator" title="📧 Email: {{ 'yes' if c.has_email else 'no' }} | 📞 Phone: {{ 'yes' if c.has_phone else 'no' }}">
+            <div class="dot filled email" title="Email"></div>
+            <div class="dot filled phone" title="Phone"></div>
+          </div>
+          <div style="font-size: 11px; color: #999; margin-top: 4px;">
+            {{ c.email_count }} email{% if c.email_count != 1 %}s{% endif %} · {{ c.phone_count }} phone{% if c.phone_count != 1 %}s{% endif %}
+          </div>
+        </td>
+        <td>
+          <span class="coverage-pill {{ c.status_class }}">{{ c.status_display }}</span>
+        </td>
+        <td>
+          {% if c.priority == 0 %}
+          <span style="color: #e74c3c; font-weight: 700; font-size: 13px;">🔥 URGENT</span>
+          {% elif c.priority == 1 %}
+          <span style="color: #e67e22; font-weight: 600;">High</span>
+          {% elif c.priority == 2 %}
+          <span style="color: #3498db;">Medium</span>
+          {% else %}
+          <span style="color: #2ecc71;">Done</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+// Countdown
+function updateCountdown() {
+  const target = new Date('2026-05-04T09:00:00+10:00');
+  const now = new Date();
+  const diff = target - now;
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  document.getElementById('countdown').textContent = `${days}d ${hours}h`;
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+
+// Table filtering
+function filterTable(status) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  document.querySelectorAll('#radarTable tbody tr').forEach(row => {
+    if (status === 'all' || row.dataset.status === status) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+</script>
+
+{% endblock %}

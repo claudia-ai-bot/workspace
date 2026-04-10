@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} - Project Intelligence - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+/* Dark theme */
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+.card { background: #161b22; border-color: #30363d; }
+.section { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+.section h3 { color: #00d4ff; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #30363d; }
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.info-item .label { font-size: 12px; color: #8b949e; text-transform: uppercase; }
+.info-item .value { font-size: 15px; color: #e6edf3; margin-top: 2px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; background: #238636; color: white; }
+.btn:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+.btn-accent { background: #00d4ff; color: #0d1117; }
+h1 { color: #00d4ff; }
+a { color: #00d4ff; }
+
+/* Layout */
+.page-layout { display: grid; grid-template-columns: 1fr 360px; gap: 20px; }
+.page-main { display: flex; flex-direction: column; gap: 20px; }
+.page-sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+.intel-box { background: #1f2937; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.intel-box h4 { color: #8b949e; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+.intel-box p { color: #e6edf3; font-size: 14px; line-height: 1.5; }
+
+.type-badge { 
+  display: inline-block; padding: 4px 12px; background: rgba(0,212,255,0.15); 
+  color: #00d4ff; border-radius: 4px; font-size: 12px; font-weight: 600; 
+  margin-right: 8px;
+}
+.pace-badge {
+  display: inline-block; padding: 4px 12px; background: rgba(63,185,128,0.15); 
+  color: #3fb950; border-radius: 4px; font-size: 12px; font-weight: 600; 
+}
+
+/* Candidate matches */
+.match-card {
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border-left: 3px solid #00d4ff;
+}
+
+.match-score { font-size: 24px; font-weight: 700; color: #00d4ff; }
+.match-score.high { color: #3fb950; }
+.match-score.medium { color: #d29922; }
+
+.match-name { font-weight: 600; color: #e6edf3; font-size: 15px; }
+.match-role { font-size: 13px; color: #8b949e; }
+.match-reasons { font-size: 12px; color: #6e7681; margin-top: 6px; }
+
+.status-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.status-Prospect { background: rgba(88,166,255,0.2); color: #58a6ff; }
+.status-Engaged { background: rgba(210,153,34,0.2); color: #d29922; }
+
+.job-card {
+  background: #1f2937;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.job-title { font-weight: 600; color: #e6edf3; }
+.job-company { font-size: 13px; color: #8b949e; }
+
+@media (max-width: 900px) {
+  .page-layout { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="header">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div>
+      <h1 style="font-size: 28px;">🏗️ {{ project.name }}</h1>
+      <div style="margin-top: 8px; display: flex; align-items: center; gap: 12px;">
+        {% if project.company_name %}<span style="color: #8b949e;">{{ project.company_name }}</span>{% endif %}
+        {% if project.project_type %}<span class="type-badge">{{ project.project_type }}</span>{% endif %}
+        {% if project.pace %}<span class="pace-badge">{{ project.pace }}</span>{% endif %}
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="/project-intelligence/{{ project.id }}/edit" class="btn btn-accent">✏️ Edit Intel</a>
+      <a href="/project-intelligence" class="btn btn-secondary">← Back</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-layout">
+  <div class="page-main">
+    
+    <!-- Project Details -->
+    <div class="section">
+      <h3>📋 Project Details</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">Address</div>
+          <div class="value">{{ project.address or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Phase</div>
+          <div class="value">{{ project.phase or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Value</div>
+          <div class="value">{{ project.value or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">DA Number</div>
+          <div class="value">{{ project.da_number or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Est. Start</div>
+          <div class="value">{{ project.estimated_start or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Est. End</div>
+          <div class="value">{{ project.estimated_end or '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Intelligence -->
+    <div class="section">
+      <h3>🧠 Intelligence</h3>
+      
+      <div class="intel-box">
+        <h4>What Makes It Interesting</h4>
+        <p>{{ project.what_makes_interesting or 'No intelligence added yet. Click "Edit Intel" to add details about what makes candidates want to work here.' }}</p>
+      </div>
+      
+      <div class="intel-box">
+        <h4>Ideal Candidate Profile</h4>
+        <p>{{ project.ideal_profile or '—' }}</p>
+      </div>
+      
+      <div class="intel-box">
+        <h4>Team Culture</h4>
+        <p>{{ project.team_culture or '—' }}</p>
+      </div>
+      
+      <div class="intel-box">
+        <h4>Hiring Manager Style</h4>
+        <p>{{ project.manager_style or '—' }}</p>
+      </div>
+      
+      {% if project.key_skills %}
+      <div class="intel-box">
+        <h4>Key Skills Required</h4>
+        <p>{{ project.key_skills }}</p>
+      </div>
+      {% endif %}
+      
+      {% if project.nice_to_have %}
+      <div class="intel-box">
+        <h4>Nice to Have</h4>
+        <p>{{ project.nice_to_have }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Current Jobs -->
+    {% if jobs %}
+    <div class="section">
+      <h3>💼 Open Roles</h3>
+      {% for job in jobs %}
+      <div class="job-card">
+        <div>
+          <div class="job-title">{{ job.title }}</div>
+          <div class="job-company">{{ job.company }}</div>
+        </div>
+        <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Right Sidebar - Candidate Matches -->
+  <div class="page-sidebar">
+    <div class="section" style="position: sticky; top: 80px;">
+      <h3>👔 Best-Fit Candidates</h3>
+      {% if matches %}
+        {% for match in matches %}
+        <div class="match-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div class="match-name">{{ match.candidate.name }}</div>
+              <div class="match-role">{{ match.candidate.title or 'No title' }}{% if match.candidate.current_company %} at {{ match.candidate.current_company }}{% endif %}</div>
+              <span class="status-badge status-{{ match.candidate.status }}">{{ match.candidate.status }}</span>
+            </div>
+            <div class="match-score {% if match.score >= 8 %}high{% elif match.score >= 6 %}medium{% endif %}">
+              {{ match.score }}/10
+            </div>
+          </div>
+          {% if match.reasons %}
+          <div class="match-reasons">
+            {% for reason in match.reasons %}<div>{{ reason }}</div>{% endfor %}
+          </div>
+          {% endif %}
+          <a href="/candidates/{{ match.candidate.id }}/deep" style="font-size: 12px; margin-top: 8px; display: inline-block;">View Profile →</a>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div style="color: #8b949e; font-size: 14px;">
+        No matching candidates yet.<br><br>
+        <a href="/candidates/add" style="color: #00d4ff;">Add candidates →</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

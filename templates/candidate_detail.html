@@ -1,0 +1,659 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.name }} - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 20px;">
+  <a href="/candidates">&larr; Back to Candidates</a>
+</div>
+
+<div class="header">
+  <h1>{{ candidate.name }}</h1>
+  <p>{{ candidate.title }} @ {{ candidate.current_company or 'TBD' }} | {{ candidate.location }}</p>
+</div>
+
+<!-- Candidate Details -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Profile</h2>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+    <div>
+      <h4>Specialism</h4>
+      <p>{{ candidate.specialism or '-' }}</p>
+    </div>
+    <div>
+      <h4>Years Experience</h4>
+      <p>{{ candidate.years_experience or '-' }} years</p>
+    </div>
+    <div>
+      <h4>Salary Band</h4>
+      <p>{{ candidate.salary_band or '-' }}</p>
+    </div>
+    <div>
+      <h4>Mobility</h4>
+      <p>{{ candidate.mobility or '-' }}</p>
+    </div>
+    <div>
+      <h4>Flight Risk</h4>
+      <p>
+        {% if candidate.flight_risk == 'High' %}
+          🔴 {{ candidate.flight_risk }}
+        {% elif candidate.flight_risk == 'Medium' %}
+          🟠 {{ candidate.flight_risk }}
+        {% else %}
+          🟢 {{ candidate.flight_risk or '-' }}
+        {% endif %}
+      </p>
+    </div>
+    <div>
+      <h4>Known Offers</h4>
+      <p>{{ candidate.known_offers or '-' }}</p>
+    </div>
+    <div>
+      <h4>Who Wants Them</h4>
+      <p>{{ candidate.who_wants_them or '-' }}</p>
+    </div>
+    <div>
+      <h4>Relationship</h4>
+      <p>
+        {% for i in range(candidate.relationship_score or 0) %}⭐{% endfor %}
+      </p>
+    </div>
+    <div>
+      <h4>Last Contact</h4>
+      <p>{{ candidate.last_contact or '-' }}</p>
+    </div>
+    <div>
+      <h4>Next Follow Up</h4>
+      <p>{{ candidate.next_follow_up or '-' }}</p>
+    </div>
+  </div>
+  
+  {% if candidate.notes %}
+  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+    <h4>Notes</h4>
+    <p style="white-space: pre-wrap;">{{ candidate.notes }}</p>
+  </div>
+  {% endif %}
+  
+  <div style="margin-top: 20px;">
+    <button class="btn" onclick="showEditForm()">Edit Candidate</button>
+    <button class="btn" style="background: #10b981; margin-left: 10px;" onclick="showLogCallModal()">📞 Log Call</button>
+    <button class="btn" style="background: #f59e0b; margin-left: 10px;" onclick="showQuickLogModal()">⚡ Quick Log</button>
+    <button class="btn" style="background: #8b5cf6; margin-left: 10px;" onclick="showScheduleFollowUp()">📅 Schedule Follow-up</button>
+    <button class="btn" style="background: #1e3a5f; margin-left: 10px;" onclick="window.location.href='/candidate/{{ candidate.id }}/submittal'">📄 Generate Submittal</button>
+    <button class="btn" style="background: #ff6b35; margin-left: 10px;" onclick="window.location.href='/candidate/{{ candidate.id }}/profile'">👤 Generate Profile</button>
+    <button class="btn" style="background: #ef4444; margin-left: 10px;" onclick="showDeleteConfirm()">🗑️ Delete</button>
+  </div>
+</div>
+
+<!-- Activity Timeline -->
+<div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>📋 Activity Timeline</h2>
+  <div id="candidateActivityTimeline" style="margin-top: 15px;">
+    <p style="color: #64748b;">Loading activities...</p>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  loadCandidateActivityTimeline();
+});
+
+async function loadCandidateActivityTimeline() {
+  const container = document.getElementById('candidateActivityTimeline');
+  try {
+    const response = await fetch('/api/activities/candidate/{{ candidate.id }}');
+    const data = await response.json();
+    
+    if (!data.activities || data.activities.length === 0) {
+      container.innerHTML = '<p style="color: #64748b;">No activities recorded yet.</p>';
+      return;
+    }
+    
+    let html = '<div style="border-left: 3px solid #8b5cf6; padding-left: 20px; margin-left: 10px;">';
+    data.activities.forEach(activity => {
+      const typeIcon = {
+        'call': '📞',
+        'meeting': '🤝',
+        'visit': '🏢',
+        'email': '📧',
+        'linkedin': '💼',
+        'follow_up_scheduled': '📅'
+      }[activity.type] || '📋';
+      
+      const outcomeBadge = activity.outcome ? {
+        'successful': '✅',
+        'voicemail': '📧',
+        'no_answer': '❌',
+        'callback': '🔄',
+        'meeting_scheduled': '📅',
+        'follow_up_required': '📌'
+      }[activity.outcome] : '';
+      
+      const date = new Date(activity.created_at).toLocaleDateString('en-AU', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      
+      html += `
+        <div style="margin-bottom: 20px; position: relative;">
+          <div style="position: absolute; left: -26px; top: 0; background: white; border: 2px solid #8b5cf6; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px;">${typeIcon}</div>
+          <div style="font-size: 12px; color: #64748b;">${date}</div>
+          <div style="font-weight: bold; text-transform: capitalize;">${activity.type} ${outcomeBadge}</div>
+          ${activity.notes ? `<div style="color: #374151; margin-top: 5px;">${activity.notes}</div>` : ''}
+        </div>
+      `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<p style="color: #ef4444;">Error loading activities</p>';
+  }
+}
+</script>
+
+<!-- Delete Confirmation Modal -->
+<style>
+#deleteModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+#deleteModal.show {
+  display: flex;
+}
+</style>
+
+<div id="deleteModal">
+  <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+    <h2 style="color: #ef4444;">Delete Candidate?</h2>
+    <p style="color: #64748b; margin: 15px 0;">This cannot be undone. To confirm, type the candidate's name:</p>
+    <p style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-weight: bold; margin: 10px 0;">{{ candidate.name }}</p>
+    <input type="text" id="deleteConfirmInput" placeholder="Type name to confirm" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px; margin: 15px 0;" />
+    <div style="display: flex; gap: 10px;">
+      <button class="btn" style="background: #ef4444; flex: 1;" onclick="confirmDelete()">Delete</button>
+      <button class="btn btn-secondary" style="flex: 1;" onclick="closeDeleteConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Call Modal - Replaced with full Activity Modal -->
+<div id="logCallModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:450px;">
+    <h2>Log Activity: {{ candidate.name }}</h2>
+    <form id="callForm">
+      <input type="hidden" id="candidateId" value="{{ candidate.id }}">
+      
+      <label>Type:</label>
+      <select id="activityType" required onchange="updateCandidateActivityFields()">
+        <option value="call">📞 Call</option>
+        <option value="email">📧 Email</option>
+        <option value="meeting">🤝 Meeting</option>
+        <option value="linkedin">💼 LinkedIn Message</option>
+        <option value="interview">🎤 Interview</option>
+        <option value="reference">📋 Reference Check</option>
+        <option value="other">📌 Other</option>
+      </select><br><br>
+      
+      <div id="activityOutcomeRow">
+        <label>Outcome:</label>
+        <select id="callOutcome" style="width:100%; padding:8px;">
+          <option value="">-- Select --</option>
+          
+          <!-- Call outcomes -->
+          <optgroup id="outcomeCall" label="Call">
+            <option value="successful">✅ Successful</option>
+            <option value="voicemail">📧 Voicemail</option>
+            <option value="no_answer">❌ No Answer</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Email outcomes -->
+          <optgroup id="outcomeEmail" label="Email">
+            <option value="successful">✅ Successful</option>
+            <option value="no_reply">❌ No Reply</option>
+            <option value="bounced">⚠️ Bounced</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- LinkedIn outcomes -->
+          <optgroup id="outcomeLinkedIn" label="LinkedIn Message">
+            <option value="successful">✅ Successful</option>
+            <option value="no_reply">❌ No Reply</option>
+            <option value="inmailed">📬 InMailed</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Interview outcomes -->
+          <optgroup id="outcomeInterview" label="Interview">
+            <option value="next_stage">➡️ Moved to Next Stage</option>
+            <option value="offer_made">💼 Offer Made</option>
+            <option value="offer_accepted">🎉 Offer Accepted</option>
+            <option value="candidate_rejected">❌ Candidate Rejected</option>
+            <option value="client_rejected">🚫 Client Rejected</option>
+            <option value="withdrawn">↩️ Withdrawn</option>
+          </optgroup>
+          
+          <!-- Reference Check outcomes -->
+          <optgroup id="outcomeReference" label="Reference Check">
+            <option value="positive">✅ Positive</option>
+            <option value="neutral">➖ Neutral</option>
+            <option value="negative">❌ Negative</option>
+          </optgroup>
+        </select><br><br>
+      </div>
+      
+      <div class="form-group">
+        <label>Notes:</label>
+        <textarea id="callNotes" rows="3" style="width:100%; padding:8px;"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button type="submit" class="btn" style="flex:1;">Save Activity</button>
+        <button type="button" onclick="document.getElementById('logCallModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Quick Log Modal -->
+<div id="quickLogModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:20px; border-radius:12px; width:350px;">
+    <h2 style="color:#1e3a5f; margin-bottom:15px;">⚡ Quick Log Call</h2>
+    <form id="quickLogForm">
+      <input type="hidden" id="quickCandidateId" value="{{ candidate.id }}">
+      
+      <label style="font-weight:600; color:#1e3a5f; font-size:13px;">Call Outcome:</label>
+      <select id="quickCallOutcome" required style="width:100%; padding:10px; margin-bottom:12px; border:1px solid #e2e8f0; border-radius:6px;">
+        <option value="">-- Select Outcome --</option>
+        <option value="Connected & Spoke">📞 Connected & Spoke</option>
+        <option value="Left Voicemail">📧 Left Voicemail</option>
+        <option value="No Answer">❌ No Answer</option>
+        <option value="Meeting Booked">📅 Meeting Booked</option>
+        <option value="Not Interested">🚫 Not Interested</option>
+        <option value="Callback Requested">🔄 Callback Requested</option>
+      </select>
+      
+      <label style="font-weight:600; color:#1e3a5f; font-size:13px;">Notes:</label>
+      <input type="text" id="quickCallNotes" placeholder="One-line note..." style="width:100%; padding:10px; margin-bottom:12px; border:1px solid #e2e8f0; border-radius:6px;">
+      
+      <label style="font-weight:600; color:#1e3a5f; font-size:13px;">Next Follow-up:</label>
+      <input type="date" id="quickNextFollowUp" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #e2e8f0; border-radius:6px;">
+      
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn" style="flex:1; background:#ff6b35;">Save</button>
+        <button type="button" onclick="closeQuickLog()" class="btn" style="flex:1; background:#999;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function closeQuickLog() {
+  document.getElementById('quickLogModal').style.display = 'none';
+}
+
+document.getElementById('quickLogForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const outcome = document.getElementById('quickCallOutcome').value;
+  const notes = document.getElementById('quickCallNotes').value;
+  const nextFollowUp = document.getElementById('quickNextFollowUp').value;
+  const candidateId = document.getElementById('quickCandidateId').value;
+  
+  // Map outcome to internal value
+  const outcomeMap = {
+    'Connected & Spoke': 'successful',
+    'Left Voicemail': 'voicemail',
+    'No Answer': 'no_answer',
+    'Meeting Booked': 'meeting_scheduled',
+    'Not Interested': 'not_interested',
+    'Callback Requested': 'callback'
+  };
+  
+  const data = {
+    type: 'call',
+    candidate_id: candidateId,
+    outcome: outcomeMap[outcome] || outcome,
+    notes: notes
+  };
+  
+  const response = await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok && nextFollowUp) {
+    // Also update next_follow_up if set
+    await fetch('/api/candidate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id: candidateId, next_follow_up: nextFollowUp})
+    });
+  }
+  
+  // Show success toast and close
+  document.getElementById('quickLogModal').style.display = 'none';
+  showToast('✅ Call logged successfully!');
+  
+  // Reset form
+  document.getElementById('quickLogForm').reset();
+});
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1e3a5f; color:white; padding:12px 24px; border-radius:8px; font-weight:600; z-index:2000; animation:fadeIn 0.3s ease';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease'; setTimeout(() => toast.remove(), 300); }, 2000);
+}
+</script>
+function showLogCallModal() {
+  document.getElementById('logCallModal').style.display = 'flex';
+  updateCandidateActivityFields();
+}
+
+function showQuickLogModal() {
+  document.getElementById('quickLogModal').style.display = 'flex';
+}
+
+// Quick Log Modal
+function showQuickLogModal() {
+  document.getElementById('quickLogModal').style.display = 'flex';
+}
+
+function updateCandidateActivityFields() {
+  const type = document.getElementById('activityType').value;
+  const outcomeRow = document.getElementById('activityOutcomeRow');
+  const typesWithOutcome = ['email', 'interview', 'reference'];
+  outcomeRow.style.display = typesWithOutcome.includes(type) ? 'block' : 'none';
+  
+  const callGroup = document.getElementById('outcomeCall');
+  const emailGroup = document.getElementById('outcomeEmail');
+  const linkedinGroup = document.getElementById('outcomeLinkedIn');
+  
+  const interviewGroup = document.getElementById('outcomeInterview');
+  const referenceGroup = document.getElementById('outcomeReference');
+  
+  if (callGroup) callGroup.style.display = (type === 'call') ? 'block' : 'none';
+  if (emailGroup) emailGroup.style.display = (type === 'email') ? 'block' : 'none';
+  if (linkedinGroup) linkedinGroup.style.display = (type === 'linkedin') ? 'block' : 'none';
+  
+  if (interviewGroup) interviewGroup.style.display = (type === 'interview') ? 'block' : 'none';
+  if (referenceGroup) referenceGroup.style.display = (type === 'reference') ? 'block' : 'none';
+}
+
+document.getElementById('callForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const type = document.getElementById('activityType').value;
+  const outcome = document.getElementById('activityOutcomeRow').style.display !== 'none' 
+    ? document.getElementById('callOutcome').value 
+    : null;
+  
+  const data = {
+    type: type,
+    candidate_id: document.getElementById('candidateId').value,
+    outcome: outcome,
+    notes: document.getElementById('callNotes').value
+  };
+  await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  location.reload();
+});
+</script>
+
+<!-- Schedule Follow-up Modal for Candidates -->
+<div id="scheduleFollowUpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:24px; border-radius:12px; width:400px;">
+    <h2>Schedule Follow-up</h2>
+    <form id="candidateFollowUpForm">
+      <label>Follow-up Date:</label>
+      <input type="date" id="candidateFollowUpDate" required style="width:100%; padding:8px; margin-bottom:15px;">
+      
+      <label>Notes:</label>
+      <textarea id="candidateFollowUpNotes" rows="2" style="width:100%; padding:8px; margin-bottom:15px;"></textarea>
+      
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn" style="flex:1;">Set Reminder</button>
+        <button type="button" onclick="document.getElementById('scheduleFollowUpModal').style.display='none'" class="btn" style="background:#999; flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showScheduleFollowUp() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('candidateFollowUpDate').value = tomorrow.toISOString().split('T')[0];
+  document.getElementById('scheduleFollowUpModal').style.display = 'flex';
+}
+
+document.getElementById('candidateFollowUpForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const followUpDate = document.getElementById('candidateFollowUpDate').value;
+  const notes = document.getElementById('candidateFollowUpNotes').value;
+  
+  // Update candidate's next_follow_up
+  const data = {
+    table: 'candidates',
+    id: {{ candidate.id }},
+    next_action: followUpDate
+  };
+  
+  // Also log an activity
+  const activityData = {
+    type: 'follow_up_scheduled',
+    candidate_id: {{ candidate.id }},
+    notes: 'Follow-up scheduled: ' + followUpDate + (notes ? ' - ' + notes : ''),
+    outcome: 'follow_up_required'
+  };
+  
+  const response = await fetch('/api/activity', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(activityData)
+  });
+  
+  if (response.ok) {
+    document.getElementById('scheduleFollowUpModal').style.display = 'none';
+    alert('Follow-up scheduled for ' + followUpDate + '!');
+    location.reload();
+  } else {
+    alert('Error scheduling follow-up');
+  }
+});
+</script>
+
+<!-- Edit Form (hidden by default) -->
+<div id="editFormContainer" style="display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px;">
+  <h2>Edit Candidate</h2>
+  <form id="editForm">
+    <div class="form-group">
+      <label>Name *</label>
+      <input type="text" id="editName" value="{{ candidate.name }}" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Current Company</label>
+      <input type="text" id="editCompany" value="{{ candidate.current_company or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="editTitle" value="{{ candidate.title or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Specialism</label>
+      <input type="text" id="editSpecialism" value="{{ candidate.specialism or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Years Experience</label>
+      <input type="number" id="editYearsExp" value="{{ candidate.years_experience or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Salary Band</label>
+      <input type="text" id="editSalaryBand" value="{{ candidate.salary_band or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="editLocation" value="{{ candidate.location or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Mobility</label>
+      <input type="text" id="editMobility" value="{{ candidate.mobility or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Flight Risk</label>
+      <select id="editFlightRisk">
+        <option value="">Select...</option>
+        <option {% if candidate.flight_risk == 'Low' %}selected{% endif %}>Low</option>
+        <option {% if candidate.flight_risk == 'Medium' %}selected{% endif %}>Medium</option>
+        <option {% if candidate.flight_risk == 'High' %}selected{% endif %}>High</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Known Offers?</label>
+      <input type="text" id="editKnownOffers" value="{{ candidate.known_offers or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Who Wants Them</label>
+      <textarea id="editWhoWants" rows="2">{{ candidate.who_wants_them or '' }}</textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Relationship (1-5)</label>
+      <select id="editRelationship">
+        <option value="1" {% if candidate.relationship_score == 1 %}selected{% endif %}>1 - Cold</option>
+        <option value="2" {% if candidate.relationship_score == 2 %}selected{% endif %}>2</option>
+        <option value="3" {% if candidate.relationship_score == 3 %}selected{% endif %}>3 - Warm</option>
+        <option value="4" {% if candidate.relationship_score == 4 %}selected{% endif %}>4</option>
+        <option value="5" {% if candidate.relationship_score == 5 %}selected{% endif %}>5 - Hot</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Last Contact</label>
+      <input type="date" id="editLastContact" value="{{ candidate.last_contact or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Follow Up</label>
+      <input type="date" id="editNextFollowUp" value="{{ candidate.next_follow_up or '' }}" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="editNotes" rows="3">{{ candidate.notes or '' }}</textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="closeEditForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<script>
+function showEditForm() {
+  document.getElementById('editFormContainer').style.display = 'block';
+  window.scrollTo(0, document.getElementById('editFormContainer').offsetTop);
+}
+
+function closeEditForm() {
+  document.getElementById('editFormContainer').style.display = 'none';
+  document.getElementById('editForm').reset();
+}
+
+function showDeleteConfirm() {
+  const modal = document.getElementById('deleteModal');
+  modal.classList.add('show');
+  document.getElementById('deleteConfirmInput').value = '';
+  document.getElementById('deleteConfirmInput').focus();
+}
+
+function closeDeleteConfirm() {
+  document.getElementById('deleteModal').classList.remove('show');
+}
+
+async function confirmDelete() {
+  const input = document.getElementById('deleteConfirmInput').value;
+  const candidateName = '{{ candidate.name }}';
+  
+  if (input !== candidateName) {
+    alert('Name does not match. Please try again.');
+    return;
+  }
+  
+  const response = await fetch('/api/delete/candidate/{{ candidate.id }}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  
+  if (response.ok) {
+    window.location.href = '/candidates';
+  } else {
+    alert('Error deleting candidate');
+    closeDeleteConfirm();
+  }
+}
+
+document.getElementById('editForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: {{ candidate.id }},
+    name: document.getElementById('editName').value,
+    current_company: document.getElementById('editCompany').value,
+    title: document.getElementById('editTitle').value,
+    specialism: document.getElementById('editSpecialism').value,
+    years_experience: document.getElementById('editYearsExp').value,
+    salary_band: document.getElementById('editSalaryBand').value,
+    location: document.getElementById('editLocation').value,
+    mobility: document.getElementById('editMobility').value,
+    flight_risk: document.getElementById('editFlightRisk').value,
+    known_offers: document.getElementById('editKnownOffers').value,
+    who_wants_them: document.getElementById('editWhoWants').value,
+    relationship_score: parseInt(document.getElementById('editRelationship').value),
+    last_contact: document.getElementById('editLastContact').value,
+    next_follow_up: document.getElementById('editNextFollowUp').value,
+    notes: document.getElementById('editNotes').value
+  };
+  
+  const response = await fetch('/api/candidate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving candidate');
+  }
+});
+</script>
+
+{% endblock %}

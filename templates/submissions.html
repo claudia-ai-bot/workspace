@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Submissions - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📄 CV Submissions</h1>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Sent Date</th>
+      <th>Candidate</th>
+      <th>Role</th>
+      <th>Company</th>
+      <th>Stage</th>
+      <th>Response</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in submissions %}
+    <tr>
+      <td>{{ s.sent_date[:10] if s.sent_date else '-' }}</td>
+      <td>{{ s.candidate_name or '-' }}</td>
+      <td>{{ s.deal_role or '-' }}</td>
+      <td>{{ s.company_name or '-' }}</td>
+      <td>{{ s.stage or '-' }}</td>
+      <td>{{ s.response_date[:10] if s.response_date else '-' }}</td>
+      <td>{{ s.notes[:50] if s.notes else '-' }}{% if s.notes and s.notes|length > 50 %}...{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not submissions %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">No submissions recorded yet.</p>
+{% endif %}
+
+{% endblock %}

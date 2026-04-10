@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead Command | Lead Group SEQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+  --cyan:#58a6ff;--green:#3fb950;--orange:#f0883e;--red:#f85149;--purple:#a371f7;--yellow:#d29922;--pink:#db61a2;
+  --text:#c9d1d9;--text2:#8b949e;--text3:#484f58;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* ── Header ── */
+.header{
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border-bottom:1px solid var(--border);
+  padding:18px 30px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.header-left{display:flex;align-items:center;gap:20px}
+.logo{font-size:1.35rem;font-weight:700;color:var(--cyan)}
+.logo span{color:var(--orange)}
+.badge-live{
+  background:linear-gradient(135deg,var(--orange),var(--red));
+  color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;
+}
+.day-badge{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 16px;font-size:0.8rem;color:var(--text2);
+}
+.day-badge strong{color:var(--cyan)}
+.countdown{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:8px 16px;font-size:0.8rem;
+  display:flex;align-items:center;gap:6px;
+}
+.countdown strong{color:var(--green)}
+
+/* ── Main Layout ── */
+.main{padding:24px 30px;max-width:1700px;margin:0 auto}
+
+/* ── Stats Row ── */
+.stats-row{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px;
+}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:18px;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+}
+.stat-card.cyan::before{background:var(--cyan)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.orange::before{background:var(--orange)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-card.red::before{background:var(--red)}
+.stat-card.pink::before{background:var(--pink)}
+.stat-value{font-size:2rem;font-weight:700;margin-bottom:4px}
+.stat-card.cyan .stat-value{color:var(--cyan)}
+.stat-card.green .stat-value{color:var(--green)}
+.stat-card.orange .stat-value{color:var(--orange)}
+.stat-card.purple .stat-value{color:var(--purple)}
+.stat-card.red .stat-value{color:var(--red)}
+.stat-card.pink .stat-value{color:var(--pink)}
+.stat-label{font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+.stat-sub{font-size:0.7rem;color:var(--text3);margin-top:4px}
+
+/* ── Layout Grid ── */
+.layout{display:grid;grid-template-columns:1fr 340px;gap:20px}
+
+/* ── Panel ── */
+.panel{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+}
+.panel-header{
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-title{font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:10px}
+.panel-title .icon{font-size:1.1rem}
+
+/* ── Filter Bar ── */
+.filter-bar{
+  padding:12px 20px;border-bottom:1px solid var(--border);
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.filter-bar label{font-size:0.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
+select,input{
+  background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  padding:7px 12px;border-radius:7px;font-size:0.82rem;font-family:'Space Grotesk',sans-serif;
+  outline:none;
+}
+select:focus,input:focus{border-color:var(--cyan)}
+select{cursor:pointer}
+.search-input{flex:1;min-width:180px}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+thead th{
+  padding:11px 14px;text-align:left;font-size:0.72rem;text-transform:uppercase;
+  letter-spacing:0.8px;color:var(--text2);border-bottom:1px solid var(--border);
+  background:var(--bg);white-space:nowrap;cursor:pointer;user-select:none;
+}
+thead th:hover{color:var(--text)}
+thead th .sort-icon{margin-left:4px;opacity:0.4;font-size:0.65rem}
+thead th.sorted .sort-icon{opacity:1;color:var(--cyan)}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+tbody tr:hover{background:var(--bg3)}
+td{padding:11px 14px;vertical-align:middle}
+
+/* ── Score Badges ── */
+.score{
+  font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.82rem;
+  padding:3px 9px;border-radius:6px;display:inline-block;min-width:36px;text-align:center;
+}
+.score.hot{background:rgba(63,185,80,0.15);color:var(--green)}
+.score.warm{background:rgba(88,166,255,0.15);color:var(--cyan)}
+.score.cool{background:rgba(240,136,62,0.15);color:var(--orange)}
+.score.cold{background:rgba(248,81,73,0.15);color:var(--red)}
+
+/* ── Company Cell ── */
+.company-cell{display:flex;flex-direction:column;gap:2px}
+.company-name{font-weight:600;color:var(--text);white-space:nowrap}
+.intel-type{font-size:0.72rem;color:var(--text2);white-space:nowrap}
+.intel-type span{
+  background:var(--bg3);padding:1px 7px;border-radius:10px;
+  font-size:0.68rem;margin-right:4px;
+}
+
+/* ── Contact Badges ── */
+.contact-badges{display:flex;gap:4px;flex-wrap:wrap}
+.badge-mini{
+  font-size:0.65rem;padding:2px 8px;border-radius:10px;font-weight:600;
+}
+.badge-mini.email{background:rgba(88,166,255,0.15);color:var(--cyan)}
+.badge-mini.phone{background:rgba(63,185,80,0.15);color:var(--green)}
+.badge-mini.li{background:rgba(163,113,247,0.15);color:var(--purple)}
+.badge-mini.missing{background:rgba(72,79,88,0.3);color:var(--text3)}
+
+/* ── Action Buttons ── */
+.action-btns{display:flex;gap:6px}
+.btn-icon{
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text2);cursor:pointer;font-size:0.8rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;text-decoration:none;
+}
+.btn-icon:hover{transform:translateY(-1px)}
+.btn-icon.email-btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(88,166,255,0.1)}
+.btn-icon.phone-btn:hover{border-color:var(--green);color:var(--green);background:rgba(63,185,80,0.1)}
+.btn-icon.li-btn:hover{border-color:var(--purple);color:var(--purple);background:rgba(163,113,247,0.1)}
+
+/* ── Source Badge ── */
+.source-badge{
+  font-size:0.68rem;padding:2px 8px;border-radius:10px;
+  background:var(--bg3);color:var(--text2);white-space:nowrap;
+}
+
+/* ── Sector Badge ── */
+.sector-badge{
+  font-size:0.68rem;padding:2px 8px;border-radius:10px;white-space:nowrap;
+  background:rgba(88,166,255,0.08);color:var(--cyan);
+}
+
+/* ── Priority indicator ── */
+.priority-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.priority-dot.high{background:var(--green);box-shadow:0 0 6px var(--green)}
+.priority-dot.normal{background:var(--text3)}
+
+/* ── Sidebar Cards ── */
+.sidebar{display:flex;flex-direction:column;gap:16px}
+
+/* ── Top 5 List ── */
+.top5-list{padding:0}
+.top5-item{
+  padding:13px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:12px;
+  transition:background 0.15s;
+}
+.top5-item:last-child{border-bottom:none}
+.top5-item:hover{background:var(--bg3)}
+.top5-rank{
+  font-size:1rem;font-weight:700;font-family:'JetBrains Mono',monospace;
+  color:var(--text3);min-width:24px;text-align:center;margin-top:2px;
+}
+.top5-rank.r1{color:var(--green)}
+.top5-rank.r2{color:var(--cyan)}
+.top5-rank.r3{color:var(--orange)}
+.top5-content{flex:1}
+.top5-company{font-weight:600;font-size:0.85rem;margin-bottom:3px}
+.top5-intel{font-size:0.72rem;color:var(--text2);line-height:1.4}
+.top5-score{margin-left:auto;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.85rem}
+
+/* ── Sector Breakdown ── */
+.sector-list{padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.sector-item{display:flex;flex-direction:column;gap:4px}
+.sector-row{display:flex;justify-content:space-between;align-items:center;font-size:0.78rem}
+.sector-name{color:var(--text2)}
+.sector-count{font-weight:600;color:var(--text)}
+.sector-bar-bg{height:5px;background:var(--bg);border-radius:10px;overflow:hidden}
+.sector-bar{height:100%;background:var(--cyan);border-radius:10px}
+
+/* ── Contact Coverage ── */
+.coverage-list{padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.coverage-item{display:flex;justify-content:space-between;align-items:center;font-size:0.8rem}
+.coverage-label{color:var(--text2);display:flex;align-items:center;gap:6px}
+.coverage-icon{font-size:0.9rem}
+.coverage-value{font-weight:700}
+.coverage-value.yes{color:var(--green)}
+.coverage-value.no{color:var(--text3)}
+
+/* ── Empty State ── */
+.empty-state{
+  padding:60px 20px;text-align:center;color:var(--text3);
+}
+.empty-state .icon{font-size:2.5rem;margin-bottom:12px}
+.empty-state p{font-size:0.85rem}
+
+/* ── Score filter active indicator ── */
+.filter-active{
+  border-color:var(--cyan) !important;
+  background:rgba(88,166,255,0.08) !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ── Back link ── */
+.back-link{
+  display:inline-flex;align-items:center;gap:6px;
+  color:var(--text2);font-size:0.82rem;padding:6px 12px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  transition:all 0.2s;
+}
+.back-link:hover{color:var(--cyan);border-color:var(--cyan)}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">Lead <span>Command</span></div>
+    <span class="badge-live">LIVE</span>
+    <a href="/" class="back-link">← CRM</a>
+  </div>
+  <div class="header-right">
+    <div class="day-badge" id="dayBadge"></div>
+    <div class="countdown">
+      <span>⏱</span>
+      <span id="countdown"></span>
+      <strong>to Day 1</strong>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card cyan">
+      <div class="stat-value">{{ total_leads }}</div>
+      <div class="stat-label">Total Leads</div>
+      <div class="stat-sub">all sources</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-value">{{ active_leads }}</div>
+      <div class="stat-label">Active</div>
+      <div class="stat-sub">open intel</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-value">{{ hot_leads }}</div>
+      <div class="stat-label">🔥 Hot 70+</div>
+      <div class="stat-sub">priority targets</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-value">{{ warm_leads }}</div>
+      <div class="stat-label">Warm 50-69</div>
+      <div class="stat-sub">good potential</div>
+    </div>
+    <div class="stat-card pink">
+      <div class="stat-value">{{ with_email }}</div>
+      <div class="stat-label">📧 Email Ready</div>
+      <div class="stat-sub">can contact now</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-value">{{ with_phone }}</div>
+      <div class="stat-label">📞 Phone Ready</div>
+      <div class="stat-sub">can call directly</div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="layout">
+
+    <!-- Lead Table Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="icon">🎯</span>
+          All Leads — Ranked by Score
+          <span style="font-size:0.72rem;color:var(--text3);font-weight:400;margin-left:8px" id="visibleCount"></span>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <label>Search</label>
+        <input type="text" id="searchInput" class="search-input" placeholder="Company, role, or contact..." oninput="applyFilters()">
+        <label>Sector</label>
+        <select id="filterSector" onchange="applyFilters()">
+          <option value="">All</option>
+          {% for s in sectors %}<option value="{{s}}">{{s}}</option>{% endfor %}
+        </select>
+        <label>Score</label>
+        <select id="filterScore" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="hot">🔥 Hot 70+</option>
+          <option value="warm">Warm 50-69</option>
+          <option value="cool">Cool 30-49</option>
+          <option value="cold">Cold &lt;30</option>
+        </select>
+        <label>Contact</label>
+        <select id="filterContact" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="full">📧+📞+LI</option>
+          <option value="email">📧 Email Only</option>
+          <option value="none">❌ No Contact</option>
+        </select>
+        <label>Source</label>
+        <select id="filterSource" onchange="applyFilters()">
+          <option value="">All</option>
+          {% for s in sources %}<option value="{{s}}">{{s}}</option>{% endfor %}
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table id="leadTable">
+          <thead>
+            <tr>
+              <th data-sort="score" onclick="sortTable('score')">Score <span class="sort-icon">↕</span></th>
+              <th data-sort="company" onclick="sortTable('company')">Company / Intel <span class="sort-icon">↕</span></th>
+              <th data-sort="hiring_manager" onclick="sortTable('hiring_manager')">Hiring Manager <span class="sort-icon">↕</span></th>
+              <th data-sort="contact" onclick="sortTable('contact')">Contacts <span class="sort-icon">↕</span></th>
+              <th data-sort="sector" onclick="sortTable('sector')">Sector <span class="sort-icon">↕</span></th>
+              <th data-sort="source" onclick="sortTable('source')">Source <span class="sort-icon">↕</span></th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leadBody">
+            <!-- Filled by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div class="icon">🔍</div>
+        <p>No leads match your filters</p>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <!-- Today's Top 5 -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">🚀</span>
+            Today's Top 5
+          </div>
+        </div>
+        <div class="top5-list">
+          {% for lead in top5 %}
+          <div class="top5-item">
+            <div class="top5-rank {% if loop.index <= 3 %}r{{ loop.index }}{% endif %}">#{{ loop.index }}</div>
+            <div class="top5-content">
+              <div class="top5-company">{{ lead.company }}</div>
+              <div class="top5-intel">{{ lead.what_it_means[:80] }}</div>
+            </div>
+            <div class="top5-score score {% if lead.score >= 70 %}hot{% elif lead.score >= 50 %}warm{% elif lead.score >= 30 %}cool{% else %}cold{% endif %}">{{ lead.score }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Sector Breakdown -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">📊</span>
+            Sector Breakdown
+          </div>
+        </div>
+        <div class="sector-list">
+          {% for item in sector_breakdown %}
+          <div class="sector-item">
+            <div class="sector-row">
+              <span class="sector-name">{{ item.name }}</span>
+              <span class="sector-count">{{ item.count }}</span>
+            </div>
+            <div class="sector-bar-bg">
+              <div class="sector-bar" style="width:{{ (item.count / sector_max * 100)|int }}%"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Contact Coverage -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">📞</span>
+            Contact Coverage
+          </div>
+        </div>
+        <div class="coverage-list">
+          <div class="coverage-item">
+            <span class="coverage-label"><span class="coverage-icon">📧</span> Has Email</span>
+            <span class="coverage-value yes">{{ with_email }} ({{ (with_email*100//total_leads) if total_leads else 0 }}%)</span>
+          </div>
+          <div class="coverage-item">
+            <span class="coverage-label"><span class="coverage-icon">📞</span> Has Phone</span>
+            <span class="coverage-value {% if with_phone > 0 %}yes{% else %}no{% endif %}">{{ with_phone }} ({{ (with_phone*100//total_leads) if total_leads else 0 }}%)</span>
+          </div>
+          <div class="coverage-item">
+            <span class="coverage-label"><span class="coverage-icon">💼</span> Has LinkedIn</span>
+            <span class="coverage-value {% if with_li > 0 %}yes{% else %}no{% endif %}">{{ with_li }} ({{ (with_li*100//total_leads) if total_leads else 0 }}%)</span>
+          </div>
+          <div class="coverage-item">
+            <span class="coverage-label"><span class="coverage-icon">✅</span> Full Contact</span>
+            <span class="coverage-value {% if full_contact > 0 %}yes{% else %}no{% endif %}">{{ full_contact }} ({{ (full_contact*100//total_leads) if total_leads else 0 }}%)</span>
+          </div>
+          <div class="coverage-item">
+            <span class="coverage-label"><span class="coverage-icon">❌</span> No Contact</span>
+            <span class="coverage-value no">{{ total_leads - with_email }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Countdown ──────────────────────────────────────────────
+const day1 = new Date('2026-05-04');
+function updateCountdown(){
+  const now = new Date();
+  const diff = day1 - now;
+  if(diff <= 0){
+    document.getElementById('countdown').textContent = '🚀 DAY 1!';
+    return;
+  }
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  document.getElementById('countdown').textContent = `${d}d ${h}h ${m}m`;
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+
+// Day badge
+const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const now = new Date();
+document.getElementById('dayBadge').innerHTML = `<strong>${days[now.getDay()]}</strong> · ${now.getDate()} ${months[now.getMonth()]}`;
+
+// ── Lead Data ──────────────────────────────────────────────
+const ALL_LEADS = {{ leads_json|safe }};
+
+// ── Render Table ───────────────────────────────────────────
+let sortKey = 'score';
+let sortDir = -1; // -1 = desc, 1 = asc
+let filters = { search:'', sector:'', score:'', contact:'', source:'' };
+
+function scoreClass(s){
+  if(s === null || s === undefined) return 'cold';
+  if(s >= 70) return 'hot';
+  if(s >= 50) return 'warm';
+  if(s >= 30) return 'cool';
+  return 'cold';
+}
+
+function renderLeads(leads){
+  const tbody = document.getElementById('leadBody');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('visibleCount');
+  if(leads.length === 0){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    count.textContent = '';
+    return;
+  }
+  empty.style.display = 'none';
+  count.textContent = `${leads.length} of ${ALL_LEADS.length}`;
+  tbody.innerHTML = leads.map(l => {
+    const sc = scoreClass(l.lead_score);
+    const email = l.hirer_email || '';
+    const phone = l.phone || '';
+    const li = l.hirer_linkedin || '';
+    const hasEmail = !!email;
+    const hasPhone = !!phone;
+    const hasLi = !!li;
+    const hasFull = hasEmail && hasPhone && hasLi;
+    const emailBadge = hasEmail ? '<span class="badge-mini email">📧</span>' : '<span class="badge-mini missing">📧 —</span>';
+    const phoneBadge = hasPhone ? '<span class="badge-mini phone">📞</span>' : '<span class="badge-mini missing">📞</span>';
+    const liBadge = hasLi ? '<span class="badge-mini li">💼</span>' : '<span class="badge-mini missing">💼 —</span>';
+    const scoreVal = l.lead_score !== null ? l.lead_score : '—';
+    const emailHref = email ? `mailto:${email}?subject=Construction Recruitment Partnership — ${encodeURIComponent(l.company)}` : '#';
+    const phoneHref = phone ? `tel:${phone}` : '#';
+    const liHref = li || '#';
+    const actionEmail = email ? `<a href="${emailHref}" class="btn-icon email-btn" title="Send email" target="_blank">📧</a>` : `<span class="btn-icon" style="opacity:0.3;cursor:not-allowed">📧</span>`;
+    const actionPhone = phone ? `<a href="${phoneHref}" class="btn-icon phone-btn" title="Call" target="_blank">📞</a>` : `<span class="btn-icon" style="opacity:0.3;cursor:not-allowed">📞</span>`;
+    const actionLi = li ? `<a href="${liHref}" class="btn-icon li-btn" title="LinkedIn" target="_blank">💼</a>` : `<span class="btn-icon" style="opacity:0.3;cursor:not-allowed">💼</span>`;
+    const sectorBadge = l.sector ? `<span class="sector-badge">${l.sector}</span>` : '';
+    const sourceBadge = l.source ? `<span class="source-badge">${l.source}</span>` : '';
+    const priority = l.priority === 'high' ? '<span class="priority-dot high"></span>' : '<span class="priority-dot normal"></span>';
+    const title = l.hiring_manager_title || '';
+    return `<tr>
+      <td>${priority}<span class="score ${sc}" style="margin-left:6px">${scoreVal}</span></td>
+      <td>
+        <div class="company-cell">
+          <span class="company-name">${l.company}</span>
+          <span class="intel-type"><span>${l.intel_type||'Intel'}</span>${(l.what_it_means||'').replace(/<[^>]+>/g,'').substring(0,60)}</span>
+        </div>
+      </td>
+      <td>
+        <div class="company-cell">
+          <span style="font-weight:600;font-size:0.83rem">${l.hiring_manager||'—'}</span>
+          <span style="font-size:0.72rem;color:var(--text2)">${title}</span>
+        </div>
+      </td>
+      <td><div class="contact-badges">${emailBadge}${phoneBadge}${liBadge}</div></td>
+      <td>${sectorBadge}</td>
+      <td>${sourceBadge}</td>
+      <td><div class="action-btns">${actionEmail}${actionPhone}${actionLi}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function applyFilters(){
+  filters = {
+    search: document.getElementById('searchInput').value.toLowerCase(),
+    sector: document.getElementById('filterSector').value,
+    score: document.getElementById('filterScore').value,
+    contact: document.getElementById('filterContact').value,
+    source: document.getElementById('filterSource').value,
+  };
+  let filtered = ALL_LEADS.filter(l => {
+    if(filters.search && !(l.company||'').toLowerCase().includes(filters.search) &&
+       !(l.hiring_manager||'').toLowerCase().includes(filters.search) &&
+       !(l.what_it_means||'').toLowerCase().includes(filters.search)) return false;
+    if(filters.sector && l.sector !== filters.sector) return false;
+    if(filters.score){
+      const s = l.lead_score || 0;
+      if(filters.score==='hot' && s < 70) return false;
+      if(filters.score==='warm' && (s < 50 || s >= 70)) return false;
+      if(filters.score==='cool' && (s < 30 || s >= 50)) return false;
+      if(filters.score==='cold' && s >= 30) return false;
+    }
+    if(filters.contact){
+      const hasEmail = !!l.hirer_email;
+      const hasPhone = !!l.phone;
+      const hasLi = !!l.hirer_linkedin;
+      if(filters.contact==='full' && !(hasEmail && hasPhone && hasLi)) return false;
+      if(filters.contact==='email' && !hasEmail) return false;
+      if(filters.contact==='none' && (hasEmail || hasPhone || hasLi)) return false;
+    }
+    if(filters.source && l.source !== filters.source) return false;
+    return true;
+  });
+  renderLeads(filtered);
+}
+
+function sortTable(key){
+  if(sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = -1; }
+  // Update sort indicators
+  document.querySelectorAll('thead th').forEach(th => th.classList.remove('sorted'));
+  document.querySelector(`th[data-sort="${key}"]`).classList.add('sorted');
+  document.querySelector(`th[data-sort="${key}"] .sort-icon`).textContent = sortDir === -1 ? '↓' : '↑';
+  // Re-sort current filtered view
+  const filtered = ALL_LEADS.filter(l => {
+    if(filters.search && !(l.company||'').toLowerCase().includes(filters.search) &&
+       !(l.hiring_manager||'').toLowerCase().includes(filters.search) &&
+       !(l.what_it_means||'').toLowerCase().includes(filters.search)) return false;
+    if(filters.sector && l.sector !== filters.sector) return false;
+    if(filters.score){
+      const s = l.lead_score || 0;
+      if(filters.score==='hot'&&s<70)return false;
+      if(filters.score==='warm'&&(s<50||s>=70))return false;
+      if(filters.score==='cool'&&(s<30||s>=50))return false;
+      if(filters.score==='cold'&&s>=30)return false;
+    }
+    if(filters.contact){
+      const hasEmail=!!l.hirer_email,hasPhone=!!l.phone,hasLi=!!l.hirer_linkedin;
+      if(filters.contact==='full'&&!(hasEmail&&hasPhone&&hasLi))return false;
+      if(filters.contact==='email'&&!hasEmail)return false;
+      if(filters.contact==='none'&&(hasEmail||hasPhone||hasLi))return false;
+    }
+    if(filters.source&&l.source!==filters.source)return false;
+    return true;
+  });
+  filtered.sort((a,b)=>{
+    let va=a[key]||'',vb=b[key]||'';
+    if(key==='score'){va=a.lead_score??0;vb=b.lead_score??0}
+    if(key==='contact'){
+      va=(a.hirer_email?1:0)+(a.phone?1:0)+(a.hirer_linkedin?1:0);
+      vb=(b.hirer_email?1:0)+(b.phone?1:0)+(b.hirer_linkedin?1:0);
+    }
+    if(typeof va==='string') return sortDir*va.localeCompare(vb);
+    return sortDir*(va-vb);
+  });
+  renderLeads(filtered);
+}
+
+// Initial render sorted by score desc
+sortTable('score');
+</script>
+
+</body>
+</html>

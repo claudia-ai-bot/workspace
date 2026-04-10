@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Company Intelligence - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+/* Dark theme */
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+.card { background: #161b22; border-color: #30363d; }
+.table-card { background: #161b22; border-color: #30363d; }
+th { background: #1f2937; color: #e6edf3; }
+td { border-color: #30363d; color: #e6edf3; }
+tr:hover { background: #1f2937; }
+input, textarea, select { background: #0d1117; border-color: #30363d; color: #e6edf3; }
+label { color: #8b949e; }
+.btn { background: #238636; border: none; color: white; }
+.btn:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+h1, h2, h3, a { color: #00d4ff; }
+
+/* Intel cards */
+.intel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 16px; margin-top: 20px; }
+.intel-card { 
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; 
+  transition: all 0.2s; 
+}
+.intel-card:hover { border-color: #00d4ff; transform: translateY(-2px); }
+.intel-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.intel-company { font-size: 18px; font-weight: 600; color: #e6edf3; }
+.intel-meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.intel-type { 
+  display: inline-block; padding: 4px 10px; background: rgba(0,212,255,0.15); 
+  color: #00d4ff; border-radius: 4px; font-size: 12px; font-weight: 600; 
+}
+.intel-pace {
+  display: inline-block; padding: 4px 10px; background: rgba(255,107,53,0.15);
+  color: #ff6b35; border-radius: 4px; font-size: 12px; font-weight: 600;
+}
+.intel-size {
+  display: inline-block; padding: 4px 10px; background: rgba(46,204,113,0.15);
+  color: #2ecc71; border-radius: 4px; font-size: 12px; font-weight: 600;
+}
+.intel-summary { font-size: 14px; color: #8b949e; margin: 12px 0; line-height: 1.5; }
+.intel-details { display: flex; gap: 16px; font-size: 12px; color: #6e7681; margin-top: 12px; flex-wrap: wrap; }
+.intel-details span { display: flex; align-items: center; gap: 4px; }
+.match-count { 
+  background: #238636; color: white; padding: 4px 10px; border-radius: 20px; 
+  font-size: 12px; font-weight: 600; 
+}
+.match-count.zero { background: #30363d; color: #8b949e; }
+
+/* Filter bar */
+.filter-bar { 
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%); 
+  padding: 16px; border-radius: 8px; margin-bottom: 20px; 
+}
+.filter-bar select, .filter-bar input { 
+  padding: 8px 12px; border: 1px solid #30363d; border-radius: 4px; 
+  background: #0d1117; color: #e6edf3; 
+}
+
+/* No intel state */
+.no-intel { 
+  text-align: center; padding: 40px; background: #161b22; border: 1px dashed #30363d; 
+  border-radius: 8px; margin-top: 20px; 
+}
+.no-intel p { color: #8b949e; margin-bottom: 12px; }
+</style>
+
+<div class="header">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1>🏢 Company Intelligence</h1>
+      <p style="color: #8b949e; margin-top: 8px;">Understand what makes each company tick — and who thrives there</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <a href="/companies" class="btn btn-secondary">All Companies</a>
+      <a href="/company-intelligence/add" class="btn">+ Add Intel</a>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <span style="color: #00d4ff; font-weight: 600;">Filter:</span>
+    <select id="filterType" onchange="applyFilters()" style="width: 150px;">
+      <option value="">All Types</option>
+      <option value="Residential">Residential</option>
+      <option value="Commercial">Commercial</option>
+      <option value="Civil">Civil</option>
+      <option value="Industrial">Industrial</option>
+    </select>
+    <select id="filterPace" onchange="applyFilters()" style="width: 150px;">
+      <option value="">All Paces</option>
+      <option value="Fast-paced">Fast-paced</option>
+      <option value="Methodical">Methodical</option>
+      <option value="Varied">Varied</option>
+    </select>
+    <select id="filterSize" onchange="applyFilters()" style="width: 150px;">
+      <option value="">All Sizes</option>
+      <option value="Large">Large</option>
+      <option value="Corporate">Corporate</option>
+      <option value="SME">SME</option>
+      <option value="Boutique">Boutique</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="Search companies..." onkeyup="applyFilters()" style="width: 200px;">
+  </div>
+</div>
+
+<!-- Company Intel Grid -->
+<div class="intel-grid" id="intelGrid">
+  {% for company in companies %}
+  <div class="intel-card" 
+       data-types="{{ company.project_types or '' }}" 
+       data-pace="{{ company.pace or '' }}" 
+       data-size="{{ company.size_profile or '' }}"
+       data-name="{{ company.name or '' }}">
+    <div class="intel-card-header">
+      <div>
+        <div class="intel-company">{{ company.name }}</div>
+        <div class="intel-meta-row">
+          {% if company.project_types %}
+            {% for t in company.project_types.split(',') %}
+              <span class="intel-type">{{ t.strip() }}</span>
+            {% endfor %}
+          {% endif %}
+          {% if company.pace %}
+            <span class="intel-pace">{{ company.pace }}</span>
+          {% endif %}
+          {% if company.size_profile %}
+            <span class="intel-size">{{ company.size_profile }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    {% if company.ideal_candidate_profile %}
+    <div class="intel-summary">
+      <strong>Ideal Profile:</strong> {{ company.ideal_candidate_profile[:100] }}{% if company.ideal_candidate_profile|length > 100 %}...{% endif %}
+    </div>
+    {% endif %}
+    
+    {% if company.notes %}
+    <div class="intel-summary" style="margin-top: 8px;">{{ company.notes[:100] }}{% if company.notes|length > 100 %}...{% endif %}</div>
+    {% endif %}
+    
+    <div class="intel-details">
+      {% if company.team_style %}<span>👥 {{ company.team_style }}</span>{% endif %}
+      {% if company.growth_culture %}<span>📈 {{ company.growth_culture }}</span>{% endif %}
+      {% if company.client_relationship %}<span>🤝 {{ company.client_relationship }}</span>{% endif %}
+      <span class="{% if company.intel_id %}match-count{% else %}match-count zero{% endif %}">
+        {% set match_count = 0 %}
+        {% for c in candidates %}
+          {% if company.project_types and c.specialism %}
+            {% for t in company.project_types.split(',') %}
+              {% if loop.first and t.strip()|lower in c.specialism|lower %}
+                {% set match_count = match_count + 1 %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+        {{ match_count }} matches
+      </span>
+    </div>
+    
+    <div style="margin-top: 16px; display: flex; gap: 8px;">
+      {% if company.intel_id %}
+      <a href="/company-intelligence/{{ company.id }}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">View →</a>
+      <a href="/company-intelligence/{{ company.id }}/edit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">Edit Intel</a>
+      {% else %}
+      <a href="/company-intelligence/{{ company.id }}/edit" class="btn" style="padding: 6px 12px; font-size: 13px; background: #00d4ff; color: #0d1117;">Add Intel +</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if not companies %}
+<div class="no-intel">
+  <p>No companies found. Add some companies first!</p>
+  <a href="/companies/add" class="btn">Add Company</a>
+</div>
+{% endif %}
+
+<script>
+function applyFilters() {
+  const type = document.getElementById('filterType').value.toLowerCase();
+  const pace = document.getElementById('filterPace').value.toLowerCase();
+  const size = document.getElementById('filterSize').value.toLowerCase();
+  const search = document.getElementById('filterSearch').value.toLowerCase();
+  
+  const cards = document.querySelectorAll('.intel-card');
+  cards.forEach(card => {
+    const cardTypes = card.dataset.types.toLowerCase();
+    const cardPace = card.dataset.pace.toLowerCase();
+    const cardSize = card.dataset.size.toLowerCase();
+    const cardName = card.dataset.name.toLowerCase();
+    
+    const show = (!type || cardTypes.includes(type)) && 
+                 (!pace || cardPace.includes(pace)) &&
+                 (!size || cardSize.includes(size)) &&
+                 (!search || cardName.includes(search));
+    card.style.display = show ? '' : 'none';
+  });
+}
+</script>
+
+{% endblock %}

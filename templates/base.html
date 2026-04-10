@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}SEQ Construction CRM{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #1e3a5f;
+  --primary-dark: #152a45;
+  --accent: #ff6b35;
+  --success: #2ecc71;
+  --warning: #f1c40f;
+  --danger: #e74c3c;
+  --bg: #f5f6fa;
+  --card-bg: #ffffff;
+  --border: #e0e0e0;
+  --text: #1a1a1a;
+  --text-light: #555555;
+  --sidebar-width: 260px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.4;
+  font-size: 15px;
+}
+
+/* Sidebar - Deep Navy */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+  padding: 24px 0;
+  overflow-y: auto;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-brand {
+  padding: 0 24px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  margin-bottom: 20px;
+}
+
+.sidebar-brand h1 {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 1px;
+}
+
+.sidebar-brand .accent {
+  color: var(--accent);
+}
+
+.sidebar-brand p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.sidebar-section {
+  padding: 8px 0;
+}
+
+.sidebar-section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.4);
+  padding: 16px 24px 8px;
+  font-weight: 700;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 14px;
+  padding: 12px 16px;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-radius: 8px;
+  border: none;
+}
+
+.sidebar a:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.sidebar a.active {
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(255,107,53,0.4);
+}
+
+/* Main Content */
+.main {
+  margin-left: var(--sidebar-width);
+  padding: 24px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header */
+.header {
+  background: var(--card-bg);
+  padding: 20px 24px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.header p {
+  color: var(--text-light);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Cards - Stats */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.card h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.card .icon {
+  font-size: 20px;
+}
+
+.card .value {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 8px;
+  font-family: 'Inter', monospace;
+}
+
+.card .value.accent { color: var(--accent); }
+.card .value.success { color: var(--success); }
+.card .value.warning { color: var(--warning); }
+
+/* Table */
+.table-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: var(--primary);
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  border: none;
+}
+th a {
+  color: white !important;
+  text-decoration: none;
+}
+th a:hover {
+  color: #00d4ff !important;
+}
+
+td {
+  padding: 12px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover { background: #f8f9fa; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-accent {
+  background: var(--accent);
+}
+
+.btn-accent:hover {
+  background: #e55a2b;
+}
+
+.btn-success {
+  background: var(--success);
+}
+
+.btn-danger {
+  background: var(--danger);
+}
+
+.btn-secondary {
+  background: #e8e8e8;
+  color: var(--text);
+}
+
+.btn-secondary:hover { background: #dcdcdc; }
+
+/* Forms */
+input, textarea, select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fafafa;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(30,58,95,0.1);
+}
+
+.form-group { margin-bottom: 16px; }
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Pills */
+.pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pill-success { background: #dcfce7; color: #166534; }
+.pill-warning { background: #fef3c7; color: #92400e; }
+.pill-danger { background: #fee2e2; color: #991b1b; }
+.pill-info { background: #dbeafe; color: #1e40af; }
+.pill-default { background: #f3f4f6; color: #6b7280; }
+.pill-accent { background: #fff4f0; color: var(--accent); }
+
+/* Links */
+a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+a:hover { color: var(--accent); }
+
+/* Search */
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  flex: 1;
+  max-width: 300px;
+}
+
+/* Tier badges */
+.tier {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tier-1 { background: var(--accent); color: white; }
+.tier-2 { background: var(--primary); color: white; }
+.tier-3 { background: #e8e8e8; color: var(--text); }
+
+/* Quick actions */
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.quick-action:hover {
+  background: var(--accent);
+  color: white;
+}
+
+/* Score stars */
+.score {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.score-star {
+  color: var(--warning);
+}
+
+.score-star.empty {
+  color: #ddd;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <h1>CRM <span class="accent">SEQ</span></h1>
+    <p>Construction Recruitment</p>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Overview</div>
+    <a href="/today" class="{% if 'today' in request.path %}active{% endif %}">🎯 Today</a>
+    <a href="/" class="{% if request.path == '/' %}active{% endif %}">📊 Dashboard</a>
+    <a href="/analytics" class="{% if 'analytics' in request.path %}active{% endif %}">📈 Analytics</a>
+    <a href="/market-heatmap" class="{% if 'heatmap' in request.path %}active{% endif %}">🔥 Market Heat Map</a>
+    <a href="/revenue-modeler" class="{% if 'revenue' in request.path %}active{% endif %}">💰 Revenue Modeler</a>
+    <a href="/war-room" class="{% if 'war-room' in request.path %}active{% endif %}">⚔️ War Room</a>
+    <a href="/pipeline-command" class="{% if 'pipeline-command' in request.path %}active{% endif %}">🎯 Pipeline Command</a>
+    <a href="/lead-command" class="{% if 'lead-command' in request.path %}active{% endif %}">🏅 Lead Command</a>
+    <a href="/the-vault" class="{% if 'the-vault' in request.path %}active{% endif %}">🔐 The Vault</a>
+    <a href="/pre-launch" class="{% if 'pre-launch' in request.path %}active{% endif %}">🚀 Pre-Launch</a>
+    <a href="/call-campaign" class="{% if 'call-campaign' in request.path %}active{% endif %}">📞 Call Campaign</a>
+    <a href="/network-radar" class="{% if 'network-radar' in request.path %}active{% endif %}">🎯 Network Radar</a>
+    <a href="/content-command" class="{% if 'content-command' in request.path %}active{% endif %}">📝 Content Command</a>
+    <a href="/sales-pipeline" class="{% if 'sales-pipeline' in request.path %}active{% endif %}">🔄 Sales Pipeline</a>
+    <a href="/hitlist" class="{% if 'hitlist' in request.path %}active{% endif %}" style="background: rgba(231, 76, 60, 0.15); border-left: 3px solid #e74c3c;">🎯 Hitlist</a>
+    <a href="/day-one-sim" class="{% if 'day-one-sim' in request.path %}active{% endif %}">🎮 Day One Simulator</a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Database</div>
+    <a href="/companies" class="{% if 'company' in request.path %}active{% endif %}">🏢 Companies</a>
+    <a href="/contacts" class="{% if 'contact' in request.path and 'companies' not in request.path %}active{% endif %}">👥 Contacts</a>
+    <a href="/candidates" class="{% if 'candidate' in request.path and 'project-intelligence' not in request.path %}active{% endif %}">👔 Candidates</a>
+    <a href="/company-intelligence" class="{% if 'company-intelligence' in request.path %}active{% endif %}">🎯 Company Intel</a>
+    <a href="/projects" class="{% if 'project' in request.path %}active{% endif %}">🏗️ Projects</a>
+    <a href="/deals" class="{% if 'deal' in request.path %}active{% endif %}">💼 Live Jobs</a>
+    <a href="/visits" class="{% if 'visit' in request.path %}active{% endif %}">🤝 Client Visits</a>
+    <a href="/leads" class="{% if 'lead' in request.path %}active{% endif %}">📰 Leads</a>
+    <a href="/jobs" class="{% if 'jobs' in request.path %}active{% endif %}">💼 Jobs</a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Activities</div>
+    <a href="/activities" class="{% if 'activity' in request.path %}active{% endif %}">📝 Activities</a>
+    <a href="/submissions" class="{% if 'submission' in request.path %}active{% endif %}">📄 Submissions</a>
+    <a href="/weekly-reviews" class="{% if 'weekly' in request.path %}active{% endif %}">📅 Weekly Reviews</a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Tools</div>
+    <a href="/boolean" class="{% if 'boolean' in request.path %}active{% endif %}">🔍 Boolean Builder</a>
+    <a href="/territory-intelligence" class="{% if 'territory-intelligence' in request.path %}active{% endif %}">🗺️ Territory Intel</a>
+    <a href="/call-summariser" class="{% if 'call-summariser' in request.path %}active{% endif %}">📞 Call Summariser</a>
+    <a href="/interview-prep" class="{% if 'interview-prep' in request.path %}active{% endif %}">📝 Interview Prep</a>
+    <a href="/job-adverts" class="{% if 'job-advert' in request.path %}active{% endif %}">📋 Job Adverts</a>
+    <a href="/recruitment-metrics" class="{% if 'metrics' in request.path %}active{% endif %}">📊 Metrics</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+</body>
+</html>

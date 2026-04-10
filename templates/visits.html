@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Client Visits - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>🤝 Client Visits</h1>
+  <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <button class="btn" onclick="showAddForm(); return false;">+ Log New Visit</button>
+  </div>
+</div>
+
+<!-- Stats Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+  <div class="card" style="padding: 20px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
+    <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 1px;">This Week</div>
+    <div style="font-size: 32px; font-weight: 700; color: #1e3a5f; margin-top: 4px;" id="thisWeek">-</div>
+  </div>
+  <div class="card" style="padding: 20px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
+    <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 1px;">This Month</div>
+    <div style="font-size: 32px; font-weight: 700; color: #1e3a5f; margin-top: 4px;" id="thisMonth">-</div>
+  </div>
+  <div class="card" style="padding: 20px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
+    <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Follow-ups Due</div>
+    <div style="font-size: 32px; font-weight: 700; color: #ff6b35; margin-top: 4px;" id="followUpsDue">-</div>
+  </div>
+  <div class="card" style="padding: 20px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
+    <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Total Visits</div>
+    <div style="font-size: 32px; font-weight: 700; color: #1e3a5f; margin-top: 4px;" id="totalVisits">{{ visits|length }}</div>
+  </div>
+</div>
+
+<!-- Add Visit Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 24px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+  <h2 style="margin-bottom: 20px; font-size: 20px;">📝 Log Client Visit</h2>
+  <form id="visitForm">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="form-group">
+        <label style="display: block; margin-bottom: 6px; font-weight: 500;">Company *</label>
+        <select id="companyId" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+          <option value="">Select company...</option>
+          {% for company in companies %}
+          <option value="{{ company.id }}">{{ company.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label style="display: block; margin-bottom: 6px; font-weight: 500;">Visit Date *</label>
+        <input type="date" id="visitDate" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+      </div>
+      
+      <div class="form-group">
+        <label style="display: block; margin-bottom: 6px; font-weight: 500;">Contact Name</label>
+        <input type="text" id="contactName" placeholder="Who did you meet?" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+      </div>
+      
+      <div class="form-group">
+        <label style="display: block; margin-bottom: 6px; font-weight: 500;">Follow-up Date</label>
+        <input type="date" id="followUpDate" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+      </div>
+    </div>
+    
+    <div class="form-group" style="margin-top: 16px;">
+      <label style="display: block; margin-bottom: 6px; font-weight: 500;">Outcome</label>
+      <select id="outcome" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+        <option value="">Select outcome...</option>
+        <option value="Positive - Will send candidates">Positive - Will send candidates</option>
+        <option value="Positive - Need to send proposal">Positive - Need to send proposal</option>
+        <option value="Neutral - More research needed">Neutral - More research needed</option>
+        <option value="Follow-up scheduled">Follow-up scheduled</option>
+        <option value="No opportunity">No opportunity</option>
+      </select>
+    </div>
+    
+    <div class="form-group" style="margin-top: 16px;">
+      <label style="display: block; margin-bottom: 6px; font-weight: 500;">Notes</label>
+      <textarea id="notes" rows="3" placeholder="What did you discuss? Any requirements?" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;"></textarea>
+    </div>
+    
+    <div style="margin-top: 20px; display: flex; gap: 10px;">
+      <button type="submit" class="btn">Save Visit</button>
+      <button type="button" class="btn btn-secondary" onclick="hideAddForm(); return false;">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<!-- Visits Table -->
+<div class="card" style="background: white; border-radius: 8px; border: 1px solid #e0e0e0; overflow: hidden;">
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead style="background: #f8f9fa; border-bottom: 2px solid #e0e0e0;">
+      <tr>
+        <th style="text-align: left; padding: 14px 16px; font-weight: 600; color: #333;">Date</th>
+        <th style="text-align: left; padding: 14px 16px; font-weight: 600; color: #333;">Company</th>
+        <th style="text-align: left; padding: 14px 16px; font-weight: 600; color: #333;">Contact</th>
+        <th style="text-align: left; padding: 14px 16px; font-weight: 600; color: #333;">Outcome</th>
+        <th style="text-align: left; padding: 14px 16px; font-weight: 600; color: #333;">Follow-up</th>
+        <th style="text-align: left; padding: 14px 16px; font-weight: 600; color: #333;">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if visits %}
+      {% for visit in visits %}
+      <tr style="border-bottom: 1px solid #f0f0f0;">
+        <td style="padding: 12px 16px;">{{ visit.visit_date }}</td>
+        <td style="padding: 12px 16px; font-weight: 500;">{{ visit.company_name or 'Unknown' }}</td>
+        <td style="padding: 12px 16px;">{{ visit.contact_name or '-' }}</td>
+        <td style="padding: 12px 16px;">
+          {% if visit.outcome %}
+          <span style="background: {% if 'Positive' in visit.outcome %}#d4edda{% elif 'No opportunity' in visit.outcome %}#f8d7da{% else %}#fff3cd{% endif %}; padding: 4px 10px; border-radius: 12px; font-size: 13px;">
+            {{ visit.outcome }}
+          </span>
+          {% else %}
+          -
+          {% endif %}
+        </td>
+        <td style="padding: 12px 16px; {% if visit.follow_up and visit.follow_up < '2026-03-19' %}color: #e74c3c; font-weight: 600;{% endif %}">
+          {{ visit.follow_up or '-' }}
+        </td>
+        <td style="padding: 12px 16px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          {{ visit.notes or '-' }}
+        </td>
+      </tr>
+      {% endfor %}
+      {% else %}
+      <tr>
+        <td colspan="6" style="padding: 40px; text-align: center; color: #666;">
+          No visits logged yet. Click "+ Log New Visit" to get started.
+        </td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  // Set default date to today
+  document.getElementById('visitDate').valueAsDate = new Date();
+}
+
+function hideAddForm() {
+  document.getElementById('formContainer').style.display = 'none';
+  document.getElementById('visitForm').reset();
+}
+
+document.getElementById('visitForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    company_id: document.getElementById('companyId').value,
+    visit_date: document.getElementById('visitDate').value,
+    contact_name: document.getElementById('contactName').value,
+    outcome: document.getElementById('outcome').value,
+    notes: document.getElementById('notes').value,
+    follow_up: document.getElementById('followUpDate').value
+  };
+  
+  try {
+    const res = await fetch('/api/visit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      hideAddForm();
+      location.reload();
+    } else {
+      alert('Error: ' + result.error);
+    }
+  } catch (err) {
+    alert('Failed to save visit');
+  }
+});
+
+// Calculate stats
+(async () => {
+  const visits = {{ visits|tojson }};
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  
+  let thisWeek = 0, thisMonth = 0, followUpsDue = 0;
+  const today = '2026-03-19';
+  
+  visits.forEach(v => {
+    const visitDate = new Date(v.visit_date);
+    if (visitDate >= weekStart) thisWeek++;
+    if (visitDate >= monthStart) thisMonth++;
+    if (v.follow_up && v.follow_up <= today) followUpsDue++;
+  });
+  
+  document.getElementById('thisWeek').textContent = thisWeek;
+  document.getElementById('thisMonth').textContent = thisMonth;
+  document.getElementById('followUpsDue').textContent = followUpsDue;
+})();
+</script>
+
+{% endblock %}

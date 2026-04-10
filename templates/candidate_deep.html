@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}Deep Profile - {{ candidate.name }} - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+/* Dark theme override for candidate profile */
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+.card { background: #161b22; border-color: #30363d; }
+.table-card { background: #161b22; border-color: #30363d; }
+th { background: #1f2937; }
+td { border-color: #30363d; color: #e6edf3; }
+tr:hover { background: #1f2937; }
+input, textarea, select { background: #0d1117; border-color: #30363d; color: #e6edf3; }
+input:focus, textarea:focus, select:focus { border-color: #00d4ff; box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+label { color: #8b949e; }
+.btn { background: #238636; border: none; }
+.btn:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+.pill-success { background: rgba(46,160,67,0.2); color: #3fb950; }
+.pill-warning { background: rgba(187,128,9,0.2); color: #d29922; }
+.pill-info { background: rgba(56,139,253,0.2); color: #58a6ff; }
+.pill-accent { background: rgba(0,212,255,0.15); color: #00d4ff; }
+
+/* Accent color */
+h1, h2, h3, .accent { color: #00d4ff; }
+a { color: #00d4ff; }
+.sidebar a.active { background: #00d4ff; color: #0d1117; box-shadow: 0 2px 8px rgba(0,212,255,0.4); }
+
+/* Layout */
+.profile-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+.profile-main { display: flex; flex-direction: column; gap: 20px; }
+.profile-sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+.section-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.section-card h3 {
+  color: #00d4ff;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #30363d;
+}
+
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.info-item { }
+.info-item .label { font-size: 12px; color: #8b949e; text-transform: uppercase; }
+.info-item .value { font-size: 15px; color: #e6edf3; margin-top: 2px; }
+
+.match-card {
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border-left: 3px solid #00d4ff;
+}
+
+.match-score {
+  font-size: 24px;
+  font-weight: 700;
+  color: #00d4ff;
+}
+
+.match-score.high { color: #3fb950; }
+.match-score.medium { color: #d29922; }
+
+.match-reasons { font-size: 13px; color: #8b949e; margin-top: 6px; }
+.match-project { font-weight: 600; color: #e6edf3; font-size: 14px; }
+.match-company { font-size: 12px; color: #8b949e; }
+
+.work-timeline { position: relative; padding-left: 20px; }
+.work-timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #30363d;
+}
+
+.work-item {
+  position: relative;
+  padding: 12px 0;
+  padding-left: 20px;
+}
+
+.work-item::before {
+  content: '';
+  position: absolute;
+  left: -17px;
+  top: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #00d4ff;
+  border: 2px solid #0d1117;
+}
+
+.work-role { font-weight: 600; color: #e6edf3; font-size: 15px; }
+.work-company { font-size: 14px; color: #8b949e; }
+.work-dates { font-size: 12px; color: #6e7681; margin-top: 4px; }
+.work-achievements { font-size: 13px; color: #8b949e; margin-top: 8px; }
+
+.tags-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(0,212,255,0.15);
+  color: #00d4ff;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.signal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #1f2937;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #e6edf3;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.signal-tag.active { border: 1px solid #3fb950; }
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-Prospect { background: rgba(88,166,255,0.2); color: #58a6ff; }
+.status-Engaged { background: rgba(210,153,34,0.2); color: #d29922; }
+.status-Placed { background: rgba(63,185,80,0.2); color: #3fb950; }
+.status-Alumni { background: rgba(139,148,158,0.2); color: #8b949e; }
+
+@media (max-width: 900px) {
+  .profile-layout { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="header">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div>
+      <h1 style="font-size: 28px;">👤 {{ candidate.name }}</h1>
+      <div style="margin-top: 8px; display: flex; align-items: center; gap: 12px;">
+        <span class="status-badge status-{{ candidate.status }}">{{ candidate.status }}</span>
+        <span style="color: #8b949e;">{{ candidate.title or 'No title' }} at {{ candidate.current_company or 'No company' }}</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="/candidates/{{ candidate.id }}/edit" class="btn">✏️ Edit</a>
+      <a href="/candidates" class="btn btn-secondary">← Back</a>
+    </div>
+  </div>
+</div>
+
+<div class="profile-layout">
+  <div class="profile-main">
+    
+    <!-- Contact & Basic Info -->
+    <div class="section-card">
+      <h3>📋 Basic Information</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">Email</div>
+          <div class="value">{{ candidate.email or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Phone</div>
+          <div class="value">{{ candidate.phone or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">LinkedIn</div>
+          <div class="value">{% if candidate.linkedin %}<a href="{{ candidate.linkedin }}" target="_blank">Profile ↗</a>{% else %}—{% endif %}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Location</div>
+          <div class="value">{{ candidate.location or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Specialism</div>
+          <div class="value">{{ candidate.specialism or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Experience</div>
+          <div class="value">{{ candidate.years_experience or '—' }} years</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Salary Band</div>
+          <div class="value">{{ candidate.salary_band or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Availability</div>
+          <div class="value">{{ candidate.availability or '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fit Tags -->
+    <div class="section-card">
+      <h3>🏷️ Fit Tags</h3>
+      <div class="tags-list">
+        {% if candidate.tags %}
+          {% for tag in candidate.tags.split(',') %}
+            <span class="tag">{{ tag.strip() }}</span>
+          {% endfor %}
+        {% else %}
+          <span style="color: #8b949e; font-size: 14px;">No tags added</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Preferences -->
+    <div class="section-card">
+      <h3>💚 Preferences & Dealbreakers</h3>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+        <div>
+          <div style="color: #3fb950; font-weight: 600; margin-bottom: 8px;">✅ Loved</div>
+          <div style="color: #8b949e; font-size: 14px;">{{ candidate.preferences_loved or 'Not specified' }}</div>
+        </div>
+        <div>
+          <div style="color: #e74c3c; font-weight: 600; margin-bottom: 8px;">❌ Hated</div>
+          <div style="color: #8b949e; font-size: 14px;">{{ candidate.preferences_hated or 'Not specified' }}</div>
+        </div>
+        <div>
+          <div style="color: #f1c40f; font-weight: 600; margin-bottom: 8px;">🚫 Dealbreakers</div>
+          <div style="color: #8b949e; font-size: 14px;">{{ candidate.dealbreakers or 'Not specified' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aspirations -->
+    <div class="section-card">
+      <h3>🎯 Aspirations</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">Target Role</div>
+          <div class="value">{{ candidate.aspirations_role or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Target Salary</div>
+          <div class="value">{{ candidate.aspirations_salary or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Location Preference</div>
+          <div class="value">{{ candidate.aspirations_location or '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Signals -->
+    <div class="section-card">
+      <h3>🔥 Current Signals (What's Making Them Tick)</h3>
+      <div>
+        {% if candidate.signals %}
+          {% for signal in candidate.signals.split(',') %}
+            <span class="signal-tag active">🔶 {{ signal.strip() }}</span>
+          {% endfor %}
+        {% else %}
+          <span style="color: #8b949e; font-size: 14px;">No signals identified</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Work History -->
+    <div class="section-card">
+      <h3>🏗️ Work History</h3>
+      {% if work_history %}
+        <div class="work-timeline">
+          {% for wh in work_history %}
+            <div class="work-item">
+              <div class="work-role">{{ wh.role or 'Role not specified' }}</div>
+              <div class="work-company">{{ wh.project_name }}{% if wh.company %} - {{ wh.company }}{% endif %}</div>
+              <div class="work-dates">
+                {% if wh.start_date %}{{ wh.start_date[:7] }}{% endif %}
+                {% if wh.end_date %} - {{ wh.end_date[:7] }}{% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="color: #8b949e; font-size: 14px;">No work history added</div>
+      {% endif %}
+    </div>
+
+    <!-- Notes -->
+    <div class="section-card">
+      <h3>📝 Notes</h3>
+      <div style="color: #8b949e; font-size: 14px; white-space: pre-wrap;">{{ candidate.notes or 'No notes yet' }}</div>
+    </div>
+
+  </div>
+
+  <!-- Right Sidebar - Best Match Projects -->
+  <div class="profile-sidebar">
+    <div class="section-card" style="position: sticky; top: 80px;">
+      <h3>🎯 Best-Fit Projects</h3>
+      {% if best_matches %}
+        {% for match in best_matches %}
+          <div class="match-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <div class="match-project">{{ match.project.project_name }}</div>
+                <div class="match-company">{{ match.project.company_name or 'Unknown company' }}</div>
+              </div>
+              <div class="match-score {% if match.score >= 8 %}high{% elif match.score >= 6 %}medium{% endif %}">
+                {{ match.score }}/10
+              </div>
+            </div>
+            {% if match.reasons %}
+              <div class="match-reasons">
+                {% for reason in match.reasons %}
+                  <div>{{ reason }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <a href="/project-intelligence/{{ match.project.project_id }}" style="font-size: 12px; margin-top: 8px; display: inline-block;">View Project →</a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="color: #8b949e; font-size: 14px;">
+          No project intelligence available yet.<br><br>
+          <a href="/project-intelligence" style="color: #00d4ff;">Add project intel →</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

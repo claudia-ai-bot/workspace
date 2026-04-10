@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Vault — Talent Intelligence | SEQ CRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1117;
+            --card: #1a1d27;
+            --card-hover: #22263a;
+            --border: #2a2f45;
+            --text: #e8eaf0;
+            --text-dim: #8b92a8;
+            --accent: #f59e0b;
+            --accent-dim: #b97a00;
+            --hot: #ef4444;
+            --warm: #f97316;
+            --active: #22c55e;
+            --cold: #64748b;
+            --stale: #374151;
+            --primary: #3b82f6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -5%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .vault-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .vault-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 20px rgba(245,158,11,0.3);
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+        h1 span { color: var(--accent); }
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .countdown {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            text-align: center;
+        }
+        .countdown-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+        .countdown-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .stat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .stat-icon { font-size: 24px; margin-bottom: 8px; }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+        }
+        .stat-hot .stat-value { color: var(--hot); }
+        .stat-warm .stat-value { color: var(--warm); }
+        .stat-active .stat-value { color: var(--active); }
+        .stat-cold .stat-value { color: var(--cold); }
+        .stat-stale .stat-value { color: #4b5563; }
+        .stat-total .stat-value { color: var(--accent); }
+
+        /* Pipeline Funnel */
+        .funnel-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .funnel {
+            display: flex;
+            gap: 4px;
+            height: 48px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .funnel-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .funnel-segment:hover {
+            filter: brightness(1.15);
+            z-index: 1;
+        }
+        .funnel-label {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .funnel-row {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+        }
+
+        /* Talent Cards */
+        .talent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .talent-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .talent-card:hover {
+            border-color: var(--accent);
+            background: var(--card-hover);
+            transform: translateX(4px);
+        }
+        .warmth-meter {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 900;
+            color: white;
+            position: relative;
+        }
+        .warmth-meter::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .warmth-hot { background: var(--hot); box-shadow: 0 0 20px rgba(239,68,68,0.4); }
+        .warmth-warm { background: var(--warm); box-shadow: 0 0 20px rgba(249,115,22,0.4); }
+        .warmth-active { background: var(--active); box-shadow: 0 0 20px rgba(34,197,94,0.4); }
+        .warmth-cold { background: var(--cold); box-shadow: 0 0 20px rgba(100,116,139,0.3); }
+        .warmth-stale { background: var(--stale); box-shadow: 0 0 20px rgba(55,65,81,0.3); }
+
+        .talent-info h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .talent-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .talent-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tag-sector { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .tag-location { background: rgba(139,146,168,0.2); color: var(--text-dim); }
+        .tag-risk { background: rgba(239,68,68,0.2); color: #f87171; }
+        .tag-offer { background: rgba(34,197,94,0.2); color: #4ade80; }
+
+        .talent-score {
+            text-align: right;
+        }
+        .score-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+        .score-high { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .score-medium { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .score-low { background: linear-gradient(135deg, #64748b, #475569); }
+        .score-num {
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .score-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+        .score-pct {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        /* Right Sidebar */
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .panel-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .urgency-list { list-style: none; }
+        .urgency-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .urgency-item:last-child { border-bottom: none; }
+        .urgency-name { font-weight: 600; }
+        .urgency-days {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .days-overdue { background: rgba(239,68,68,0.2); color: #f87171; }
+        .days-today { background: rgba(245,158,11,0.2); color: var(--accent); }
+        .days-soon { background: rgba(34,197,94,0.2); color: #4ade80; }
+
+        .sector-breakdown { display: flex; flex-direction: column; gap: 12px; }
+        .sector-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sector-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .sector-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .sector-name {
+            font-size: 12px;
+            width: 80px;
+            color: var(--text-dim);
+        }
+        .sector-count {
+            font-size: 12px;
+            font-weight: 700;
+            width: 24px;
+            text-align: right;
+        }
+
+        .action-list { display: flex; flex-direction: column; gap: 8px; }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .action-btn:hover {
+            border-color: var(--accent);
+            background: var(--card-hover);
+        }
+        .action-btn span { margin-left: auto; font-size: 11px; color: var(--text-dim); }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-dim);
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state p { font-size: 14px; }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.3); }
+            50% { box-shadow: 0 0 30px rgba(245,158,11,0.5); }
+        }
+        .vault-icon { animation: pulse-glow 3s ease-in-out infinite; }
+
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .main-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-top">
+            <div class="vault-title">
+                <div class="vault-icon">🔐</div>
+                <div>
+                    <h1>The <span>Vault</span></h1>
+                    <p class="subtitle">Talent Intelligence Hub — placement probability, warmth tracking & action pipeline</p>
+                </div>
+            </div>
+            <div class="countdown">
+                <div class="countdown-label">Day 1 at Lead Group</div>
+                <div class="countdown-value" id="countdown">—</div>
+            </div>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+
+    <!-- Pipeline Funnel -->
+    <div class="funnel-section">
+        <div class="section-title">📊 Talent Pipeline Funnel</div>
+        <div class="funnel" id="funnel">
+            <!-- Filled by JS -->
+        </div>
+        <div class="funnel-row" id="funnelLabels" style="display:flex; gap:4px; margin-top:8px;">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-grid">
+        <div class="talent-list" id="talentList">
+            <!-- Filled by JS -->
+        </div>
+
+        <div class="sidebar-panel">
+            <!-- Urgency Panel -->
+            <div class="panel">
+                <div class="panel-title">⏰ Follow-Up Urgency</div>
+                <ul class="urgency-list" id="urgencyList">
+                    <!-- Filled by JS -->
+                </ul>
+            </div>
+
+            <!-- Sector Breakdown -->
+            <div class="panel">
+                <div class="panel-title">🏗️ By Specialism</div>
+                <div class="sector-breakdown" id="sectorBreakdown">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="panel">
+                <div class="panel-title">⚡ Quick Actions</div>
+                <div class="action-list">
+                    <a href="/candidates" class="action-btn">👔 Add New Candidate <span>CRM →</span></a>
+                    <a href="/pipeline-command" class="action-btn">🎯 Pipeline Command <span>Outbound →</span></a>
+                    <a href="/leads" class="action-btn">📰 View Lead Signals <span>Intel →</span></a>
+                    <a href="/companies" class="action-btn">🏢 Company Map <span>Tier 1-2 →</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== DATA =====
+const CANDIDATES = {{ candidates_json | safe }};
+
+// ===== HELPERS =====
+function daysBetween(date1, date2) {
+    if (!date1) return null;
+    const d1 = new Date(date1);
+    const d2 = date2 ? new Date(date2) : new Date();
+    return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+}
+
+function calcProbability(c) {
+    let score = 0;
+    // Relationship (0-30 pts)
+    score += (c.relationship_score || 1) * 6;
+    // Flight risk (High=+15, Medium=+8, Low=0)
+    if (c.flight_risk === 'High') score += 15;
+    else if (c.flight_risk === 'Medium') score += 8;
+    // Activity recency (0-20 pts)
+    const days = daysBetween(c.last_contact);
+    if (days === null) score += 0;
+    else if (days <= 3) score += 20;
+    else if (days <= 7) score += 15;
+    else if (days <= 14) score += 10;
+    else if (days <= 30) score += 5;
+    else score += 0;
+    // Known offers (0-15 pts)
+    if (c.known_offers && c.known_offers.toLowerCase().includes('accepted')) score += 15;
+    else if (c.known_offers && !c.known_offers.toLowerCase().includes('no')) score += 8;
+    // Years experience (0-10 pts)
+    score += Math.min((c.years_experience || 0) * 1, 10);
+    // Has next follow-up planned (0-10 pts)
+    if (c.next_follow_up) score += 10;
+    return Math.min(Math.round(score), 99);
+}
+
+function getWarmthClass(c) {
+    const prob = calcProbability(c);
+    if (prob >= 75) return 'hot';
+    if (prob >= 55) return 'warm';
+    if (prob >= 35) return 'active';
+    if (prob >= 20) return 'cold';
+    return 'stale';
+}
+
+function getWarmthLabel(c) {
+    const w = getWarmthClass(c);
+    return { hot: 'HOT', warm: 'WARM', active: 'ACT', cold: 'COLD', stale: 'STALE' }[w];
+}
+
+function getWarmthColor(w) {
+    return { hot: '#ef4444', warm: '#f97316', active: '#22c55e', cold: '#64748b', stale: '#374151' }[w];
+}
+
+function formatDate(ds) {
+    if (!ds) return '—';
+    const d = new Date(ds);
+    return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+}
+
+function getScoreColor(p) {
+    if (p >= 65) return 'score-high';
+    if (p >= 35) return 'score-medium';
+    return 'score-low';
+}
+
+// ===== COUNTDOWN =====
+function updateCountdown() {
+    const target = new Date('2026-05-04');
+    const now = new Date();
+    const diff = Math.max(0, target - now);
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    document.getElementById('countdown').textContent = `${days}d ${hrs}h ${mins}m`;
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+
+// ===== STATS GRID =====
+function renderStats() {
+    const byStatus = { hot: 0, warm: 0, active: 0, cold: 0, stale: 0 };
+    CANDIDATES.forEach(c => byStatus[getWarmthClass(c)]++);
+    const total = CANDIDATES.length || 1;
+    const stats = [
+        { icon: '🔥', label: 'Hot', count: byStatus.hot, cls: 'stat-hot' },
+        { icon: '☀️', label: 'Warm', count: byStatus.warm, cls: 'stat-warm' },
+        { icon: '🌱', label: 'Active', count: byStatus.active, cls: 'stat-active' },
+        { icon: '❄️', label: 'Cold', count: byStatus.cold, cls: 'stat-cold' },
+        { icon: '💤', label: 'Stale', count: byStatus.stale, cls: 'stat-stale' },
+        { icon: '👔', label: 'Total', count: total, cls: 'stat-total' },
+    ];
+    document.getElementById('statsGrid').innerHTML = stats.map(s => `
+        <div class="stat-card ${s.cls}">
+            <div class="stat-icon">${s.icon}</div>
+            <div class="stat-value">${s.count}</div>
+            <div class="stat-label">${s.label}</div>
+        </div>
+    `).join('');
+}
+
+// ===== FUNNEL =====
+function renderFunnel() {
+    const byStatus = { hot: 0, warm: 0, active: 0, cold: 0, stale: 0 };
+    CANDIDATES.forEach(c => byStatus[getWarmthClass(c)]++);
+    const total = CANDIDATES.length || 1;
+    const segments = [
+        { key: 'hot', label: '🔥 Hot', color: '#ef4444' },
+        { key: 'warm', label: '☀️ Warm', color: '#f97316' },
+        { key: 'active', label: '🌱 Active', color: '#22c55e' },
+        { key: 'cold', label: '❄️ Cold', color: '#64748b' },
+        { key: 'stale', label: '💤 Stale', color: '#374151' },
+    ];
+    document.getElementById('funnel').innerHTML = segments.map(s => {
+        const pct = Math.max((byStatus[s.key] / total) * 100, s.key === 'stale' ? 8 : 2);
+        return `<div class="funnel-segment" style="width:${pct}%; background:${s.color};">${byStatus[s.key] > 0 ? byStatus[s.key] : ''}</div>`;
+    }).join('');
+    document.getElementById('funnelLabels').innerHTML = segments.map(s => {
+        const pct = Math.max((byStatus[s.key] / total) * 100, s.key === 'stale' ? 8 : 2);
+        return `<div style="width:${pct}%; text-align:center;"><span class="funnel-label">${s.label.split(' ')[1]} ${Math.round(byStatus[s.key]/total*100)}%</span></div>`;
+    }).join('');
+}
+
+// ===== TALENT CARDS =====
+function renderTalentList() {
+    const sorted = [...CANDIDATES].sort((a, b) => calcProbability(b) - calcProbability(a));
+    if (sorted.length === 0) {
+        document.getElementById('talentList').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🔐</div>
+                <p>The Vault is empty.<br>Add candidates in the CRM to see your talent pipeline.</p>
+            </div>`;
+        return;
+    }
+    document.getElementById('talentList').innerHTML = sorted.map(c => {
+        const prob = calcProbability(c);
+        const w = getWarmthClass(c);
+        const wLabel = getWarmthLabel(c);
+        const days = daysBetween(c.last_contact);
+        const daysStr = days === null ? 'Never contacted' : (days === 0 ? 'Today' : `${days}d ago`);
+        const scoreColor = getScoreColor(prob);
+        const sectorTag = c.specialism ? `<span class="tag tag-sector">${c.specialism}</span>` : '';
+        const locTag = c.location ? `<span class="tag tag-location">${c.location}</span>` : '';
+        const riskTag = c.flight_risk === 'High' ? `<span class="tag tag-risk">🚨 High Risk</span>` : '';
+        const offerTag = (c.known_offers && !c.known_offers.toLowerCase().includes('no')) ? `<span class="tag tag-offer">💼 Has Offers</span>` : '';
+        const nextStr = c.next_follow_up ? `Next: ${formatDate(c.next_follow_up)}` : 'No follow-up set';
+        return `
+        <div class="talent-card" onclick="window.location='/candidate/${c.id}'">
+            <div class="warmth-meter warmth-${w}">${wLabel}</div>
+            <div class="talent-info">
+                <h3>${c.name}</h3>
+                <div class="talent-meta">
+                    <span>${c.title || 'Title TBC'} ${c.current_company ? '· ' + c.current_company : ''}</span>
+                </div>
+                <div class="talent-meta" style="font-size:12px;">
+                    <span>📞 ${daysStr}</span>
+                    <span>📅 ${nextStr}</span>
+                    ${c.years_experience ? `<span>📆 ${c.years_experience}y exp</span>` : ''}
+                </div>
+                <div class="talent-tags">
+                    ${sectorTag}${locTag}${riskTag}${offerTag}
+                </div>
+            </div>
+            <div class="talent-score">
+                <div class="score-circle ${scoreColor}">
+                    <span class="score-num">${prob}</span>
+                    <span class="score-label">PLAC</span>
+                </div>
+                <div class="score-pct">placement prob.</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ===== URGENCY =====
+function renderUrgency() {
+    const today = new Date().toISOString().split('T')[0];
+    const urgent = CANDIDATES.filter(c => c.next_follow_up && c.next_follow_up <= today);
+    const upcoming = CANDIDATES.filter(c => {
+        if (!c.next_follow_up || c.next_follow_up <= today) return false;
+        const d = new Date(c.next_follow_up);
+        const t = new Date(today);
+        t.setDate(t.getDate() + 3);
+        return d <= t;
+    });
+    const items = [
+        ...urgent.map(c => ({ c, cls: 'days-overdue', label: 'OVERDUE' })),
+        ...upcoming.map(c => ({ c, cls: 'days-soon', label: 'Soon' })),
+    ].slice(0, 6);
+    if (items.length === 0) {
+        document.getElementById('urgencyList').innerHTML = '<li class="urgency-item"><span style="color:var(--text-dim);font-size:13px;">No urgent follow-ups</span></li>';
+        return;
+    }
+    document.getElementById('urgencyList').innerHTML = items.map(({ c, cls, label }) => `
+        <li class="urgency-item">
+            <span class="urgency-name">${c.name}</span>
+            <span class="urgency-days ${cls}">${label} ${formatDate(c.next_follow_up)}</span>
+        </li>`).join('');
+}
+
+// ===== SECTOR BREAKDOWN =====
+function renderSectorBreakdown() {
+    const counts = {};
+    CANDIDATES.forEach(c => {
+        const s = c.specialism || 'General';
+        counts[s] = (counts[s] || 0) + 1;
+    });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const max = sorted[0] ? sorted[0][1] : 1;
+    const colors = ['#f59e0b', '#3b82f6', '#22c55e', '#8b5cf6', '#ef4444', '#06b6d4'];
+    document.getElementById('sectorBreakdown').innerHTML = sorted.map(([name, count], i) => `
+        <div class="sector-row">
+            <span class="sector-name">${name}</span>
+            <div class="sector-bar-bg">
+                <div class="sector-bar-fill" style="width:${(count/max)*100}%; background:${colors[i]}"></div>
+            </div>
+            <span class="sector-count">${count}</span>
+        </div>`).join('');
+}
+
+// ===== INIT =====
+renderStats();
+renderFunnel();
+renderTalentList();
+renderUrgency();
+renderSectorBreakdown();
+</script>
+</body>
+</html>

@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outreach Command | Lead Group SEQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+  --cyan:#58a6ff;--green:#3fb950;--orange:#f0883e;--red:#f85149;--purple:#a371f7;--yellow:#d29922;
+  --text:#c9d1d9;--text2:#8b949e;--text3:#484f58;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border-bottom:1px solid var(--border);
+  padding:20px 30px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.header-left{display:flex;align-items:center;gap:20px}
+.logo{font-size:1.4rem;font-weight:700;color:var(--cyan)}
+.logo span{color:var(--orange)}
+.badge{background:var(--orange);color:#000;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:1px}
+.header-right{display:flex;align-items:center;gap:15px}
+.live-ticker{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg);border:1px solid var(--border);
+  padding:8px 16px;border-radius:8px;font-size:0.85rem;
+}
+.live-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+.day-badge{
+  background:var(--bg3);border:1px solid var(--border);
+  padding:10px 20px;border-radius:8px;font-size:0.85rem;
+}
+.day-badge strong{color:var(--cyan)}
+.main{padding:30px;max-width:1600px;margin:0 auto}
+.stats-row{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:15px;margin-bottom:30px;
+}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:20px;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+}
+.stat-card.cyan::before{background:var(--cyan)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.orange::before{background:var(--orange)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-card.red::before{background:var(--red)}
+.stat-value{font-size:2.2rem;font-weight:700;margin-bottom:5px}
+.stat-card.cyan .stat-value{color:var(--cyan)}
+.stat-card.green .stat-value{color:var(--green)}
+.stat-card.orange .stat-value{color:var(--orange)}
+.stat-card.purple .stat-value{color:var(--purple)}
+.stat-card.red .stat-value{color:var(--red)}
+.stat-label{font-size:0.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+.stat-sub{font-size:0.75rem;color:var(--text3);margin-top:5px}
+.layout{display:grid;grid-template-columns:1fr 400px;gap:20px}
+.panel{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+}
+.panel-header{
+  padding:15px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-title{font-size:1rem;font-weight:600;display:flex;align-items:center;gap:10px}
+.panel-title .icon{font-size:1.2rem}
+.panel-actions{display:flex;gap:10px}
+.btn{
+  padding:8px 16px;border-radius:8px;font-size:0.8rem;font-weight:600;
+  cursor:pointer;border:none;font-family:'Space Grotesk',sans-serif;
+  transition:all 0.2s;
+}
+.btn-primary{background:var(--cyan);color:#000}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--cyan)}
+.btn-orange{background:var(--orange);color:#000}
+.btn-orange:hover{filter:brightness(1.1)}
+.panel-body{padding:15px;max-height:600px;overflow-y:auto}
+.queue-item{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:14px;margin-bottom:10px;
+  cursor:pointer;transition:all 0.2s;
+  position:relative;
+}
+.queue-item:hover{border-color:var(--cyan);transform:translateX(3px)}
+.queue-item.active{border-color:var(--cyan);background:rgba(88,166,255,0.08)}
+.queue-item.selected{border-color:var(--orange);background:rgba(240,136,62,0.08)}
+.queue-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.queue-company{font-weight:700;font-size:0.95rem;color:var(--text)}
+.queue-sector{
+  font-size:0.7rem;padding:3px 8px;border-radius:4px;
+  background:var(--bg);color:var(--text2);font-weight:600;text-transform:uppercase;
+}
+.queue-sector.commercial{background:rgba(88,166,255,0.15);color:var(--cyan)}
+.queue-sector.residential{background:rgba(63,185,80,0.15);color:var(--green)}
+.queue-sector.infrastructure{background:rgba(163,113,247,0.15);color:var(--purple)}
+.queue-sector.property{background:rgba(240,136,62,0.15);color:var(--orange)}
+.queue-meta{display:flex;gap:15px;font-size:0.75rem;color:var(--text2)}
+.queue-meta span{display:flex;align-items:center;gap:4px}
+.queue-actions{
+  display:flex;gap:8px;margin-top:10px;
+  opacity:0;transition:opacity 0.2s;
+}
+.queue-item:hover .queue-actions{opacity:1}
+.mini-btn{
+  padding:5px 12px;border-radius:6px;font-size:0.7rem;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);background:var(--bg2);
+  color:var(--text2);font-family:'Space Grotesk',sans-serif;
+}
+.mini-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.mini-btn.email:hover{border-color:var(--green);color:var(--green)}
+.mini-btn.linkedin:hover{border-color:var(--cyan);color:var(--cyan)}
+.sequence-panel{position:sticky;top:90px}
+.sequence-header{
+  padding:15px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.seq-company{font-weight:700;font-size:1rem}
+.seq-sector-tag{font-size:0.7rem;padding:3px 8px;border-radius:4px;background:var(--bg);color:var(--text2)}
+.sequence-body{padding:20px}
+.seq-stage{
+  margin-bottom:20px;
+  position:relative;
+}
+.seq-stage-num{
+  font-size:0.7rem;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;
+}
+.seq-stage.active .seq-stage-num{color:var(--cyan)}
+.seq-stage-title{
+  font-size:0.9rem;font-weight:600;color:var(--text);
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+}
+.seq-channel{
+  font-size:0.65rem;padding:2px 8px;border-radius:4px;font-weight:700;
+}
+.seq-channel.email{background:rgba(63,185,80,0.2);color:var(--green)}
+.seq-channel.linkedin{background:rgba(88,166,255,0.2);color:var(--cyan)}
+.seq-channel.call{background:rgba(163,113,247,0.2);color:var(--purple)}
+.seq-message{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;padding:14px;font-size:0.82rem;
+  line-height:1.6;color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  position:relative;
+}
+.seq-message .copy-btn{
+  position:absolute;top:8px;right:8px;
+  padding:4px 10px;border-radius:4px;
+  background:var(--bg);border:1px solid var(--border);
+  color:var(--text2);font-size:0.65rem;cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;
+}
+.seq-message .copy-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+.seq-placeholder{
+  color:var(--text3);font-style:italic;
+}
+.seq-touches{
+  display:flex;flex-direction:column;gap:3px;
+}
+.seq-touch{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 0;font-size:0.78rem;
+}
+.seq-touch .dot{
+  width:10px;height:10px;border-radius:50%;
+  flex-shrink:0;
+}
+.seq-touch.done .dot{background:var(--green)}
+.seq-touch.pending .dot{background:var(--bg3);border:1px solid var(--border)}
+.seq-touch.sent .dot{background:var(--orange)}
+.seq-touch .label{flex:1;color:var(--text2)}
+.seq-touch.done .label{color:var(--green)}
+.seq-touch.sent .label{color:var(--orange)}
+.seq-touch .day{color:var(--text3);font-size:0.7rem}
+.seq-progress{
+  height:4px;background:var(--bg);border-radius:2px;overflow:hidden;
+  margin-top:15px;
+}
+.seq-progress-bar{
+  height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));
+  border-radius:2px;transition:width 0.5s;
+}
+.empty-state{
+  text-align:center;padding:60px 20px;
+  color:var(--text3);
+}
+.empty-state .icon{font-size:3rem;margin-bottom:15px;opacity:0.5}
+.empty-state p{font-size:0.9rem}
+.generate-panel{
+  padding:20px;
+  border-top:1px solid var(--border);
+}
+.generate-btn{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--orange),var(--red));
+  border:none;border-radius:10px;
+  color:#fff;font-size:1rem;font-weight:700;
+  cursor:pointer;font-family:'Space Grotesk',sans-serif;
+  letter-spacing:1px;
+}
+.generate-btn:hover{filter:brightness(1.1)}
+.day-plan{
+  margin-top:15px;
+  display:none;
+}
+.day-plan.visible{display:block}
+.day-plan h4{font-size:0.85rem;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.day-tasks{list-style:none}
+.day-task{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;border-bottom:1px solid var(--border);
+  font-size:0.82rem;
+}
+.day-task:last-child{border:none}
+.day-task .check{color:var(--green)}
+.day-task .task-company{font-weight:600}
+.day-task .task-detail{color:var(--text2);font-size:0.75rem}
+.copy-feedback{
+  position:fixed;bottom:30px;right:30px;
+  background:var(--green);color:#000;
+  padding:12px 20px;border-radius:8px;font-weight:600;
+  font-size:0.85rem;opacity:0;transition:opacity 0.3s;
+  pointer-events:none;
+}
+.copy-feedback.show{opacity:1}
+.nav-tabs{
+  display:flex;gap:0;border-bottom:1px solid var(--border);
+}
+.nav-tab{
+  padding:12px 20px;cursor:pointer;font-size:0.85rem;font-weight:600;
+  color:var(--text2);border-bottom:2px solid transparent;
+  transition:all 0.2s;
+}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.tone-selector{
+  display:flex;gap:8px;margin-bottom:15px;
+}
+.tone-btn{
+  padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);background:var(--bg);
+  color:var(--text2);font-family:'Space Grotesk',sans-serif;
+}
+.tone-btn.active{background:var(--cyan);color:#000;border-color:var(--cyan)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@media(max-width:1200px){.layout{grid-template-columns:1fr}.sequence-panel{position:static}}
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo">OUTREACH<span>COMMAND</span></div>
+    <div class="badge">LEAD GROUP SEQ</div>
+  </div>
+  <div class="header-right">
+    <div class="live-ticker">
+      <div class="live-dot"></div>
+      <span>CRM LIVE</span>
+    </div>
+    <div class="day-badge">
+      Day 1 at Lead Group: <strong>May 4, 2026</strong>
+    </div>
+  </div>
+</header>
+
+<div class="nav-tabs" style="background:var(--bg2);padding:0 30px;">
+  <div class="nav-tab active" onclick="switchTab('queue',this)">📋 Company Queue</div>
+  <div class="nav-tab" onclick="switchTab('dayplan',this)">⚡ Day 1 Plan</div>
+  <div class="nav-tab" onclick="switchTab('templates',this)">📝 Templates</div>
+</div>
+
+<div class="main">
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card cyan">
+      <div class="stat-value" id="stat-companies">—</div>
+      <div class="stat-label">Companies</div>
+      <div class="stat-sub">in pipeline</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-value" id="stat-outreached">—</div>
+      <div class="stat-label">Touched</div>
+      <div class="stat-sub">this week</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-value" id="stat-pending">—</div>
+      <div class="stat-label">Pending</div>
+      <div class="stat-sub">awaiting reply</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-value" id="stat-templates">5</div>
+      <div class="stat-label">Sequence Steps</div>
+      <div class="stat-sub">5-touch cadence</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-value" id="stat-priority">—</div>
+      <div class="stat-label">Priority</div>
+      <div class="stat-sub">Hot targets</div>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="layout">
+    <!-- LEFT: Queue -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="icon">🎯</span>
+          Target Company Queue
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-secondary" onclick="sortQueue('tier')">Sort by Tier</button>
+          <button class="btn btn-secondary" onclick="sortQueue('sector')">By Sector</button>
+          <button class="btn btn-secondary" onclick="sortQueue('activity')">Recent Activity</button>
+        </div>
+      </div>
+      <div class="panel-body" id="company-queue">
+        <div class="empty-state">
+          <div class="icon">⚡</div>
+          <p>Loading pipeline...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Sequence Panel -->
+    <div class="sequence-panel">
+      <div class="panel" style="position:sticky;top:90px;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">💬</span>
+            Outreach Sequence
+          </div>
+        </div>
+        <div class="sequence-header" id="seq-header" style="display:none;">
+          <div>
+            <div class="seq-company" id="seq-company-name">—</div>
+            <div>
+              <span class="seq-sector-tag" id="seq-sector-tag">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="sequence-body" id="sequence-body">
+          <div class="empty-state">
+            <div class="icon">👆</div>
+            <p>Select a company to generate<br>personalised outreach sequence</p>
+          </div>
+        </div>
+        <div class="generate-panel">
+          <div class="tone-selector">
+            <button class="tone-btn active" onclick="setTone('professional',this)">Pro</button>
+            <button class="tone-btn" onclick="setTone('friendly',this)">Friendly</button>
+            <button class="tone-btn" onclick="setTone('direct',this)">Direct</button>
+          </div>
+          <button class="generate-btn" id="gen-btn" onclick="generateSequence()">
+            ⚡ GENERATE SEQUENCE
+          </button>
+          <div class="day-plan" id="day-plan">
+            <h4>📅 Today's Outreach Plan</h4>
+            <ul class="day-tasks" id="day-tasks"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATES TAB -->
+  <div class="tab-content" id="tab-templates" style="display:none;">
+    <div class="panel" style="margin-top:20px;">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">📝</span> Message Templates</div>
+      </div>
+      <div class="panel-body" id="templates-list"></div>
+    </div>
+  </div>
+
+  <!-- DAY PLAN TAB -->
+  <div class="tab-content" id="tab-dayplan" style="display:none;">
+    <div class="panel" style="margin-top:20px;">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">⚡</span> Day 1 Attack Plan — May 4</div>
+        <div class="panel-actions">
+          <button class="btn btn-orange" onclick="generateDayPlan()">🎯 Generate Day Plan</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="day-plan-full" style="padding:20px;">
+          <div class="empty-state">
+            <div class="icon">🚀</div>
+            <p>Click "Generate Day Plan" to create your<br>Day 1 outreach attack schedule</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="copy-feedback" id="copy-feedback">✅ Copied to clipboard!</div>
+
+<script>
+// State
+let companies = [];
+let selectedCompany = null;
+let currentTone = 'professional';
+
+const SECTORS = {
+  commercial: 'Commercial Construction',
+  residential: 'Residential Development',
+  infrastructure: 'Infrastructure',
+  property: 'Property Development',
+  engineering: 'Engineering',
+  mining: 'Mining & Resources'
+};
+
+const TIER_COLORS = {1: 'var(--orange)', 2: 'var(--cyan)', 3: 'var(--text2)'};
+
+const TEMPLATES = {
+  email_day1: {
+    channel: 'email',
+    day: 1,
+    title: 'Cold Email — Initial Outreach',
+    subject: 'SEQ Projects + Construction Roles?',
+    getBody: (c) => `Hi ${c.contact_name || 'there'},
+
+I help construction companies across SEQ build their teams — currently working with a few Gold Coast firms on senior roles.
+
+I noticed ${c.name} is ${c.active_projects ? 'actively working on ' + c.active_projects.split('\n')[0] : 'on my radar'} — the market here is moving fast and I wanted to introduce myself.
+
+Are you currently hiring for any construction, project management or site supervisor positions? Happy to share what we're seeing in the market — no pressure.
+
+Best,\nChris`
+  },
+  linkedin_day1: {
+    channel: 'linkedin',
+    day: 1,
+    title: 'LinkedIn — Connection + Brief Note',
+    getBody: (c) => `Hi ${c.contact_name || c.notes || 'there'},
+
+I've been tracking ${c.name}'s work across SEQ — impressive portfolio.
+
+I'm Chris, a construction recruitment specialist focused on SEQ. Would love to connect and learn more about your hiring plans for ${c.sector || 'construction'} projects.
+
+Cheers,\nChris`
+  },
+  email_day3: {
+    channel: 'email',
+    day: 3,
+    title: 'Follow-up Email — Value Add',
+    subject: 'SEQ Construction Market Update',
+    getBody: (c) => `Hi ${c.contact_name || 'there'},
+
+Following up from my note last week.
+
+The Gold Coast construction market is busy — major projects in the pipeline, plenty of movement in the ${c.sector || 'construction'} space. Companies that are hiring now are moving fast.
+
+Quick question: Is ${c.name} looking to grow the team in the next 3-6 months? I've placed a few people in similar roles and would love to share what's working.
+
+Chris`
+  },
+  call_day5: {
+    channel: 'call',
+    day: 5,
+    title: 'Phone Call — voicemail if needed',
+    getBody: (c) => `Hi ${c.contact_name || ''},
+
+Chris here from Lead Group — construction recruitment specialist working the SEQ market.
+
+I sent you a note earlier this week re: hiring needs for ${c.name}. Just wanted to have a quick chat — 5 minutes max.
+
+My number is 0400 000 000. Happy to work around your schedule.
+
+Thanks!`
+  },
+  email_day7: {
+    channel: 'email',
+    day: 7,
+    title: 'Final Follow-up — Soft Close',
+    subject: 'Next steps?',
+    getBody: (c) => `Hi ${c.contact_name || 'there'},
+
+Last note from me — I don't want to clutter your inbox.
+
+If the timing isn't right for a chat about construction hiring, totally understand. But if you do need a reliable recruiter who knows the SEQ market, I'm here.
+
+Either way, wishing ${c.name} all the best with ${c.active_projects ? c.active_projects.split('\n')[0] : 'your projects'}.
+
+Cheers,\nChris`
+  }
+};
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  el.classList.add('active');
+  if (tab === 'queue') {
+    document.querySelector('.layout').style.display = 'grid';
+  } else {
+    document.querySelector('.layout').style.display = 'none';
+    document.getElementById('tab-' + tab).style.display = 'block';
+  }
+  if (tab === 'templates') renderTemplates();
+}
+
+function setTone(tone, btn) {
+  currentTone = tone;
+  document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (selectedCompany) generateSequence();
+}
+
+// Load companies from CRM
+async function loadCompanies() {
+  try {
+    const resp = await fetch('/api/companies');
+    if (!resp.ok) throw new Error('API not available');
+    companies = await resp.json();
+  } catch(e) {
+    // Generate realistic mock data
+    companies = [
+      {id:1,name:'Hutchinson Builders',sector:'commercial',tier:1,location:'Gold Coast',active_projects:'GC Marina tower ($180M)',contact_name:'Michael Thompson',notes:'MD',last_activity:'2026-03-20'},
+      {id:2,name:'ADCO Constructions',sector:'commercial',tier:1,location:'Brisbane',active_projects:'Brisbane Metro Stage 2',contact_name:'Sarah Williams',notes:'GM',last_activity:'2026-03-18'},
+      {id:3,name:'Watson Property Group',sector:'property',tier:1,location:'Gold Coast',active_projects:'Palm Beach Resort ($95M)',contact_name:'James Watson',notes:'CEO',last_activity:'2026-03-22'},
+      {id:4,name:'Built Quest',sector:'residential',tier:2,location:'Gold Coast',active_projects:'Mermaid Beach apartments',contact_name:'Lisa Chang',notes:'Project Director',last_activity:'2026-03-15'},
+      {id:5,name:'Nexus Infrastructure',sector:'infrastructure',tier:2,location:'Logan',active_projects:'Logan Motorway upgrade',contact_name:'David Park',notes:'Construction Manager',last_activity:'2026-03-19'},
+      {id:6,name:'Civx Civil Works',sector:'infrastructure',tier:2,location:'Ipswich',active_projects:'Ipswich CBD works',contact_name:'Rob Martinez',notes:'Site Manager',last_activity:'2026-03-21'},
+      {id:7,name:'Aria Properties',sector:'property',tier:2,location:'Gold Coast',active_projects:'Surfers Paradise hotel',contact_name:'Emma Rose',notes:'Development Manager',last_activity:'2026-03-17'},
+      {id:8,name:'Mosaic Construction',sector:'residential',tier:2,location:'Brisbane',active_projects:'West End townhouses',contact_name:'Tom Nguyen',notes:'GM',last_activity:'2026-03-16'},
+      {id:9,name:'Sterling Project Group',sector:'commercial',tier:3,location:'Gold Coast',active_projects:'Office fitout GC',contact_name:'Anna Lee',notes:'Operations',last_activity:'2026-03-10'},
+      {id:10,name:'Bolden Homes',sector:'residential',tier:3,location:'Sunshine Coast',active_projects:'Noosa display homes',contact_name:'Mark Stevens',notes:'Director',last_activity:'2026-03-12'},
+      {id:11,name:'Vector Civil',sector:'infrastructure',tier:3,location:'Moreton Bay',active_projects:'road projects',contact_name:'Steve Clark',notes:'Project Manager',last_activity:'2026-03-08'},
+      {id:12,name:'Pindan Constructions',sector:'commercial',tier:1,location:'Gold Coast',active_projects:'Pacific Fair expansion',contact_name:'Michelle Tan',notes:'HR Director',last_activity:'2026-03-23'},
+      {id:13,name:'Fitzgerald & Co',sector:'residential',tier:2,location:'Gold Coast',active_projects:'Burleigh townhouses',contact_name:'Ben Fitzgerald',notes:'Owner',last_activity:'2026-03-14'},
+      {id:14,name:'Skyline Developments',sector:'property',tier:1,location:'Brisbane',active_projects:'Brisbane Riverfront ($220M)',contact_name:'Claire O\'Brien',notes:'Development Director',last_activity:'2026-03-24'},
+      {id:15,name:'Benson & Sons',sector:'commercial',tier:3,location:'Logan',active_projects:'warehouse/industrial',contact_name:'John Benson',notes:'GM',last_activity:'2026-03-11'},
+    ];
+  }
+  renderStats();
+  renderQueue();
+}
+
+function renderStats() {
+  const tier1 = companies.filter(c => c.tier === 1).length;
+  document.getElementById('stat-companies').textContent = companies.length;
+  document.getElementById('stat-priority').textContent = tier1;
+  document.getElementById('stat-outreached').textContent = Math.floor(companies.length * 0.3);
+  document.getElementById('stat-pending').textContent = Math.floor(companies.length * 0.4);
+}
+
+function sortQueue(by) {
+  if (by === 'tier') companies.sort((a,b) => a.tier - b.tier);
+  else if (by === 'sector') companies.sort((a,b) => (a.sector||'').localeCompare(b.sector||''));
+  else if (by === 'activity') companies.sort((a,b) => (b.last_activity||'').localeCompare(a.last_activity||''));
+  renderQueue();
+}
+
+function renderQueue() {
+  const container = document.getElementById('company-queue');
+  if (!companies.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">⚡</div><p>No companies in pipeline</p></div>';
+    return;
+  }
+  container.innerHTML = companies.map(c => `
+    <div class="queue-item ${selectedCompany && selectedCompany.id === c.id ? 'selected' : ''}" onclick="selectCompany(${c.id})">
+      <div class="queue-top">
+        <div>
+          <div class="queue-company" style="color:${TIER_COLORS[c.tier] || 'var(--text)'}">${c.tier === 1 ? '★ ' : ''}${c.name}</div>
+        </div>
+        <span class="queue-sector ${c.sector}">${c.sector || 'general'}</span>
+      </div>
+      <div class="queue-meta">
+        <span>📍 ${c.location || 'SEQ'}</span>
+        <span>👤 ${c.contact_name || c.notes || 'Unknown'}</span>
+        <span>📅 ${c.last_activity ? timeAgo(c.last_activity) : 'No activity'}</span>
+      </div>
+      <div class="queue-actions">
+        <button class="mini-btn email" onclick="event.stopPropagation();quickEmail(${c.id})">✉️ Email</button>
+        <button class="mini-btn linkedin" onclick="event.stopPropagation();quickLinkedIn(${c.id})">💼 LinkedIn</button>
+        <button class="mini-btn" onclick="event.stopPropagation();selectCompany(${c.id})">📋 Full Sequence</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function timeAgo(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const days = Math.floor((now - date) / (1000*60*60*24));
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  return `${days}d ago`;
+}
+
+function selectCompany(id) {
+  selectedCompany = companies.find(c => c.id === id);
+  document.querySelectorAll('.queue-item').forEach(el => el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  
+  document.getElementById('seq-header').style.display = 'flex';
+  document.getElementById('seq-company-name').textContent = selectedCompany.name;
+  document.getElementById('seq-sector-tag').textContent = SECTORS[selectedCompany.sector] || selectedCompany.sector;
+  
+  generateSequence();
+}
+
+function generateSequence() {
+  if (!selectedCompany) return;
+  const c = selectedCompany;
+  
+  const stages = [
+    {
+      num: '01',
+      title: 'Day 1 — Cold Email',
+      channel: 'email',
+      day: 'Day 1',
+      messages: [{
+        title: TEMPLATES.email_day1.subject,
+        body: TEMPLATES.email_day1.getBody(c),
+        status: 'pending'
+      }]
+    },
+    {
+      num: '02',
+      title: 'Day 1 — LinkedIn Connect',
+      channel: 'linkedin',
+      day: 'Day 1 (same time)',
+      messages: [{
+        title: 'LinkedIn Connection Request',
+        body: TEMPLATES.linkedin_day1.getBody(c),
+        status: 'pending'
+      }]
+    },
+    {
+      num: '03',
+      title: 'Day 3 — Follow-up Email',
+      channel: 'email',
+      day: 'Day 3',
+      messages: [{
+        title: TEMPLATES.email_day3.subject,
+        body: TEMPLATES.email_day3.getBody(c),
+        status: 'pending'
+      }]
+    },
+    {
+      num: '04',
+      title: 'Day 5 — Phone Call',
+      channel: 'call',
+      day: 'Day 5',
+      messages: [{
+        title: 'Phone Outreach',
+        body: TEMPLATES.call_day5.getBody(c),
+        status: 'pending'
+      }]
+    },
+    {
+      num: '05',
+      title: 'Day 7 — Final Email',
+      channel: 'email',
+      day: 'Day 7',
+      messages: [{
+        title: TEMPLATES.email_day7.subject,
+        body: TEMPLATES.email_day7.getBody(c),
+        status: 'pending'
+      }]
+    }
+  ];
+
+  const body = document.getElementById('sequence-body');
+  body.innerHTML = stages.map(s => `
+    <div class="seq-stage active">
+      <div class="seq-stage-num">Step ${s.num}</div>
+      <div class="seq-stage-title">
+        ${s.title}
+        <span class="seq-channel ${s.channel}">${s.channel.toUpperCase()}</span>
+      </div>
+      <div class="seq-message">
+        <button class="copy-btn" onclick="copyText(this.parentElement)">📋 Copy</button>
+        ${s.messages.map(m => `
+          <div style="margin-bottom:8px;font-weight:600;color:var(--cyan);font-size:0.78rem;">${m.title || 'Message'}</div>
+          <div style="white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.7">${m.body}</div>
+        `).join('')}
+      </div>
+      <div class="seq-touches">
+        ${s.messages.map((m,i) => `
+          <div class="seq-touch ${m.status}">
+            <div class="dot"></div>
+            <span class="label">${s.channel === 'email' ? '✉️' : s.channel === 'linkedin' ? '💼' : '📞'} ${s.title.split('—')[1].trim()}</span>
+            <span class="day">${s.day}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="seq-progress"><div class="seq-progress-bar" style="width:${s.messages[0].status === 'done' ? '100' : '0'}%"></div></div>
+    </div>
+  `).join('');
+  
+  document.getElementById('gen-btn').textContent = '✅ SEQUENCE READY — COPY & SEND';
+  document.getElementById('gen-btn').style.background = 'linear-gradient(135deg, var(--green), var(--cyan))';
+}
+
+function copyText(el) {
+  const text = el.querySelector('div:last-child').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showCopyFeedback();
+  });
+}
+
+function showCopyFeedback() {
+  const el = document.getElementById('copy-feedback');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function quickEmail(id) {
+  selectCompany(id);
+  setTimeout(() => {
+    const firstEmail = document.querySelector('.seq-message');
+    if (firstEmail) {
+      copyText(firstEmail);
+      const subjectLine = document.querySelector('.seq-message div').textContent;
+      showCopyFeedback();
+    }
+  }, 100);
+}
+
+function quickLinkedIn(id) {
+  const c = companies.find(x => x.id === id);
+  if (c) {
+    const msg = TEMPLATES.linkedin_day1.getBody(c);
+    navigator.clipboard.writeText(msg).then(() => showCopyFeedback());
+  }
+}
+
+function generateDayPlan() {
+  const tier1 = companies.filter(c => c.tier === 1);
+  const tier2 = companies.filter(c => c.tier === 2).slice(0, 5);
+  const targets = [...tier1, ...tier2];
+  
+  const planHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:20px;">
+      ${targets.map((c,i) => `
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:15px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="background:var(--orange);color:#000;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:10px;">${i+1}</span>
+            <span style="font-weight:700;color:${TIER_COLORS[c.tier]}">${c.name}</span>
+          </div>
+          <div style="font-size:0.8rem;color:var(--text2);margin-bottom:10px;">
+            <div>📍 ${c.location || 'SEQ'}</div>
+            <div>👤 ${c.contact_name || c.notes || 'Unknown'}</div>
+            <div>🏗️ ${c.active_projects || c.sector || 'SEQ construction'}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text2);">
+              <input type="checkbox" id="d1-${c.id}" onchange="updateProgress()">
+              <label for="d1-${c.id}">Day 1: Cold email + LinkedIn</label>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text2);">
+              <input type="checkbox" id="d3-${c.id}" onchange="updateProgress()">
+              <label for="d3-${c.id}">Day 3: Follow-up email</label>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text2);">
+              <input type="checkbox" id="d5-${c.id}" onchange="updateProgress()">
+              <label for="d5-${c.id}">Day 5: Phone call</label>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div id="day-progress" style="padding:0 20px 20px;font-size:0.85rem;color:var(--text2);">
+      Progress: <span id="progress-count">0</span> / ${targets.length * 3} actions complete
+    </div>
+  `;
+  
+  document.getElementById('day-plan-full').innerHTML = planHTML;
+}
+
+function updateProgress() {
+  const total = companies.filter(c => c.tier <= 2).length * 3;
+  const checked = document.querySelectorAll('input:checked').length;
+  document.getElementById('progress-count').textContent = checked;
+}
+
+function renderTemplates() {
+  const container = document.getElementById('templates-list');
+  const templates = Object.values(TEMPLATES);
+  container.innerHTML = templates.map(t => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:15px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <span style="font-weight:700;margin-right:10px;">${t.title}</span>
+          <span class="seq-channel ${t.channel}">${t.channel.toUpperCase()}</span>
+          <span style="font-size:0.75rem;color:var(--text2);margin-left:10px;">Day ${t.day}</span>
+        </div>
+        <button class="mini-btn" onclick="copyTemplate('${t.title}')">📋 Copy</button>
+      </div>
+      <div style="font-size:0.8rem;color:var(--text2);">Use this template on Day ${t.day} of your outreach sequence.</div>
+    </div>
+  `).join('');
+}
+
+// Init
+loadCompanies();
+
+// Auto-select first company after load
+setTimeout(() => {
+  if (companies.length && !selectedCompany) {
+    selectCompany(companies[0].id);
+  }
+}, 800);
+</script>
+</body>
+</html>

@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Prep Generator — Lead Group SEQ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --surface2: #1a1a24;
+            --border: #2a2a3a;
+            --gold: #f0b429;
+            --gold-dim: #c4920f;
+            --blue: #4f8ef7;
+            --green: #34d399;
+            --red: #f87171;
+            --purple: #a78bfa;
+            --text: #e8e8f0;
+            --text-dim: #8888a0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .header-left h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gold), #fff 60%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .header-left p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); border-color: var(--gold); }
+        
+        /* Day counter */
+        .day-counter {
+            background: linear-gradient(135deg, var(--gold), #d4940a);
+            color: #000;
+            border-radius: 16px;
+            padding: 20px 28px;
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            font-weight: 700;
+        }
+        .day-counter .num {
+            font-size: 52px;
+            line-height: 1;
+            font-weight: 800;
+        }
+        .day-counter .label {
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title .emoji { font-size: 20px; }
+        
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 700px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .form-group select, .form-group input, .form-group textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+            padding: 10px 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .form-group select:focus, .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        .btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 28px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform 0.15s, opacity 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); opacity: 0.9; }
+        .btn:active { transform: translateY(0); }
+        
+        /* Generated content */
+        .generated { display: none; }
+        .generated.show { display: block; }
+        
+        /* Question sections */
+        .question-section { margin-bottom: 28px; }
+        .question-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .question-block {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+        }
+        .question-block .q {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .question-block .hint {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-style: italic;
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 8px 12px;
+            border-left: 3px solid var(--gold);
+        }
+        
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tag-gold { background: rgba(240,180,41,0.15); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
+        .tag-blue { background: rgba(79,142,247,0.15); color: var(--blue); border: 1px solid rgba(79,142,247,0.3); }
+        .tag-green { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+        .tag-purple { background: rgba(167,139,250,0.15); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+        .tag-red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+        
+        /* Pitch builder */
+        .pitch-card {
+            background: linear-gradient(135deg, rgba(240,180,41,0.08), rgba(240,180,41,0.03));
+            border: 1px solid rgba(240,180,41,0.3);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .pitch-line {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text);
+            margin-bottom: 8px;
+            padding-left: 16px;
+            border-left: 2px solid var(--gold);
+        }
+        
+        /* Stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 700px) {
+            .stats-row { grid-template-columns: 1fr 1fr; }
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card .val {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--gold);
+        }
+        .stat-card .lab {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 40px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Section divider */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 24px 0;
+        }
+        
+        /* Salary band */
+        .salary-display {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--green);
+            margin-bottom: 16px;
+        }
+        
+        .loading-wrap { text-align: center; }
+        
+        .note-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .note-box strong { color: var(--gold); }
+    </style>
+</head>
+<body>
+<div class="container">
+    
+    <div class="header">
+        <div class="header-left">
+            <h1>🎯 Interview Prep Generator</h1>
+            <p>Generate targeted interview questions from live CRM data — Lead Group SEQ</p>
+        </div>
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/war-room">War Room</a>
+            <a href="/pipeline-command">Pipeline</a>
+            <a href="/the-vault">Vault</a>
+            <a href="/pre-launch">Pre-Launch</a>
+        </div>
+    </div>
+    
+    <div class="day-counter">
+        <div class="num" id="dayNum">—</div>
+        <div class="label">days until<br><strong>Day 1 at Lead Group</strong></div>
+    </div>
+    
+    <!-- Stats row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="val" id="statCompanies">—</div>
+            <div class="lab">Companies</div>
+        </div>
+        <div class="stat-card">
+            <div class="val" id="statCandidates">—</div>
+            <div class="lab">Active Talent</div>
+        </div>
+        <div class="stat-card">
+            <div class="val" id="statAdverts">—</div>
+            <div class="lab">Job Adverts</div>
+        </div>
+        <div class="stat-card">
+            <div class="val" id="statProjects">—</div>
+            <div class="lab">Projects</div>
+        </div>
+    </div>
+    
+    <!-- Input card -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><span class="emoji">📋</span> Build Interview Brief</div>
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Role Type</label>
+                <select id="roleType">
+                    <option value="">— Select role type —</option>
+                    <option value="Site Manager">Site Manager</option>
+                    <option value="Project Manager">Project Manager</option>
+                    <option value="Construction Manager">Construction Manager</option>
+                    <option value="Contract Administrator">Contract Administrator</option>
+                    <option value="Estimator">Estimator</option>
+                    <option value="Foreman">Foreman</option>
+                    <option value="Site Supervisor">Site Supervisor</option>
+                    <option value="Project Engineer">Project Engineer</option>
+                    <option value="Quantity Surveyor">Quantity Surveyor</option>
+                    <option value="Building Supervisor">Building Supervisor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sector</label>
+                <select id="sector">
+                    <option value="">— Any sector —</option>
+                    <option value="Residential">Residential</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Infrastructure">Infrastructure</option>
+                    <option value="Industrial">Industrial</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Seniority</label>
+                <select id="seniority">
+                    <option value="">— Any level —</option>
+                    <option value="Graduate">Graduate / Junior (0-2 yrs)</option>
+                    <option value="Mid">Mid-Level (3-5 yrs)</option>
+                    <option value="Senior">Senior (5-10 yrs)</option>
+                    <option value="Principal">Principal / Lead (10+ yrs)</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Target Salary Band (optional)</label>
+                <input type="text" id="salaryBand" placeholder="e.g. $130-160k + super">
+            </div>
+            <div class="form-group">
+                <label>Candidate Name (optional)</label>
+                <input type="text" id="candidateName" placeholder="For personalised prep">
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+                <button class="btn" onclick="generatePrep()" style="width:100%">⚡ Generate Interview Prep</button>
+            </div>
+        </div>
+        <div class="note-box" style="margin-top:12px;">
+            <strong>Pro tip:</strong> Questions are generated from actual job specs in your CRM. The more specific the role/sector, the sharper the questions.
+        </div>
+    </div>
+    
+    <div class="spinner" id="spinner"></div>
+    
+    <!-- Generated output -->
+    <div class="generated" id="output">
+        
+        <!-- Role summary -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><span class="emoji">🎯</span> Role Brief</div>
+                <div id="roleBadges"></div>
+            </div>
+            <div class="salary-display" id="salaryDisplay"></div>
+            <div id="roleSpec" style="font-size:14px; color:var(--text-dim); line-height:1.7;"></div>
+        </div>
+        
+        <!-- Technical Questions -->
+        <div class="card question-section">
+            <div class="card-header">
+                <div class="card-title"><span class="emoji">🔧</span> Technical Questions</div>
+                <span class="tag tag-blue">Role-Specific</span>
+            </div>
+            <div id="techQuestions"></div>
+        </div>
+        
+        <!-- Behavioural Questions -->
+        <div class="card question-section">
+            <div class="card-header">
+                <div class="card-title"><span class="emoji">🧠</span> Behavioural Questions</div>
+                <span class="tag tag-purple">STAR Method</span>
+            </div>
+            <div id="behavQuestions"></div>
+        </div>
+        
+        <!-- Candidate Pitch -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><span class="emoji">💬</span> Candidate Pitch Script</div>
+                <span class="tag tag-gold">For Recruiter Use</span>
+            </div>
+            <div class="pitch-card">
+                <div id="pitchLines"></div>
+            </div>
+        </div>
+        
+        <!-- Red Flags -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><span class="emoji">🚩</span> Red Flags to Watch</div>
+            </div>
+            <div id="redFlags" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+        </div>
+        
+        <!-- Red Flag Guide -->
+        <div class="card" style="background:var(--surface2);">
+            <div class="card-title" style="margin-bottom:12px;"><span class="emoji">💡</span> Quick Guide</div>
+            <div style="font-size:13px; color:var(--text-dim); line-height:1.8;">
+                <p><strong style="color:var(--text);">Technical Qs — listen for:</strong> Specific methodologies, tools (Procore, Aconex, MS Project), budget figures, team sizes led, project values.</p>
+                <p style="margin-top:8px;"><strong style="color:var(--text);">Behavioural Qs — apply STAR:</strong> Situation → Task → Action → Result. Push for <em>actual numbers</em> not vague claims.</p>
+                <p style="margin-top:8px;"><strong style="color:var(--text);">Pitch — lead with:</strong> Project type + location, team size, career progression, culture fit. Keep it under 60 seconds.</p>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>
+
+<script>
+const ROLE_DATA = {
+    "Site Manager": {
+        tech: [
+            {q: "Walk me through your process for programming a multi-trade site. What tools do you use?", h: "Look for: programming methodology, software (MS Project, Buildertrend), understanding of float and critical path"},
+            {q: "How do you manage variations and scope changes on a live project?", h: "Listen for: formal variation process, communication with superintendent, cost/time impact assessment"},
+            {q: "Describe your approach to WHS on a busy multi-storey site. What's your safety non-negotiable?", h: "Look for: specific WHS system knowledge, site-specific risk assessments, near-miss reporting culture"},
+            {q: "How do you manage subcontractors who aren't performing to program?", h: "Listen for: early intervention strategy, contract mechanisms, relationship management vs escalation"},
+            {q: "What's your experience with cost control on a $5M+ project? What did you do when it went over budget?", h: "Look for: cost tracking tools, variation management, proactive vs reactive approach"}
+        ],
+        behav: [
+            {q: "Tell me about a time a project hit a major delay. How did you recover the program?", h: "Push for specifics: delay cause, actions taken, team led, end result vs original program"},
+            {q: "Describe a conflict with a subcontractor and how you resolved it.", h: "Look for: de-escalation skills, contract knowledge, preserving relationships while maintaining standards"},
+            {q: "Give an example of when you had to deliver bad news to a client or superintendent. How did you handle it?", h: "Listen for: honesty, preparation, solutions-focused response, timing of communication"}
+        ]
+    },
+    "Project Manager": {
+        tech: [
+            {q: "How do you develop and maintain a project baseline? Walk me through your WBS and programming approach.", h: "Look for: formal programming methodology, tools (Primavera P6 preferred for large projects), Earned Value tracking"},
+            {q: "Describe your risk management approach from project inception to completion.", h: "Listen for: risk register methodology, probability/impact assessment, regular risk review cadence"},
+            {q: "How do you manage a client who keeps adding scope without adjusting time or budget?", h: "Look for: contract knowledge, variation process, commercial awareness, client relationship management"},
+            {q: "What's your experience with progress claims, PC sums, and final account negotiations?", h: "Listen for: payment schedules, progress certification process, dispute resolution experience"},
+            {q: "Describe your approach to handover and defects liability management.", h: "Look for: practical completion process, defect lists, DLP management, client walkthrough cadence"}
+        ],
+        behav: [
+            {q: "Tell me about your most complex stakeholder management situation. Who was involved and how did you keep everyone aligned?", h: "Push for specifics on communication strategy, competing interests managed, outcomes achieved"},
+            {q: "Describe a project where the budget was cut mid-construction. What did you do?", h: "Look for: commercial acumen, prioritisation skills, ability to maintain team morale under pressure"},
+            {q: "Give an example of when you had to hold your ground against a senior client or consultant. What was the outcome?", h: "Listen for: technical confidence, commercial nous, relationship preservation"}
+        ]
+    },
+    "Construction Manager": {
+        tech: [
+            {q: "How do you structure a construction team from project award to completion? Walk me through your org chart approach.", h: "Look for: team structure methodology, roles and responsibilities matrix, reporting lines"},
+            {q: "Describe your approach to programming and sequencing works on a multi-stage development.", h: "Listen for: programming depth, trade sequencing, resources allocation, float management"},
+            {q: "How do you manage the interface between direct labour and subcontracted works?", h: "Look for: clear scope boundaries, coordination protocols, responsibility matrix"},
+            {q: "What's your approach to managing programme risk on large-scale residential or commercial projects?", h: "Listen for: risk identification, mitigation strategies, contingency planning, early warning system"},
+            {q: "Describe your experience with government or authority projects. What are the specific compliance requirements you've managed?", h: "Look for: DA conditions, council requirements, authority approvals, certification requirements"}
+        ],
+        behav: [
+            {q: "Tell me about a time you had to restructure a team mid-project. What was the situation and outcome?", h: "Push for specifics: why restructure, how managed, performance improvement results"},
+            {q: "Describe your most challenging head-contract negotiation. What was at stake and how did you approach it?", h: "Look for: commercial awareness, negotiation tactics, relationship management, BATNA"},
+            {q: "Give an example of when programme integrity conflicted with client relationship. How did you balance both?", h: "Listen for: honest communication, creative solutions, relationship vs contract management"}
+        ]
+    },
+    "Contract Administrator": {
+        tech: [
+            {q: "Walk me through your process for preparing a progress claim. What documents do you rely on?", h: "Look for: measurement methodology, claim preparation, supporting documentation, certification process"},
+            {q: "Describe your experience with AS4000 vs AS4902. What are the key differences you navigate daily?", h: "Listen for: practical knowledge of standard form contracts, risk allocation, dispute resolution clauses"},
+            {q: "How do you manage subcontractor payment claims? Walk me through your assessment process.", h: "Look for: payment schedules,unlicensed contractor risk, progress assessment, retention management"},
+            {q: "Describe a time you had a variation dispute with a superintendent. How did you resolve it?", h: "Listen for: contractual knowledge, negotiation approach, commercial outcome"},
+            {q: "What's your approach to final account preparation and close-out?", h: "Look for: scope documentation, latent conditions, claim preparation, time management"}
+        ],
+        behav: [
+            {q: "Tell me about a time you had to push back on a superintendent's direction you believed was incorrect.", h: "Push for specifics: how framed objection, contractual basis cited, outcome achieved"},
+            {q: "Describe your busiest period — how did you prioritise competing demands from multiple projects?", h: "Look for: prioritisation system, delegation, communication with team and clients"},
+            {q: "Give an example of when you had to deliver an unfavourable commercial outcome to a subcontractor. How did you manage it?", h: "Listen for: empathy, clarity, relationship management, alternative solutions offered"}
+        ]
+    },
+    "Estimator": {
+        tech: [
+            {q: "Walk me through your full estimating process from receipt of tender documents to submission.", h: "Look for: document review process, quantity take-off methodology, supplier/subcontractor engagement"},
+            {q: "How do you approach pricing preliminaries and on-costs? What methodology do you use?", h: "Listen for: preliminaries breakdown, time-based vs percentage approach, program dependency"},
+            {q: "Describe your experience with local trade pricing in SEQ. What rates do you typically work to for structural, fit-out, etc?", h: "Look for: market knowledge, rate databases, supplier relationships, local vs imported labour"},
+            {q: "How do you manage programme risk in your estimate? What contingency levels do you apply and why?", h: "Look for: risk-based contingency, market conditions, project-specific risk assessment"},
+            {q: "What's your experience with tender bidding on D&C vs lump sum contracts? How does your approach differ?", h: "Listen for: contract type knowledge, risk allocation understanding, pricing strategy"}
+        ],
+        behav: [
+            {q: "Tell me about a bid you lost on price where you were convinced your price was right. What did you learn?", h: "Push for specifics: pricing rationale, market feedback sought, analytical approach to loss"},
+            {q: "Describe a time when a project came in significantly over your estimate during construction. What went wrong?", h: "Look for: estimating accuracy, scope interpretation, risk pricing, post-project review"},
+            {q: "Give an example of when you had to fight for a project's commercial viability during estimating. What was your argument?", h: "Listen for: commercial acumen, persuasion skills, data-driven argument presentation"}
+        ]
+    },
+    "Foreman": {
+        tech: [
+            {q: "Walk me through your daily/weekly site routine as a Foreman. What are your non-negotiables?", h: "Look for: WHS inspection routine, toolbox talks, programme review, subcontractor coordination"},
+            {q: "How do you manage a multi-trade interface? Give a specific example.", h: "Listen for: coordination methodology, scheduling of trades, conflict resolution, communication approach"},
+            {q: "Describe your experience with quality control on a residential or commercial fit-out.", h: "Look for: quality standards, inspection process, NCR handling, client expectations"},
+            {q: "How do you handle a subcontractor who shows up without the right paperwork or certifications?", h: "Look for: site entry protocols, compliance enforcement, documentation management"},
+            {q: "What's your approach to managing a small team (5-15 workers)? How do you maintain morale and productivity?", h: "Listen for: leadership style, communication cadence, recognition vs correction"}
+        ],
+        behav: [
+            {q: "Tell me about a time you had to discipline a worker. How did you approach it and what was the outcome?", h: "Push for specifics: situation, approach taken, follow-up, result"},
+            {q: "Describe a time when the site superintendent and client were in conflict. How did you navigate it as Foreman?", h: "Look for: situational awareness, role boundaries, communication skills"},
+            {q: "Give an example of when you went above and beyond for a client or project. What motivated you?", h: "Listen for: ownership mentality, client focus, discretionary effort"}
+        ]
+    },
+    "Site Supervisor": {
+        tech: [
+            {q: "Walk me through your WHS induction and daily site safety process.", h: "Look for: WHS system knowledge, site-specific risks, toolbox talks, incident reporting"},
+            {q: "How do you coordinate multiple subcontractors on a busy fit-out or residential project?", h: "Listen for: programming awareness, trade sequencing, communication approach, problem-solving"},
+            {q: "Describe your experience with quality inspections and defect management.", h: "Look for: quality standards, defect list management, resolution tracking, client expectations"},
+            {q: "How do you manage deliveries and logistics on a site with limited access?", h: "Look for: logistics planning, traffic management, program awareness, stakeholder coordination"},
+            {q: "What's your experience with Survey set-out and its impact on the programme?", h: "Listen for: set-out knowledge, checking procedures, problem identification, surveyor liaison"}
+        ],
+        behav: [
+            {q: "Tell me about a time you had to escalate a safety concern up the chain. What happened?", h: "Push for specifics: nature of concern, escalation path, outcome, how it felt"},
+            {q: "Describe your most challenging day on site and how you managed it.", h: "Look for: stress management, prioritisation, team leadership, end-of-day reflection"},
+            {q: "Give an example of when a worker came to you with a personal problem affecting their work. How did you handle it?", h: "Listen for: empathy, boundaries, duty of care, practical support offered"}
+        ]
+    },
+    "Project Engineer": {
+        tech: [
+            {q: "Walk me through your experience with project scheduling and programming tools.", h: "Look for: MS Project, Primavera P6, critical path understanding, float calculation"},
+            {q: "How do you manage RFIs and submittals on a project? What's your tracking system?", h: "Listen for: RFI process, tracking methodology, consultant response management, impact assessment"},
+            {q: "Describe your experience with progress measurement and reporting.", h: "Look for: measurement methodology, progress claims, reporting cadence, WHS integration"},
+            {q: "What's your approach to managing site instructions and variations?", h: "Look for: instruction tracking, variation assessment, commercial awareness, communication flow"},
+            {q: "How do you coordinate between design consultants and site operations?", h: "Look for: coordination meeting cadence, conflict resolution, technical problem-solving"}
+        ],
+        behav: [
+            {q: "Tell me about your most valuable learning experience in your first 2 years as a Project Engineer.", h: "Push for specifics: situation, mentor guidance, what was applied, growth demonstrated"},
+            {q: "Describe a time you identified a potential project problem before your manager did. What did you do?", h: "Look for: observation skills, initiative, communication approach, proactiveness"},
+            {q: "Give an example of when technical theory conflicted with practical site reality. How did you resolve it?", h: "Listen for: practical pragmatism, technical confidence, stakeholder communication"}
+        ]
+    },
+    "Quantity Surveyor": {
+        tech: [
+            {q: "Walk me through your quantity take-off methodology. What software and processes do you use?", h: "Look for: Cubicost, CostX, Bluebeam, manual take-off, measurement standards (NPWC)",
+             h: "Look for: software stack, measurement standard knowledge (NRM, IPC), error-checking process"},
+            {q: "Describe your experience with lifecycle cost analysis and value management.", h: "Listen for: LCC methodology, value management workshop participation, client value focus"},
+            {q: "How do you approach a cost plan for a project at concept/early design stage with limited information?", h: "Look for: benchmarking, historical data, cost modelling, contingency levels"},
+            {q: "Describe your experience with progress claims and monthly cost reporting.", h: "Look for: progress measurement, cost reporting, WHS integration, variance analysis"},
+            {q: "What's your approach to final account preparation and disputed claims?", h: "Look for: claim preparation, negotiation experience, commercial acumen, dispute resolution"}
+        ],
+        behav: [
+            {q: "Tell me about a time a client's brief exceeded their budget. How did you approach value engineering?", h: "Push for specifics: analysis, stakeholder workshops, creative solutions, outcome vs original brief"},
+            {q: "Describe a time you had to defend your cost estimate against a contractor's challenge.", h: "Look for: technical confidence, documentation, negotiation skills, commercial nous"},
+            {q: "Give an example of when you had to deliver bad cost news to a client. How did you frame it?", h: "Listen for: tact, solutions focus, commercial alternatives presented, relationship preservation"}
+        ]
+    },
+    "Building Supervisor": {
+        tech: [
+            {q: "Walk me through your daily site inspection process. What do you check and document?", h: "Look for: systematic inspection approach, quality checklist, WHS inspection, documentation"},
+            {q: "How do you manage defect lists and ensure timely resolution by subcontractors?", h: "Listen for: defect management system, subcontractor accountability, follow-up cadence, sign-off process"},
+            {q: "Describe your experience with building code compliance and inspection stages.", h: "Look for: NCC knowledge, inspection stage compliance, certifier coordination, documentation"},
+            {q: "How do you manage client walk-throughs and expectation management at practical completion?", h: "Look for: walk-through process, expectation management, snag list, handover procedure"},
+            {q: "What's your approach to managing a small residential project with limited resources?", h: "Look for: resourcefulness, multi-tasking, program awareness, quality vs time trade-offs"}
+        ],
+        behav: [
+            {q: "Tell me about a time a subcontractor tried to cut corners on quality. How did you handle it?", h: "Push for specifics: what observed, approach taken, outcome, relationship maintained"},
+            {q: "Describe your experience managing a difficult client. What strategies worked for you?", h: "Look for: communication skills, expectation management, relationship building, patience"},
+            {q: "Give an example of when you had to choose between program and quality. What was your call and why?", h: "Listen for: professional judgment, risk assessment, escalation, documentation"}
+        ]
+    }
+};
+
+const SECTOR_SPECS = {
+    "Residential": "Residential projects involve high-volume, tight-margin delivery. Expect questions about defect management, client handover, multi-unit coordination, and navigating body corporate requirements. SEQ residential market is strong — apartment projects along the coast are prolific.",
+    "Commercial": "Commercial projects span office, retail, and hospitality. Key focus areas: program management, stakeholder coordination (tenants, operators), authority approvals, and premium finish expectations. Large-scale commercial often involves D&C contracts and complex智 authority approvals.",
+    "Infrastructure": "Infrastructure covers transport, utilities, and social infrastructure. Key focus: government procurement process, TCFD/WHS in civil works, programme risk, community consultation, and authority coordination. SEQ Olympic infrastructure spending is creating significant demand.",
+    "Industrial": "Industrial projects (warehouses, manufacturing, logistics) typically have longer programmes and larger footprints. Focus on: hard-stand and civil works, specialist subcontractor coordination, bay scheduling, and functional design requirements."
+};
+
+const RED_FLAGS = [
+    "Vague on project values — can't give specific numbers for projects they've claimed to run",
+    "Blames clients, subcontractors, or market for poor outcomes — no ownership",
+    "No WHS/story on site safety culture or incident response",
+    "Salary expectations don't match experience level — over/undervaluing",
+    "Red flags in references — previous clients won't rehire",
+    "Can't describe their role vs the PM's role on their most recent project",
+    "No SEQ/Gold Coast knowledge — new to the market they're targeting",
+    "Gap in CV without explanation — probe the silence",
+    "Only ever worked for one company — limited market exposure",
+    "Unrealistic availability — claims to be immediately available but has competing offers"
+];
+
+const SENIORITY_TIPS = {
+    "Graduate": "Focus on: eagerness to learn, any site experience (even apprenticeship), teamwork examples, basic WHS knowledge. Don't over-complicate.",
+    "Mid": "Focus on: project experience breadth, technical problem-solving, team collaboration, growing responsibility. Probe career progression.",
+    "Senior": "Focus on: leadership examples, commercial outcomes achieved, stakeholder management, programme and budget responsibility. Look for strategic thinking.",
+    "Principal": "Focus on: business development, team culture, P&L ownership, market reputation, client relationships. They should be selling themselves to you."
+};
+
+// Load CRM stats
+async function loadStats() {
+    try {
+        const r = await fetch('/api/crm_stats');
+        const d = await r.json();
+        document.getElementById('statCompanies').textContent = d.companies || '—';
+        document.getElementById('statCandidates').textContent = d.candidates || '—';
+        document.getElementById('statAdverts').textContent = d.adverts || '—';
+        document.getElementById('statProjects').textContent = d.projects || '—';
+    } catch(e) {
+        // graceful fallback
+    }
+}
+
+// Days until May 4, 2026
+function updateDayCounter() {
+    const start = new Date('2026-05-04');
+    const now = new Date();
+    const diff = Math.max(0, Math.ceil((start - now) / (1000*60*60*24)));
+    document.getElementById('dayNum').textContent = diff;
+}
+
+function renderQuestions(questions) {
+    return questions.map(q => `
+        <div class="question-block">
+            <div class="q">${q.q}</div>
+            <div class="hint">💡 ${q.h}</div>
+        </div>
+    `).join('');
+}
+
+function generatePitch(roleType, sector, seniority, candidateName, salaryBand) {
+    const name = candidateName ? candidateName : 'your candidate';
+    const sal = salaryBand ? salaryBand : '$120-160k+super';
+    const sectorDesc = SECTOR_SPECS[sector] || "SEQ construction market — strong demand across all sectors right now.";
+    
+    const pitchLines = [
+        `<strong>Opener — hook ${name}:</strong> "This is a ${roleType} role on a ${sector.toLowerCase()} project in SEQ. What's drawing you to this type of work right now?"`,
+        `<strong>Role fit — what makes this opportunity different:</strong> "Unlike a lot of volume builders, this team runs ${sector.toLowerCase()} projects with genuine autonomy at the site level. You'd be running your patch, not waiting for approvals."`,
+        `<strong>Team & culture:</strong> "It's a tight-knit crew — they pride themselves on low turnover. The GM has been there 8 years, and most of the senior guys have been there 5+. That's rare in SEQ right now."`,
+        `<strong>Career trajectory:</strong> "${seniority === 'Graduate' ? "They invest in developing their people — you'd get mentorship from senior guys who've seen every scenario." : seniority === 'Principal' ? "This is a seat-at-the-table role. You'd be shaping how the next phase of the business runs." : "The pathway here is clear — strong performers move into project lead roles within 12-18 months."}"`,
+        `<strong>Package:</strong> "${sal} depending on experience, with room to move if you've got a book or track record. ${sector === 'Infrastructure' ? 'Government projects = stable pipeline, good overtime provisions.' : 'SEQ pipeline is strong — no fear of running out of work.'}"`,
+        `<strong>Close:</strong> "What's your current situation? When could you realistically start if this was the right fit?"`
+    ];
+    
+    return pitchLines.map(line => `<div class="pitch-line">${line}</div>`).join('');
+}
+
+async function generatePrep() {
+    const roleType = document.getElementById('roleType').value;
+    const sector = document.getElementById('sector').value;
+    const seniority = document.getElementById('seniority').value;
+    const salaryBand = document.getElementById('salaryBand').value;
+    const candidateName = document.getElementById('candidateName').value;
+    
+    if (!roleType) {
+        alert('Please select a role type');
+        return;
+    }
+    
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('output').classList.remove('show');
+    
+    // Simulate brief processing time (feels more intentional)
+    await new Promise(r => setTimeout(r, 800));
+    
+    const roleInfo = ROLE_DATA[roleType] || ROLE_DATA["Site Manager"];
+    const sectorDesc = SECTOR_SPECS[sector] || "SEQ construction market — strong demand across all sectors. Focus on candidate's specific experience type and fit.";
+    const seniorityTip = seniority ? SENIORITY_TIPS[seniority] : "Assess based on years of experience and breadth of project exposure.";
+    
+    // Render technical questions
+    document.getElementById('techQuestions').innerHTML = renderQuestions(roleInfo.tech);
+    
+    // Render behavioural questions
+    document.getElementById('behavQuestions').innerHTML = renderQuestions(roleInfo.behav);
+    
+    // Role spec summary
+    document.getElementById('salaryDisplay').textContent = salaryBand || 'Salary band: market rate (see job spec)';
+    
+    const badges = [];
+    if (roleType) badges.push(`<span class="tag tag-gold">${roleType}</span>`);
+    if (sector) badges.push(`<span class="tag tag-blue">${sector}</span>`);
+    if (seniority) badges.push(`<span class="tag tag-green">${seniority}</span>`);
+    document.getElementById('roleBadges').innerHTML = badges.join(' ');
+    
+    document.getElementById('roleSpec').innerHTML = `<p>${sectorDesc}</p><p style="margin-top:10px;"><strong>Interview focus for ${seniority || 'this level'}:</strong> ${seniorityTip}</p>`;
+    
+    // Pitch
+    document.getElementById('pitchLines').innerHTML = generatePitch(roleType, sector, seniority, candidateName, salaryBand);
+    
+    // Red flags - show 5 random
+    const shuffled = [...RED_FLAGS].sort(() => Math.random() - 0.5).slice(0, 5);
+    document.getElementById('redFlags').innerHTML = shuffled.map(flag => 
+        `<div class="question-block" style="margin-bottom:8px;">
+            <div class="q" style="font-size:13px;">🚩 ${flag}</div>
+        </div>`
+    ).join('');
+    
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('output').classList.add('show');
+    
+    // Scroll to output
+    document.getElementById('output').scrollIntoView({behavior: 'smooth'});
+}
+
+// Init
+updateDayCounter();
+loadStats();
+</script>
+</body>
+</html>

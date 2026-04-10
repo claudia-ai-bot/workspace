@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Project Intelligence - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+/* Dark theme */
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+.card { background: #161b22; border-color: #30363d; }
+.table-card { background: #161b22; border-color: #30363d; }
+th { background: #1f2937; color: #e6edf3; }
+td { border-color: #30363d; color: #e6edf3; }
+tr:hover { background: #1f2937; }
+input, textarea, select { background: #0d1117; border-color: #30363d; color: #e6edf3; }
+label { color: #8b949e; }
+.btn { background: #238636; border: none; color: white; }
+.btn:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+h1, h2, h3, a { color: #00d4ff; }
+
+/* Intel cards */
+.intel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 16px; margin-top: 20px; }
+.intel-card { 
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; 
+  transition: all 0.2s; 
+}
+.intel-card:hover { border-color: #00d4ff; transform: translateY(-2px); }
+.intel-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.intel-project { font-size: 18px; font-weight: 600; color: #e6edf3; }
+.intel-company { font-size: 14px; color: #8b949e; margin-top: 4px; }
+.intel-type { 
+  display: inline-block; padding: 4px 10px; background: rgba(0,212,255,0.15); 
+  color: #00d4ff; border-radius: 4px; font-size: 12px; font-weight: 600; 
+}
+.intel-summary { font-size: 14px; color: #8b949e; margin: 12px 0; line-height: 1.5; }
+.intel-meta { display: flex; gap: 16px; font-size: 12px; color: #6e7681; margin-top: 12px; }
+.intel-meta span { display: flex; align-items: center; gap: 4px; }
+.match-count { 
+  background: #238636; color: white; padding: 4px 10px; border-radius: 20px; 
+  font-size: 12px; font-weight: 600; 
+}
+.match-count.zero { background: #30363d; color: #8b949e; }
+
+/* Filter bar */
+.filter-bar { 
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%); 
+  padding: 16px; border-radius: 8px; margin-bottom: 20px; 
+}
+.filter-bar select, .filter-bar input { 
+  padding: 8px 12px; border: 1px solid #30363d; border-radius: 4px; 
+  background: #0d1117; color: #e6edf3; 
+}
+
+/* No intel state */
+.no-intel { 
+  text-align: center; padding: 40px; background: #161b22; border: 1px dashed #30363d; 
+  border-radius: 8px; margin-top: 20px; 
+}
+.no-intel p { color: #8b949e; margin-bottom: 12px; }
+</style>
+
+<div class="header">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1>🎯 Project Intelligence</h1>
+      <p style="color: #8b949e; margin-top: 8px;">Understand what makes each project tick — and who thrives there</p>
+    </div>
+    <a href="/projects" class="btn btn-secondary">+ Add New Project</a>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <span style="color: #00d4ff; font-weight: 600;">Filter:</span>
+    <select id="filterType" onchange="applyFilters()" style="width: 150px;">
+      <option value="">All Types</option>
+      <option value="Residential">Residential</option>
+      <option value="Commercial">Commercial</option>
+      <option value="Civil">Civil</option>
+      <option value="Industrial">Industrial</option>
+    </select>
+    <select id="filterPace" onchange="applyFilters()" style="width: 150px;">
+      <option value="">All Paces</option>
+      <option value="Fast-paced">Fast-paced</option>
+      <option value="Steady">Steady</option>
+      <option value="Relaxed">Relaxed</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="Search projects..." onkeyup="applyFilters()" style="width: 200px;">
+  </div>
+</div>
+
+<!-- Project Intel Grid -->
+<div class="intel-grid" id="intelGrid">
+  {% for project in projects %}
+  <div class="intel-card" data-type="{{ project.project_type or '' }}" data-pace="{{ project.pace or '' }}" data-name="{{ project.name or '' }}">
+    <div class="intel-card-header">
+      <div>
+        <div class="intel-project">{{ project.name }}</div>
+        <div class="intel-company">{{ project.company_name or 'Unknown company' }}</div>
+      </div>
+      {% if project.project_type %}
+      <span class="intel-type">{{ project.project_type }}</span>
+      {% endif %}
+    </div>
+    
+    {% if project.what_makes_interesting %}
+    <div class="intel-summary">{{ project.what_makes_interesting[:120] }}{% if project.what_makes_interesting|length > 120 %}...{% endif %}</div>
+    {% else %}
+    <div class="intel-summary" style="color: #6e7681;">No intelligence added yet</div>
+    {% endif %}
+    
+    <div class="intel-meta">
+      {% if project.pace %}<span>⚡ {{ project.pace }}</span>{% endif %}
+      {% if project.ideal_profile %}<span>👤 Profile added</span>{% endif %}
+      <span class="{% if project.intel_id %}match-count{% else %}match-count zero{% endif %}">
+        {% set match_count = namespace(count=0) %}
+        {% for c in candidates %}
+          {% if project.project_type and c.specialism and project.project_type|lower in c.specialism|lower %}
+            {% set match_count.count = match_count.count + 1 %}
+          {% endif %}
+        {% endfor %}
+        {{ match_count.count }} candidates
+      </span>
+    </div>
+    
+    <div style="margin-top: 16px; display: flex; gap: 8px;">
+      {% if project.intel_id %}
+      <a href="/project-intelligence/{{ project.id }}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">View →</a>
+      <a href="/project-intelligence/{{ project.id }}/edit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">Edit Intel</a>
+      {% else %}
+      <a href="/project-intelligence/{{ project.id }}/edit" class="btn" style="padding: 6px 12px; font-size: 13px; background: #00d4ff; color: #0d1117;">Add Intel +</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+function applyFilters() {
+  const type = document.getElementById('filterType').value.toLowerCase();
+  const pace = document.getElementById('filterPace').value.toLowerCase();
+  const search = document.getElementById('filterSearch').value.toLowerCase();
+  
+  const cards = document.querySelectorAll('.intel-card');
+  cards.forEach(card => {
+    const cardType = card.dataset.type.toLowerCase();
+    const cardPace = card.dataset.pace.toLowerCase();
+    const cardName = card.dataset.name.toLowerCase();
+    
+    const show = (!type || cardType.includes(type)) && 
+                 (!pace || cardPace.includes(pace)) &&
+                 (!search || cardName.includes(search));
+    card.style.display = show ? '' : 'none';
+  });
+}
+</script>
+
+{% endblock %}

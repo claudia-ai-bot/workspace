@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📊 My Dashboard</h1>
+  <p>{{ today }}</p>
+</div>
+
+<!-- Weekly Targets -->
+<div class="cards">
+  <div class="card">
+    <h3>📇 New Contacts</h3>
+    <div class="value">{{ contacts_count }}<span style="font-size: 18px; color: #64748b;">/20</span></div>
+    <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 20/week</p>
+    <div style="background: #e8ebe9; height: 8px; border-radius: 4px; margin-top: 10px;">
+      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {% if (contacts_count / 20 * 100)|round > 100 %}100%{% else %}{{ (contacts_count / 20 * 100)|round }}%{% endif %};"></div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h3>💬 Conversations</h3>
+    <div class="value">{{ conversations_count }}<span style="font-size: 18px; color: #64748b;">/15</span></div>
+    <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 15/week</p>
+    <div style="background: #e8ebe9; height: 8px; border-radius: 4px; margin-top: 10px;">
+      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {% if (conversations_count / 15 * 100)|round > 100 %}100%{% else %}{{ (conversations_count / 15 * 100)|round }}%{% endif %};"></div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h3>👥 Candidates</h3>
+    <div class="value">{{ candidates_count }}<span style="font-size: 18px; color: #64748b;">/5</span></div>
+    <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 5/week</p>
+    <div style="background: #e8ebe9; height: 8px; border-radius: 4px; margin-top: 10px;">
+      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {% if (candidates_count / 5 * 100)|round > 100 %}100%{% else %}{{ (candidates_count / 5 * 100)|round }}%{% endif %};"></div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h3>💼 Client Opps</h3>
+    <div class="value">{{ deals  }}<span style="font-size: 18px; color: #64748b;">/3</span></div>
+    <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 3/week</p>
+    <div style="background: #e8ebe9; height: 8px; border-radius: 4px; margin-top: 10px;">
+      <div style="background: var(--primary); height: 100%; border-radius: 4px; width: {% if (deals / 3 * 100)|round > 100 %}100%{% else %}{{ (deals / 3 * 100)|round }}%{% endif %};"></div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h3>🎯 Placements</h3>
+    <div class="value">{{ placements_count }}<span style="font-size: 18px; color: #64748b;">/1</span></div>
+    <p style="margin-top: 8px; font-size: 13px; color: #64748b;">Target: 1/3-4 weeks</p>
+  </div>
+</div>
+
+<!-- Activity Breakdown This Week -->
+<div class="cards" style="margin-top: 20px;">
+  <div class="card" style="background: #f0fdf4;">
+    <h3>📞 Calls</h3>
+    <div class="value" style="color: #16a34a;">{{ calls_count }}</div>
+  </div>
+  <div class="card" style="background: #eef2ff;">
+    <h3>🤝 Meetings</h3>
+    <div class="value" style="color: #4f46e5;">{{ meetings_count }}</div>
+  </div>
+  <div class="card" style="background: #fffbeb;">
+    <h3>🏢 Visits</h3>
+    <div class="value" style="color: #d97706;">{{ visits_count }}</div>
+  </div>
+  <div class="card" style="background: #faf5ff;">
+    <h3>📤 CVs Sent</h3>
+    <div class="value" style="color: #9333ea;">{{ cvs_sent_count }}</div>
+  </div>
+  <div class="card" style="background: #f0fdf4;">
+    <h3>🎈 Float CVs</h3>
+    <div class="value" style="color: #16a34a;">{{ cvs_float_count }}</div>
+  </div>
+</div>
+
+<!-- Complete Week Button -->
+<div style="margin: 20px 0; text-align: center;">
+  <button class="btn" onclick="showCompleteWeekModal()" style="font-size: 16px; padding: 12px 32px;">
+    ✅ Complete This Week
+  </button>
+</div>
+
+<!-- Complete Week Modal -->
+<div id="completeWeekModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:28px; border-radius:12px; width:480px;">
+    <h2 style="margin-bottom:16px;">✅ Complete Week</h2>
+    <p style="color:#666; margin-bottom:20px;">Saving this week's stats to Weekly Reviews</p>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+      <div><strong>Contacts:</strong> {{ contacts_count }}</div>
+      <div><strong>Conversations:</strong> {{ conversations_count }}</div>
+      <div><strong>Candidates:</strong> {{ candidates_count }}</div>
+      <div><strong>Deals:</strong> {{ deals }}</div>
+    </div>
+    
+    <div style="margin-bottom:16px;">
+      <label style="display:block; font-weight:500; margin-bottom:6px;">🎉 Wins</label>
+      <textarea id="weekWins" rows="2" placeholder="What went well?" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="display:block; font-weight:500; margin-bottom:6px;">📉 Losses / Lessons</label>
+      <textarea id="weekLosses" rows="2" placeholder="What didn't go well?" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+    </div>
+    
+    <div style="display:flex; gap:10px;">
+      <button onclick="submitCompleteWeek()" class="btn">Save Week</button>
+      <button onclick="document.getElementById('completeWeekModal').style.display='none'" class="btn" style="background:#999;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showCompleteWeekModal() {
+  document.getElementById('completeWeekModal').style.display = 'flex';
+}
+
+async function submitCompleteWeek() {
+  const data = {
+    contacts_added: {{ contacts_count }},
+    conversations: {{ conversations_count }},
+    candidates: {{ candidates_count }},
+    deals: {{ deals }},
+    wins: document.getElementById('weekWins').value,
+    losses: document.getElementById('weekLosses').value
+  };
+  
+  const res = await fetch('/api/complete-week', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  
+  if (res.ok) {
+    const data = await res.json();
+    alert('Week saved! Moving to next week...');
+    document.getElementById('completeWeekModal').style.display='none';
+    // Redirect to show next week
+    window.location.href = '/?week=' + data.next_week;
+  } else {
+    alert('Error saving week');
+  }
+}
+</script>
+
+<!-- Rules Banner -->
+<div style="background: linear-gradient(135deg, #5C6249, #848C67); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px;">
+  <p style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">RULES TO OPERATE BY</p>
+  <div style="display: flex; flex-wrap: wrap; gap: 16px; font-weight: 500;">
+    <span>🎯 Control talent → Control market</span>
+    <span>🧠 Intel beats activity</span>
+    <span>⚡ Consistency beats intensity</span>
+    <span>🤝 Relationships compound</span>
+    <span>📈 System = leverage</span>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  
+  <!-- Daily Checklist -->
+  <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border);">
+    <h2 style="font-size: 18px; margin-bottom: 16px;">✅ Daily Operating Checklist</h2>
+    
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8faf9'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" style="width: 20px; height: 20px; margin: 0;"> 
+        <span>Review pipeline</span>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8faf9'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" style="width: 20px; height: 20px; margin: 0;"> 
+        <span>Add 5 new target companies</span>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8faf9'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" style="width: 20px; height: 20px; margin: 0;"> 
+        <span>Add 5 new candidates</span>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8faf9'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" style="width: 20px; height: 20px; margin: 0;"> 
+        <span>Speak to 5 decision makers</span>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8faf9'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" style="width: 20px; height: 20px; margin: 0;"> 
+        <span>Speak to 5 top candidates</span>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8faf9'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" style="width: 20px; height: 20px; margin: 0;"> 
+        <span>Send 3 value messages</span>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8faf9'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" style="width: 20px; height: 20px; margin: 0;"> 
+        <span>Log all intel</span>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f8faf9'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" style="width: 20px; height: 20px; margin: 0;"> 
+        <span>Set tomorrow priorities</span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- Weekly Review -->
+  <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border);">
+    <h2 style="font-size: 18px; margin-bottom: 16px;">📋 Weekly Review Template</h2>
+    
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <label style="font-weight: 500; margin-bottom: 4px; display: block;">🏆 Wins</label>
+        <textarea rows="2" placeholder="What went well this week?"></textarea>
+      </div>
+      
+      <div>
+        <label style="font-weight: 500; margin-bottom: 4px; display: block;">📉 Losses</label>
+        <textarea rows="2" placeholder="What didn't work?"></textarea>
+      </div>
+      
+      <div>
+        <label style="font-weight: 500; margin-bottom: 4px; display: block;">🧠 New Intel</label>
+        <textarea rows="2" placeholder="Market intelligence gathered..."></textarea>
+      </div>
+      
+      <div>
+        <label style="font-weight: 500; margin-bottom: 4px; display: block;">🤝 New Relationships</label>
+        <textarea rows="2" placeholder="New contacts made..."></textarea>
+      </div>
+      
+      <div>
+        <label style="font-weight: 500; margin-bottom: 4; display: block;">💼 Deals Progressed</label>
+        <textarea rows="2" placeholder="Pipeline movement..."></textarea>
+      </div>
+      
+      <div>
+        <label style="font-weight: 500; margin-bottom: 4px; display: block;">🚧 Blockers</label>
+        <textarea rows="2" placeholder="What's stopping you?"></textarea>
+      </div>
+      
+      <div>
+        <label style="font-weight: 500; margin-bottom: 4px; display: block;">🎯 Strategy Shift</label>
+        <textarea rows="2" placeholder="Any pivot needed?"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quote -->
+<div style="text-align: center; padding: 30px; color: #64748b; font-size: 14px; font-style: italic;">
+  💡 You are not building a desk. You are building a market asset.
+</div>
+
+{% endblock %}

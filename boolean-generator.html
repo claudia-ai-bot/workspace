@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boolean Builder — Construction Recruitment</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --accent: #f78166;
+            --accent2: #7ee787;
+            --text: #e6edf3;
+            --muted: #7d8590;
+            --purple: #d2a8ff;
+            --blue: #79c0ff;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.3rem;
+        }
+        
+        header p {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        .controls {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .control-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+        
+        label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        select:focus, input:focus {
+            border-color: var(--accent);
+        }
+        
+        button.generate {
+            padding: 0.6rem 1.4rem;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+        
+        button.generate:hover { opacity: 0.85; }
+        
+        .role-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .role-tag {
+            padding: 0.3rem 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+        
+        .role-tag:hover, .role-tag.active {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .role-tag.active {
+            background: rgba(247, 129, 102, 0.1);
+        }
+        
+        .results {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .result-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .result-card.full { grid-column: 1 / -1; }
+        
+        .card-header {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-header h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .card-header .platform {
+            font-size: 0.7rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .copy-btn {
+            padding: 0.25rem 0.7rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            border-color: var(--accent2);
+            color: var(--accent2);
+        }
+        
+        .copy-btn.copied {
+            border-color: var(--accent2);
+            color: var(--accent2);
+        }
+        
+        pre {
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            line-height: 1.6;
+            color: var(--accent2);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .tips {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .tips h3 {
+            font-size: 0.85rem;
+            color: var(--purple);
+            margin-bottom: 0.8rem;
+        }
+        
+        .tips ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem;
+        }
+        
+        .tips li {
+            font-size: 0.8rem;
+            color: var(--muted);
+            padding-left: 1rem;
+            position: relative;
+        }
+        
+        .tips li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--purple);
+        }
+        
+        .preset-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .preset-btn {
+            padding: 0.3rem 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .preset-btn:hover { border-color: var(--blue); color: var(--blue); }
+        
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            flex: 1;
+        }
+        
+        .stat .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .stat .label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+        }
+
+        @media (max-width: 700px) {
+            .control-row { grid-template-columns: 1fr; }
+            .results { grid-template-columns: 1fr; }
+            .tips ul { grid-template-columns: 1fr; }
+            .stats { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<header>
+    <h1>🔍 Boolean Builder</h1>
+    <p>Construction recruitment sourcing strings for LinkedIn + Seek</p>
+</header>
+
+<div class="stats">
+    <div class="stat">
+        <div class="value">10</div>
+        <div class="label">Role types covered</div>
+    </div>
+    <div class="stat">
+        <div class="value">SEQ + Brisbane</div>
+        <div class="label">Location focus</div>
+    </div>
+    <div class="stat">
+        <div class="value">🔗 Copy + Paste</div>
+        <div class="label">Direct to LinkedIn Recruiter</div>
+    </div>
+</div>
+
+<div class="controls">
+    <div class="control-row">
+        <div>
+            <label>Role Type</label>
+            <select id="roleType">
+                <option value="site_manager">Site Manager</option>
+                <option value="project_manager">Project Manager</option>
+                <option value="construction_manager">Construction Manager</option>
+                <option value="contract_admin">Contract Administrator</option>
+                <option value="estimator">Estimator</option>
+                <option value="foreman">Foreman / Supervisor</option>
+                <option value="project_engineer">Project Engineer</option>
+                <option value="quantity_surveyor">Quantity Surveyor</option>
+                <option value="building_surveyor">Building Surveyor</option>
+                <option value="site_engineer">Site Engineer</option>
+            </select>
+        </div>
+        <div>
+            <label>Location</label>
+            <select id="location">
+                <option value="Gold Coast">Gold Coast</option>
+                <option value="Brisbane">Brisbane</option>
+                <option value="SEQ">SEQ (Gold Coast + Brisbane)</option>
+                <option value="Sunshine Coast">Sunshine Coast</option>
+                <option value="Ipswich">Ipswich</option>
+                <option value="Logan">Logan</option>
+                <option value="Redlands">Redlands</option>
+                <option value="Moreton Bay">Moreton Bay</option>
+                <option value="Northern NSW">Northern NSW</option>
+                <option value="Tweed">Tweed / Northern Rivers</option>
+            </select>
+        </div>
+        <div>
+            <label>Sector Focus</label>
+            <select id="sector">
+                <option value="all">All Sectors</option>
+                <option value="commercial">Commercial</option>
+                <option value="residential">Residential</option>
+                <option value="infrastructure">Infrastructure</option>
+                <option value="industrial">Industrial</option>
+                <option value="fitout">Fitout / Refurb</option>
+            </select>
+        </div>
+        <button class="generate" onclick="generate()">Generate Strings</button>
+    </div>
+    
+    <div class="role-tags">
+        <span class="role-tag active" onclick="selectRole('site_manager', this)">Site Manager</span>
+        <span class="role-tag" onclick="selectRole('project_manager', this)">Project Manager</span>
+        <span class="role-tag" onclick="selectRole('construction_manager', this)">Construction Manager</span>
+        <span class="role-tag" onclick="selectRole('contract_admin', this)">Contract Admin</span>
+        <span class="role-tag" onclick="selectRole('estimator', this)">Estimator</span>
+        <span class="role-tag" onclick="selectRole('foreman', this)">Foreman</span>
+        <span class="role-tag" onclick="selectRole('project_engineer', this)">Project Engineer</span>
+        <span class="role-tag" onclick="selectRole('quantity_surveyor', this)">QS</span>
+        <span class="role-tag" onclick="selectRole('building_surveyor', this)">Building Surveyor</span>
+        <span class="role-tag" onclick="selectRole('site_engineer', this)">Site Engineer</span>
+    </div>
+</div>
+
+<div class="results" id="results">
+    <div class="result-card full">
+        <div class="card-header">
+            <div>
+                <h3 id="resultTitle">LinkedIn Recruiter Search String</h3>
+                <span class="platform">LinkedIn Recruiter</span>
+            </div>
+            <button class="copy-btn" id="copyLinkedIn" onclick="copyString('linkedin', this)">Copy</button>
+        </div>
+        <pre id="linkedinString">← Select a role above to generate your Boolean string</pre>
+    </div>
+    
+    <div class="result-card">
+        <div class="card-header">
+            <div>
+                <h3>Seek / Jora Search</h3>
+                <span class="platform">Seek.com.au</span>
+            </div>
+            <button class="copy-btn" id="copySeek" onclick="copyString('seek', this)">Copy</button>
+        </div>
+        <pre id="seekString">← Select a role above</pre>
+    </div>
+    
+    <div class="result-card">
+        <div class="card-header">
+            <div>
+                <h3>GitHub / CV Search</h3>
+                <span class="platform">Boolean variant</span>
+            </div>
+            <button class="copy-btn" id="copyGithub" onclick="copyString('github', this)">Copy</button>
+        </div>
+        <pre id="githubString">← Select a role above</pre>
+    </div>
+</div>
+
+<div class="tips">
+    <h3>💡 Pro Sourcing Tips</h3>
+    <ul>
+        <li>Use ( ) around OR groups — "Site Manager OR Supervisor"</li>
+        <li>Filter by "Past 30 days" posts on LinkedIn for fresh candidates</li>
+        <li>Combine 2-3 Boolean strings per search session</li>
+        <li>Add "NOT Recruiter" to filter out agency competitors</li>
+        <li>Use location: Australia + "QLD" in LinkedIn Recruiter</li>
+        <li>Save your best strings in a personal library</li>
+        <li>Cross-reference Seek alerts with LinkedIn outreach</li>
+        <li>Target 50-100 cold calls per week minimum</li>
+        <li>Look for candidates who moved jobs in last 6 months</li>
+        <li>"Currently hiring" posts = warm timing signal</li>
+    </ul>
+</div>
+
+</div>
+
+<script>
+const BOOLEAN_DATA = {
+    site_manager: {
+        title: "Site Manager",
+        keywords: ["Site Manager", "Construction Site Manager", "Building Site Manager", "Senior Site Manager", "Site Supervisor"],
+        exclude: ["Recruiter", "HR Manager", "Recruitment", "IT", "Software", "Nursery", "Farm"],
+        relatedTitles: ["Works Supervisor", "Construction Supervisor", "Site Coordinator", "Site Foreman"],
+        linkedinTitle: '"Site Manager" OR "Construction Site Manager" OR "Building Site Manager" OR "Senior Site Manager" OR "Site Supervisor" OR "Works Supervisor"'
+    },
+    project_manager: {
+        title: "Project Manager (Construction)",
+        keywords: ["Project Manager", "Construction Project Manager", "Senior Project Manager", "Works Project Manager", "Development Manager"],
+        exclude: ["IT Project Manager", "Software PM", "Recruiter", "HR", "Marketing PM", "Digital PM"],
+        relatedTitles: ["Senior PM", "Construction Manager", "Delivery Manager", "Client Side PM"],
+        linkedinTitle: '"Project Manager" AND ("Construction" OR "Builder" OR "Building" OR "Civil" OR "QLD" OR "Gold Coast" OR "Brisbane") -"IT" -"Software" -"Marketing" -"Digital"'
+    },
+    construction_manager: {
+        title: "Construction Manager",
+        keywords: ["Construction Manager", "Building Manager", "Senior Construction Manager", "Construction Director", "Operations Manager Construction"],
+        exclude: ["Recruiter", "IT Manager", "HR Manager", "Finance Manager"],
+        relatedTitles: ["General Manager", "Operations Manager", "Building Operations"],
+        linkedinTitle: '"Construction Manager" OR "Building Manager" OR "Senior Construction Manager" OR "Construction Director" OR "Building Operations Manager"'
+    },
+    contract_admin: {
+        title: "Contract Administrator",
+        keywords: ["Contract Administrator", "Contracts Administrator", "Construction Contracts", "Senior Contract Administrator", "Contract Manager"],
+        exclude: ["IT Contract", "Procurement", "Legal", "Sales Contract"],
+        relatedTitles: ["Contracts Coordinator", "Commercial Administrator", "Construction Contracts"],
+        linkedinTitle: '"Contract Administrator" OR "Contracts Administrator" OR "Construction Contracts" OR "Senior Contract Administrator" -"IT" -"Sales" -"Procurement"'
+    },
+    estimator: {
+        title: "Estimator",
+        keywords: ["Estimator", "Construction Estimator", "Building Estimator", "Senior Estimator", "Tender Estimator", "Quantity Surveyor", "QS"],
+        exclude: ["Software Estimator", "IT Estimator", "Recruiter"],
+        relatedTitles: ["Tender Estimator", "Pre-Construction Manager", "Cost Planner"],
+        linkedinTitle: 'Estimator OR "Construction Estimator" OR "Building Estimator" OR "Senior Estimator" OR "Tender Estimator" OR "Quantity Surveyor" -"Software" -"IT" -"Recruiter"'
+    },
+    foreman: {
+        title: "Foreman / Supervisor",
+        keywords: ["Foreman", "Construction Foreman", "Site Foreman", "Supervisor", "Construction Supervisor", "Leading Hand", "Trades Supervisor"],
+        exclude: ["IT Supervisor", "HR Supervisor", "Recruiter", "Shift Supervisor", "Production Supervisor"],
+        relatedTitles: ["Team Leader", "Trades Supervisor", "Section Foreman"],
+        linkedinTitle: 'Foreman OR "Construction Foreman" OR "Site Foreman" OR "Supervisor" OR "Construction Supervisor" OR "Leading Hand" OR "Trades Supervisor" -"IT" -"Shift" -"Production" -"Recruiter"'
+    },
+    project_engineer: {
+        title: "Project Engineer",
+        keywords: ["Project Engineer", "Construction Engineer", "Site Engineer", "Civil Engineer", "Building Engineer", "Graduate Engineer"],
+        exclude: ["Software Engineer", "IT Engineer", "Mechanical Engineer", "Electrical Engineer"],
+        relatedTitles: ["Site Engineer", "Civil Project Engineer", "Construction Engineer"],
+        linkedinTitle: '"Project Engineer" AND ("Construction" OR "Civil" OR "Building" OR "QLD" OR "Gold Coast" OR "Brisbane") -"Software" -"IT" -"Mechanical" -"Electrical"'
+    },
+    quantity_surveyor: {
+        title: "Quantity Surveyor",
+        keywords: ["Quantity Surveyor", "QS", "Senior Quantity Surveyor", "Construction Cost Consultant", "Cost Manager", "Cost Planner"],
+        exclude: ["Software", "IT", "Recruiter"],
+        relatedTitles: ["Cost Consultant", "Cost Manager", "Commercial Manager", "Construction Economist"],
+        linkedinTitle: '"Quantity Surveyor" OR QS OR "Senior Quantity Surveyor" OR "Construction Cost Consultant" OR "Cost Manager" OR "Cost Planner" -"Software" -"IT" -"Recruiter"'
+    },
+    building_surveyor: {
+        title: "Building Surveyor",
+        keywords: ["Building Surveyor", "Registered Building Surveyor", "Certifier", "Building Certifier", "Compliance Manager", "Building Compliance"],
+        exclude: ["Software", "IT", "Tax Surveyor", "Land Surveyor"],
+        relatedTitles: ["Building Certifier", "Compliance Manager", "Facilities Surveyor"],
+        linkedinTitle: '"Building Surveyor" OR "Registered Building Surveyor" OR "Building Certifier" OR "Certifier" OR "Building Compliance" -"Software" -"IT" -"Tax" -"Land"'
+    },
+    site_engineer: {
+        title: "Site Engineer",
+        keywords: ["Site Engineer", "Construction Site Engineer", "Civil Site Engineer", "Building Site Engineer", "Graduate Site Engineer"],
+        exclude: ["Software Engineer", "IT Engineer", "Mechanical Engineer", "Electrical Engineer"],
+        relatedTitles: ["Site Engineer", "Civil Engineer", "Structural Engineer"],
+        linkedinTitle: '"Site Engineer" OR "Construction Site Engineer" OR "Civil Site Engineer" OR "Building Site Engineer" OR "Graduate Engineer" -"Software" -"IT" -"Mechanical" -"Electrical"'
+    }
+};
+
+const LOCATIONS = {
+    "Gold Coast": '(Gold Coast OR "Gold Coast" OR GC2021 OR QLD) -Brisbane -Sydney -Melbourne',
+    "Brisbane": '(Brisbane OR "Brisbane QLD" OR "Brisbane CBD" OR QLD) -"Gold Coast" -Sydney -Melbourne',
+    "SEQ": '(Gold Coast OR Brisbane OR "Gold Coast QLD" OR "Brisbane QLD" OR Logan OR Ipswich OR "Sunshine Coast" OR QLD)',
+    "Sunshine Coast": '("Sunshine Coast" OR "Noosa Heads" OR "Maroochydore" OR QLD 4551 OR QLD 4552)',
+    "Ipswich": '(Ipswich OR "Ipswich QLD" OR QLD 4301 OR QLD 4305)',
+    "Logan": '(Logan OR "Logan QLD" OR "Logan City" OR QLD 4114 OR QLD 4120)',
+    "Redlands": '("Redland Bay" OR "Cleveland" OR "Redlands QLD" OR QLD 4163)',
+    "Moreton Bay": '("Moreton Bay" OR "North Lakes" OR "Caboolture" OR "Bribie Island" OR QLD 4500)',
+    "Northern NSW": '("Northern NSW" OR "Northern Rivers" OR Tweed OR Byron OR Lismore OR "Ballina NSW" OR NSW 2470 OR NSW 2480)',
+    "Tweed": '(Tweed OR "Tweed Heads" OR "Coolangatta" OR "Kingscliff" OR NSW 2485 OR NSW 2486)'
+};
+
+const SECTORS = {
+    all: '',
+    commercial: 'AND ("Commercial" OR "Commercial Construction" OR "Commercial Builder" OR "Office" OR "Retail" OR "Shopping Centre")',
+    residential: 'AND ("Residential" OR "Housing" OR "Apartment" OR "Townhouse" OR "Unit" OR "Multi-Residential" OR "Luxury Home")',
+    infrastructure: 'AND ("Infrastructure" OR "Civil" OR "Road" OR "Rail" OR "Bridge" OR "Tunnel" OR "Utilities" OR "Water" OR "Transport")',
+    industrial: 'AND ("Industrial" OR "Warehouse" OR "Factory" OR "Manufacturing" OR "Logistics" OR "Distribution Centre")',
+    fitout: 'AND ("Fitout" OR "Refurbishment" OR "Refurb" OR "Interior" OR "Tenant" OR "Office Fitout" OR "Strip Out")'
+};
+
+let currentStrings = { linkedin: '', seek: '', github: '' };
+
+function selectRole(role, el) {
+    document.getElementById('roleType').value = role;
+    document.querySelectorAll('.role-tag').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    generate();
+}
+
+function generate() {
+    const role = document.getElementById('roleType').value;
+    const location = document.getElementById('location').value;
+    const sector = document.getElementById('sector').value;
+    
+    const data = BOOLEAN_DATA[role];
+    const locStr = LOCATIONS[location];
+    const secStr = SECTORS[sector];
+    
+    // LinkedIn string
+    const titleBlock = data.linkedinTitle;
+    const linkedinString = `${titleBlock} ${locStr} ${secStr}`.trim();
+    
+    // Seek string
+    const seekTitle = data.title;
+    const seekKeywords = data.keywords.join(' OR ');
+    const seekExclude = data.exclude.map(e => `-${e}`).join(' ');
+    const seekString = `(${seekKeywords}) AND (${location}) ${seekExclude}`;
+    
+    // GitHub variant
+    const githubString = `${seekKeywords} ${location} construction OR builder OR estimator OR site`;
+    
+    currentStrings = { linkedin: linkedinString, seek: seekString, github: githubString };
+    
+    document.getElementById('linkedinString').textContent = linkedinString;
+    document.getElementById('seekString').textContent = seekString;
+    document.getElementById('githubString').textContent = githubString;
+    document.getElementById('resultTitle').textContent = data.title + ' — LinkedIn Recruiter';
+    
+    // Reset copy buttons
+    document.querySelectorAll('.copy-btn').forEach(b => {
+        b.textContent = 'Copy';
+        b.classList.remove('copied');
+    });
+}
+
+function copyString(type, btn) {
+    const str = currentStrings[type];
+    if (!str || str.includes('Select a role')) return;
+    
+    navigator.clipboard.writeText(str).then(() => {
+        btn.textContent = '✓ Copied';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+// Auto-generate on load
+generate();
+</script>
+</body>
+</html>

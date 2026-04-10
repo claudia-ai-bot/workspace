@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}{% if candidate %}Edit{% else %}Add{% endif %} Candidate - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+/* Dark theme override */
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+.form-section { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+.form-section h3 { color: #00d4ff; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #30363d; }
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.form-group { margin-bottom: 16px; }
+.form-group.full { grid-column: 1 / -1; }
+label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #8b949e; }
+input, textarea, select { 
+  width: 100%; padding: 10px 14px; border: 1px solid #30363d; border-radius: 6px; 
+  font-family: inherit; font-size: 14px; background: #0d1117; color: #e6edf3; 
+}
+input:focus, textarea:focus, select:focus { outline: none; border-color: #00d4ff; box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.btn-primary { background: #238636; color: white; }
+.btn-primary:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+.btn-accent { background: #00d4ff; color: #0d1117; }
+.form-actions { display: flex; gap: 12px; margin-top: 20px; }
+h1 { color: #00d4ff; }
+a { color: #00d4ff; }
+
+/* Work history */
+.work-history-item { 
+  background: #1f2937; border: 1px solid #30363d; border-radius: 6px; padding: 16px; 
+  margin-bottom: 12px; position: relative; 
+}
+.work-history-item h4 { color: #8b949e; font-size: 12px; margin-bottom: 12px; }
+.remove-work { 
+  position: absolute; top: 12px; right: 12px; background: #30363d; border: none; 
+  color: #e74c3c; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 12px; 
+}
+.add-work-btn { background: #30363d; border: 1px dashed #30363d; padding: 16px; text-align: center; border-radius: 6px; cursor: pointer; color: #8b949e; }
+.add-work-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+
+@media (max-width: 700px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="header">
+  <h1>{% if candidate %}✏️ Edit{% else %}➕ Add{% endif %} Candidate</h1>
+  <div style="margin-top: 8px;">
+    <a href="/candidates" class="btn btn-secondary">← Back to Candidates</a>
+  </div>
+</div>
+
+<form method="POST" id="candidateForm">
+  
+  <!-- Basic Info -->
+  <div class="form-section">
+    <h3>📋 Basic Information</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" name="name" value="{{ candidate.name or '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Current Company</label>
+        <input type="text" name="current_company" value="{{ candidate.current_company or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Title / Role</label>
+        <input type="text" name="title" value="{{ candidate.title or '' }}" placeholder="e.g., Senior Project Manager">
+      </div>
+      <div class="form-group">
+        <label>Specialism</label>
+        <input type="text" name="specialism" value="{{ candidate.specialism or '' }}" placeholder="e.g., Commercial, Residential, Civil">
+      </div>
+      <div class="form-group">
+        <label>Years Experience</label>
+        <input type="number" name="years_experience" value="{{ candidate.years_experience or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Salary Band</label>
+        <input type="text" name="salary_band" value="{{ candidate.salary_band or '' }}" placeholder="e.g., $150-180k">
+      </div>
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" name="location" value="{{ candidate.location or '' }}" placeholder="Gold Coast, Brisbane, etc.">
+      </div>
+      <div class="form-group">
+        <label>Availability</label>
+        <select name="availability">
+          <option value="">Select...</option>
+          <option value="Immediately" {% if candidate.availability == 'Immediately' %}selected{% endif %}>Immediately</option>
+          <option value="2 Weeks" {% if candidate.availability == '2 Weeks' %}selected{% endif %}>2 Weeks</option>
+          <option value="4 Weeks" {% if candidate.availability == '4 Weeks' %}selected{% endif %}>4 Weeks</option>
+          <option value="8 Weeks" {% if candidate.availability == '8 Weeks' %}selected{% endif %}>8 Weeks</option>
+          <option value="Not Looking" {% if candidate.availability == 'Not Looking' %}selected{% endif %}>Not Looking (Warm Lead)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          <option value="Prospect" {% if candidate.status == 'Prospect' %}selected{% endif %}>Prospect</option>
+          <option value="Engaged" {% if candidate.status == 'Engaged' %}selected{% endif %}>Engaged</option>
+          <option value="Placed" {% if candidate.status == 'Placed' %}selected{% endif %}>Placed</option>
+          <option value="Alumni" {% if candidate.status == 'Alumni' %}selected{% endif %}>Alumni</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Info -->
+  <div class="form-section">
+    <h3>📞 Contact Information</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" value="{{ candidate.email or '' }}">
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="tel" name="phone" value="{{ candidate.phone or '' }}">
+      </div>
+      <div class="form-group full">
+        <label>LinkedIn Profile URL</label>
+        <input type="url" name="linkedin" value="{{ candidate.linkedin or '' }}" placeholder="https://linkedin.com/in/...">
+      </div>
+    </div>
+  </div>
+
+  <!-- Fit Tags -->
+  <div class="form-section">
+    <h3>🏷️ Fit Tags (comma-separated)</h3>
+    <div class="form-group">
+      <input type="text" name="tags" value="{{ candidate.tags or '' }}" placeholder="fast-paced, methodical, residential, civil, gold-coast-based, etc.">
+    </div>
+    <div style="font-size: 12px; color: #8b949e;">
+      Suggested: fast-paced, methodical, residential, commercial, civil, industrial, gold-coast-based, brisbane-based, team-leader, hands-on, big-project, small-project
+    </div>
+  </div>
+
+  <!-- Preferences -->
+  <div class="form-section">
+    <h3>💚 Preferences & Dealbreakers</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>What They Liked (past roles)</label>
+        <textarea name="preferences_loved" rows="3">{{ candidate.preferences_loved or '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>What They Hated (past roles)</label>
+        <textarea name="preferences_hated" rows="3">{{ candidate.preferences_hated or '' }}</textarea>
+      </div>
+      <div class="form-group full">
+        <label>Dealbreakers (hard no's)</label>
+        <textarea name="dealbreakers" rows="2">{{ candidate.dealbreakers or '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aspirations -->
+  <div class="form-section">
+    <h3>🎯 Aspirations</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Target Next Role</label>
+        <input type="text" name="aspirations_role" value="{{ candidate.aspirations_role or '' }}" placeholder="e.g., Senior PM, Construction Manager">
+      </div>
+      <div class="form-group">
+        <label>Target Salary</label>
+        <input type="text" name="aspirations_salary" value="{{ candidate.aspirations_salary or '' }}" placeholder="e.g., $180-220k">
+      </div>
+      <div class="form-group">
+        <label>Location Preference</label>
+        <input type="text" name="aspirations_location" value="{{ candidate.aspirations_location or '' }}" placeholder="Gold Coast, Brisbane,SEQ">
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Signals -->
+  <div class="form-section">
+    <h3>🔥 Current Signals (What's Making Them Tick RIGHT NOW)</h3>
+    <div class="form-group">
+      <input type="text" name="signals" value="{{ candidate.signals or '' }}" placeholder="salary, bored, growth, commute, culture, team-dynamic">
+    </div>
+    <div style="font-size: 12px; color: #8b949e;">
+      Common signals: salary (wants more money), bored (needs new challenge), growth (wants promotion), commute (too far), culture (toxic environment), team-dynamic (doesn't like boss), redundancy (was let go), visa (needs sponsorship)
+    </div>
+  </div>
+
+  <!-- Work History -->
+  <div class="form-section">
+    <h3>🏗️ Work History</h3>
+    <div id="workHistoryContainer">
+      {% if work_history %}
+        {% for wh in work_history %}
+        <div class="work-history-item">
+          <button type="button" class="remove-work" onclick="this.parentElement.remove()">✕ Remove</button>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Project Name</label>
+              <input type="text" name="project_name[]" value="{{ wh.project_name or '' }}">
+            </div>
+            <div class="form-group">
+              <label>Company</label>
+              <input type="text" name="project_company[]" value="{{ wh.company or '' }}">
+            </div>
+            <div class="form-group">
+              <label>Role</label>
+              <input type="text" name="project_role[]" value="{{ wh.role or '' }}">
+            </div>
+            <div class="form-group">
+              <label>Start Date</label>
+              <input type="month" name="project_start[]" value="{{ wh.start_date[:7] if wh.start_date else '' }}">
+            </div>
+            <div class="form-group">
+              <label>End Date</label>
+              <input type="month" name="project_end[]" value="{{ wh.end_date[:7] if wh.end_date else '' }}">
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="add-work-btn" onclick="addWorkHistory()">
+      + Add Work History Item
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="form-section">
+    <h3>📝 Notes</h3>
+    <div class="form-group">
+      <textarea name="notes" rows="4">{{ candidate.notes or '' }}</textarea>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">💾 {% if candidate %}Save Changes{% else %}Add Candidate{% endif %}</button>
+    <a href="{% if candidate %}/candidates/{{ candidate.id }}/deep{% else %}/candidates{% endif %}" class="btn btn-secondary">Cancel</a>
+  </div>
+
+</form>
+
+<script>
+let workCount = 0;
+function addWorkHistory() {
+  const container = document.getElementById('workHistoryContainer');
+  const div = document.createElement('div');
+  div.className = 'work-history-item';
+  div.innerHTML = `
+    <button type="button" class="remove-work" onclick="this.parentElement.remove()">✕ Remove</button>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" name="project_name[]">
+      </div>
+      <div class="form-group">
+        <label>Company</label>
+        <input type="text" name="project_company[]">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <input type="text" name="project_role[]">
+      </div>
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="month" name="project_start[]">
+      </div>
+      <div class="form-group">
+        <label>End Date</label>
+        <input type="month" name="project_end[]">
+      </div>
+    </div>
+  `;
+  container.appendChild(div);
+}
+</script>
+
+{% endblock %}

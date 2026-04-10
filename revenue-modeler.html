@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue Modeler — Lead Group Year 1</title>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+    --green: #4ade80; --amber: #fbbf24; --red: #f87171;
+    --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px; }
+  h1 { font-size: 1.8rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card h2 { font-size: 1rem; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .stat { font-size: 2.2rem; font-weight: 700; }
+  .stat.green { color: var(--green); }
+  .stat.amber { color: var(--amber); }
+  .stat.accent { color: var(--accent); }
+  .stat.purple { color: var(--purple); }
+  .stat-sub { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+  label { display: block; color: var(--muted); font-size: 0.85rem; margin-bottom: 4px; margin-top: 12px; }
+  label:first-child { margin-top: 0; }
+  input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+  .range-val { color: var(--accent); font-weight: 600; font-size: 1.1rem; float: right; }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; width: 100%; font-size: 0.9rem; }
+  .chart-wrap { position: relative; height: 220px; margin-top: 16px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 180px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.4s ease; min-height: 2px; position: relative; }
+  .bar.revenue { background: var(--accent); }
+  .bar.cost { background: var(--red); opacity: 0.5; }
+  .bar-label { font-size: 0.65rem; color: var(--muted); position: absolute; bottom: -22px; width: 100%; text-align: center; }
+  .bar-val { font-size: 0.6rem; color: var(--text); text-align: center; white-space: nowrap; }
+  .milestone { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .milestone .icon { font-size: 1.5rem; }
+  .milestone .info { flex: 1; }
+  .milestone .title { font-weight: 600; font-size: 0.9rem; }
+  .milestone .detail { color: var(--muted); font-size: 0.8rem; }
+  .milestone .status { font-size: 0.75rem; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .status.hit { background: rgba(74,222,128,0.15); color: var(--green); }
+  .status.stretch { background: rgba(251,191,36,0.15); color: var(--amber); }
+  .countdown { text-align: center; padding: 20px; }
+  .countdown .days { font-size: 4rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .countdown .label { color: var(--muted); font-size: 0.9rem; }
+  .scenario-btns { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .scenario-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+  .scenario-btn:hover, .scenario-btn.active { border-color: var(--accent); color: var(--accent); }
+  .tip { background: rgba(56,189,248,0.08); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 0.85rem; color: var(--muted); }
+  .tip strong { color: var(--accent); }
+  .section-title { font-size: 1.2rem; font-weight: 700; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>💰 Revenue Modeler</h1>
+<p class="subtitle">Lead Group — Year 1 Earnings Projection (Start: 4 May 2026)</p>
+
+<div class="grid">
+  <div class="card countdown">
+    <div class="days" id="countdown-days">--</div>
+    <div class="label">days until Day 1</div>
+  </div>
+  <div class="card">
+    <h2>Year 1 Gross Revenue</h2>
+    <div class="stat accent" id="yr1-revenue">$0</div>
+    <div class="stat-sub" id="yr1-placements">0 placements</div>
+  </div>
+  <div class="card">
+    <h2>Your Take-Home (Est.)</h2>
+    <div class="stat green" id="yr1-takehome">$0</div>
+    <div class="stat-sub" id="yr1-split">After split + tax estimate</div>
+  </div>
+  <div class="card">
+    <h2>Monthly Average</h2>
+    <div class="stat purple" id="yr1-monthly">$0</div>
+    <div class="stat-sub">net per month (after ramp)</div>
+  </div>
+</div>
+
+<!-- Scenarios -->
+<div class="section-title">📊 Scenario Presets</div>
+<div class="scenario-btns">
+  <button class="scenario-btn" onclick="setScenario('conservative')">🐢 Conservative</button>
+  <button class="scenario-btn active" onclick="setScenario('realistic')">⚖️ Realistic</button>
+  <button class="scenario-btn" onclick="setScenario('aggressive')">🚀 Aggressive</button>
+  <button class="scenario-btn" onclick="setScenario('beast')">🔥 Beast Mode</button>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h2>⚙️ Your Inputs</h2>
+
+    <label>Avg Fee per Placement <span class="range-val" id="fee-val">$18,000</span></label>
+    <input type="range" id="avg-fee" min="8000" max="40000" step="1000" value="18000" oninput="recalc()">
+
+    <label>Ramp-Up (months to full capacity) <span class="range-val" id="ramp-val">3</span></label>
+    <input type="range" id="ramp-months" min="1" max="6" step="1" value="3" oninput="recalc()">
+
+    <label>Placements/Month at Full Speed <span class="range-val" id="pace-val">3</span></label>
+    <input type="range" id="monthly-pace" min="1" max="8" step="0.5" value="3" oninput="recalc()">
+
+    <label>Revenue Split (your %) <span class="range-val" id="split-val">40%</span></label>
+    <input type="range" id="rev-split" min="20" max="60" step="5" value="40" oninput="recalc()">
+
+    <label>Base Salary (annual) <span class="range-val" id="base-val">$80,000</span></label>
+    <input type="range" id="base-salary" min="0" max="150000" step="5000" value="80000" oninput="recalc()">
+
+    <label>Placement Type Mix</label>
+    <select id="placement-type" onchange="recalc()">
+      <option value="perm">100% Permanent</option>
+      <option value="mixed" selected>70% Perm / 30% Contract</option>
+      <option value="contract">100% Contract</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h2>📈 Monthly Revenue Forecast</h2>
+    <div class="bar-chart" id="chart"></div>
+    <div class="tip">
+      <strong>Tip:</strong> <span id="tip-text">Months 1-2 are relationship-building. Revenue ramps from Month 3.</span>
+    </div>
+  </div>
+</div>
+
+<!-- Milestones -->
+<div class="section-title">🏆 Milestones</div>
+<div id="milestones"></div>
+
+<!-- Insights -->
+<div class="section-title">💡 Key Insights</div>
+<div class="card" id="insights"></div>
+
+<script>
+const START_DATE = new Date(2026, 4, 4); // May 4, 2026
+const MONTHS = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+
+function updateCountdown() {
+  const now = new Date();
+  const diff = Math.ceil((START_DATE - now) / (1000 * 60 * 60 * 24));
+  document.getElementById('countdown-days').textContent = Math.max(0, diff);
+}
+
+const scenarios = {
+  conservative: { fee: 15000, ramp: 4, pace: 2, split: 35, base: 75000, type: 'perm' },
+  realistic:    { fee: 18000, ramp: 3, pace: 3, split: 40, base: 80000, type: 'mixed' },
+  aggressive:   { fee: 22000, ramp: 2, pace: 4, split: 45, base: 85000, type: 'mixed' },
+  beast:        { fee: 28000, ramp: 1, pace: 5, split: 50, base: 90000, type: 'perm' }
+};
+
+function setScenario(name) {
+  const s = scenarios[name];
+  document.getElementById('avg-fee').value = s.fee;
+  document.getElementById('ramp-months').value = s.ramp;
+  document.getElementById('monthly-pace').value = s.pace;
+  document.getElementById('rev-split').value = s.split;
+  document.getElementById('base-salary').value = s.base;
+  document.getElementById('placement-type').value = s.type;
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  recalc();
+}
+
+function recalc() {
+  const fee = +document.getElementById('avg-fee').value;
+  const ramp = +document.getElementById('ramp-months').value;
+  const pace = +document.getElementById('monthly-pace').value;
+  const split = +document.getElementById('rev-split').value / 100;
+  const base = +document.getElementById('base-salary').value;
+  const type = document.getElementById('placement-type').value;
+
+  // Update labels
+  document.getElementById('fee-val').textContent = '$' + fee.toLocaleString();
+  document.getElementById('ramp-val').textContent = ramp;
+  document.getElementById('pace-val').textContent = pace;
+  document.getElementById('split-val').textContent = (split * 100) + '%';
+  document.getElementById('base-val').textContent = '$' + base.toLocaleString();
+
+  // Fee adjustment for contract (typically lower margin per fill but recurring)
+  let effectiveFee = fee;
+  if (type === 'contract') effectiveFee = fee * 0.6;
+  else if (type === 'mixed') effectiveFee = fee * 0.88;
+
+  // Monthly revenue calc with ramp
+  const monthly = [];
+  let totalRevenue = 0;
+  let totalPlacements = 0;
+  for (let m = 0; m < 12; m++) {
+    let rampFactor;
+    if (m < ramp) {
+      rampFactor = (m + 1) / (ramp + 1); // Gradual ramp
+    } else {
+      rampFactor = 1;
+    }
+    const placements = pace * rampFactor;
+    const rev = placements * effectiveFee;
+    monthly.push({ month: MONTHS[m], revenue: rev, placements });
+    totalRevenue += rev;
+    totalPlacements += placements;
+  }
+
+  // Earnings calc
+  const commissionEarnings = totalRevenue * split;
+  const grossEarnings = base + commissionEarnings;
+  const taxRate = grossEarnings > 180000 ? 0.37 : grossEarnings > 120000 ? 0.32 : 0.30;
+  const netEarnings = grossEarnings * (1 - taxRate);
+
+  // Update stats
+  document.getElementById('yr1-revenue').textContent = '$' + Math.round(totalRevenue).toLocaleString();
+  document.getElementById('yr1-placements').textContent = Math.round(totalPlacements) + ' placements';
+  document.getElementById('yr1-takehome').textContent = '$' + Math.round(netEarnings).toLocaleString();
+  document.getElementById('yr1-split').textContent = `$${Math.round(base).toLocaleString()} base + $${Math.round(commissionEarnings).toLocaleString()} commission (est. ${Math.round(taxRate*100)}% tax)`;
+  document.getElementById('yr1-monthly').textContent = '$' + Math.round(netEarnings / 12).toLocaleString();
+
+  // Chart
+  const maxRev = Math.max(...monthly.map(m => m.revenue));
+  const chartEl = document.getElementById('chart');
+  chartEl.innerHTML = monthly.map(m => {
+    const h = maxRev > 0 ? (m.revenue / maxRev * 160) : 2;
+    return `<div class="bar-col">
+      <div class="bar-val">$${Math.round(m.revenue/1000)}k</div>
+      <div class="bar revenue" style="height:${h}px"></div>
+      <div class="bar-label">${m.month}</div>
+    </div>`;
+  }).join('');
+
+  // Milestones
+  const ms = [];
+  // First placement
+  const firstPlacementMonth = Math.ceil(ramp * 0.5);
+  ms.push({ icon: '🎯', title: 'First Placement', detail: `Expected ~${MONTHS[firstPlacementMonth]} (Month ${firstPlacementMonth + 1})`, status: 'hit' });
+
+  // Break even (commission > base monthly cost)
+  let cumComm = 0;
+  let breakEvenMonth = -1;
+  for (let i = 0; i < 12; i++) {
+    cumComm += monthly[i].revenue * split;
+    if (cumComm >= base / 12 * (i + 1) && breakEvenMonth < 0) breakEvenMonth = i;
+  }
+  ms.push({ icon: '⚖️', title: 'Commission > Base Salary', detail: breakEvenMonth >= 0 ? `By ${MONTHS[breakEvenMonth]} — you\'re earning your keep` : 'Stretch goal', status: breakEvenMonth >= 0 ? 'hit' : 'stretch' });
+
+  // $100k revenue
+  let cum = 0, hundred = -1;
+  for (let i = 0; i < 12; i++) { cum += monthly[i].revenue; if (cum >= 100000 && hundred < 0) hundred = i; }
+  ms.push({ icon: '💯', title: '$100K Gross Revenue', detail: hundred >= 0 ? `Hit in ${MONTHS[hundred]}` : 'Beyond Year 1', status: hundred >= 0 ? 'hit' : 'stretch' });
+
+  // $250k revenue
+  cum = 0; let quarter = -1;
+  for (let i = 0; i < 12; i++) { cum += monthly[i].revenue; if (cum >= 250000 && quarter < 0) quarter = i; }
+  ms.push({ icon: '🏅', title: '$250K Gross Revenue', detail: quarter >= 0 ? `Hit in ${MONTHS[quarter]}` : 'Stretch target', status: quarter >= 0 ? 'hit' : 'stretch' });
+
+  // $500k revenue
+  cum = 0; let half = -1;
+  for (let i = 0; i < 12; i++) { cum += monthly[i].revenue; if (cum >= 500000 && half < 0) half = i; }
+  ms.push({ icon: '🚀', title: '$500K Gross Revenue', detail: half >= 0 ? `Hit in ${MONTHS[half]}` : 'Beast mode territory', status: half >= 0 ? 'hit' : 'stretch' });
+
+  document.getElementById('milestones').innerHTML = ms.map(m =>
+    `<div class="milestone">
+      <div class="icon">${m.icon}</div>
+      <div class="info"><div class="title">${m.title}</div><div class="detail">${m.detail}</div></div>
+      <span class="status ${m.status}">${m.status === 'hit' ? '✅ On Track' : '🎯 Stretch'}</span>
+    </div>`
+  ).join('');
+
+  // Insights
+  const insightsList = [];
+  if (pace >= 3 && ramp <= 3) {
+    insightsList.push(`At ${pace} placements/month with $${(effectiveFee/1000).toFixed(0)}k avg fee, you'll generate <strong>$${Math.round(totalRevenue/1000)}k</strong> in Year 1.`);
+  }
+  const savingsRate = netEarnings > 100000 ? Math.round((netEarnings - 100000) / netEarnings * 100) : 0;
+  if (savingsRate > 0) {
+    insightsList.push(`If living costs are ~$100k/yr, you could save <strong>~$${Math.round((netEarnings - 100000)/1000)}k</strong> (${savingsRate}% savings rate) toward your $2.5M goal.`);
+  }
+  const yrsTo2_5M = savingsRate > 0 ? Math.round((2500000 - 700000) / (netEarnings - 100000)) : '∞';
+  insightsList.push(`With $700k existing + these earnings, <strong>${yrsTo2_5M} years</strong> to $2.5M (excluding investment returns).`);
+
+  if (type === 'mixed' || type === 'contract') {
+    insightsList.push(`Contract placements provide recurring revenue — builds a <strong>revenue base</strong> that compounds over time.`);
+  }
+
+  const peakMonth = monthly.reduce((a, b) => a.revenue > b.revenue ? a : b);
+  insightsList.push(`Peak month: <strong>${peakMonth.month}</strong> at $${Math.round(peakMonth.revenue/1000)}k revenue (${Math.round(peakMonth.placements)} placements).`);
+
+  document.getElementById('insights').innerHTML = insightsList.map(i => `<p style="margin-bottom:8px;">→ ${i}</p>`).join('');
+
+  // Tips
+  const tips = [
+    fee < 15000 ? 'Consider pushing for higher-value roles (Project Managers, Contracts Managers) to lift avg fee.' :
+    fee > 25000 ? 'Great fee range — focus on senior construction management roles to sustain this.' :
+    'Solid mid-range fees. Mix in some senior roles to push this higher.',
+    ramp > 3 ? ' Longer ramp = more pressure later. Front-load your BD activity in Week 1.' : ''
+  ];
+  document.getElementById('tip-text').textContent = tips.filter(Boolean).join(' ');
+}
+
+updateCountdown();
+recalc();
+setInterval(updateCountdown, 86400000);
+</script>
+</body>
+</html>

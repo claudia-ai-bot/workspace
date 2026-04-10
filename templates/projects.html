@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}Projects - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>🏗️ Projects</h1>
+  <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <button class="btn" onclick="showAddForm(); return false;">+ Add Project</button>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <label>Company:</label>
+    <select id="filterCompany" onchange="applyFilters()">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Status:</label>
+    <select id="filterStatus" onchange="applyFilters()">
+      <option value="">All</option>
+      <option value="DA / Planning">DA / Planning</option>
+      <option value="Pre-Construction">Pre-Construction</option>
+      <option value="Under Construction">Under Construction</option>
+      <option value="Nearing Completion">Nearing Completion</option>
+      <option value="Complete / Defects">Complete / Defects</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Location:</label>
+    <select id="filterLocation" onchange="applyFilters()">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Sort:</label>
+    <select id="filterSort" onchange="applyFilters()">
+      <option value="">Project Name (A-Z)</option>
+      <option value="company">Company (A-Z)</option>
+      <option value="status">Status</option>
+      <option value="date">Date Added</option>
+    </select>
+  </div>
+  <button class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+  <span id="filterCount" class="filter-count">Showing all projects</span>
+</div>
+
+<style>
+.filter-bar {
+  background: #1e3a5f;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-group label {
+  color: #00d4ff;
+  font-weight: 600;
+  font-size: 13px;
+}
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #2a5a8a;
+  border-radius: 4px;
+  background: #0f2847;
+  color: #fff;
+  font-size: 13px;
+  min-width: 140px;
+}
+.filter-group select:focus {
+  outline: none;
+  border-color: #00d4ff;
+}
+.filter-count {
+  color: #00d4ff;
+  font-size: 13px;
+  margin-left: auto;
+  font-weight: 500;
+}
+</style>
+
+<!-- Add/Edit Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2 id="formTitle">Add Project</h2>
+  <form id="projectForm">
+    <input type="hidden" id="projectId" name="id" />
+    
+    <div class="form-group">
+      <label>Project Name</label>
+      <input type="text" id="projectName" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Address</label>
+      <input type="text" id="projectAddress" placeholder="Project address" />
+    </div>
+    
+    <div class="form-group">
+      <label>Company</label>
+      <select id="projectCompany">
+        <option value="">-- No Company --</option>
+        {% for company in companies %}
+        <option value="{{ company.id }}">{{ company.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>DA Number</label>
+        <input type="text" id="projectDANumber" placeholder="DA-2024-1234" />
+      </div>
+      
+      <div class="form-group">
+        <label>Status</label>
+        <select id="projectStatus">
+          <option value="DA / Planning">DA / Planning</option>
+          <option value="Pre-Construction">Pre-Construction</option>
+          <option value="Under Construction">Under Construction</option>
+          <option value="Nearing Completion">Nearing Completion</option>
+          <option value="Complete / Defects">Complete / Defects</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="projectDescription" rows="3" placeholder="Project description..."></textarea>
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
+      <button type="submit" class="btn">Save</button>
+      <button type="button" class="btn btn-secondary" onclick="hideForm(); return false;">Cancel</button>
+      <button type="button" id="deleteBtn" class="btn" style="background: #e74c3c; color: white; display: none;" onclick="deleteProject(); return false;">Delete</button>
+    </div>
+  </form>
+</div>
+
+<!-- Projects Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Project Name</th>
+      <th>Developer</th>
+      <th>Builder</th>
+      <th>Builder PM</th>
+      <th>Status</th>
+      <th>Est. Complete</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% if projects %}
+    {% for project in projects %}
+    <tr>
+      <td><a href="/project/{{ project.id }}"><strong>{{ project.name }}</strong></a></td>
+      <td>{% if project.company_id %}<a href="/company/{{ project.company_id }}" style="color:#1e3a5f; font-weight:500;">{{ project.company_name or '—' }}</a>{% else %}{{ project.company_name or '—' }}{% endif %}</td>
+      <td style="font-size:13px;">{{ project.builder_name or '—' }}</td>
+      <td style="font-size:13px;">{{ project.project_manager_name or '—' }}</td>
+      <td><span style="background: {% if project.status == "Under Construction" %}#dcfce7{% elif project.status == "Nearing Completion" %}#dbeafe{% elif project.status == "Pre-Construction" %}#fef3c7{% elif project.status == "DA / Planning" %}#e0e7ff{% else %}#f1f5f9{% endif %}; color: {% if project.status == "Under Construction" %}#16a34a{% elif project.status == "Nearing Completion" %}#1d4ed8{% elif project.status == "Pre-Construction" %}#d97706{% elif project.status == "DA / Planning" %}#4f46e5{% else %}#64748b{% endif %}; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;">{{ project.status }}</span></td>
+      <td style="font-size:13px;">{% if project.estimated_end %}<span style="{% if project.estimated_end == '2026' %}color:#ef4444;font-weight:600;{% endif %}">{{ project.estimated_end }}</span>{% else %}—{% endif %}</td>
+      <td>
+        <button class="quick-action" onclick="editProject({{ project.id }}); return false;">Edit</button>
+      </td>
+    </tr>
+    {% endfor %}
+    {% else %}
+    <tr><td colspan="6" style="text-align: center; color: var(--text-light); padding: 40px;">No projects yet. Click "+ Add Project" to get started.</td></tr>
+    {% endif %}
+  </tbody>
+</table>
+
+<script>
+// Filter and sort functionality
+const SEQ_SUBURBS = [
+  'Brisbane CBD', 'Broadbeach', 'Surfers Paradise', 'Southport', 'Robina', 
+  'Varsity Lakes', 'Coomera', 'Hope Island', 'Palm Beach', 'Burleigh Heads',
+  'Noosa', 'Sunshine Coast', 'Gold Coast', 'Newcastle', 'Sydney', 'Melbourne'
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+  populateCompanyFilter();
+  populateLocationFilter();
+  updateFilterCount();
+});
+
+function extractSuburb(address) {
+  if (!address) return null;
+  const upper = address.toUpperCase();
+  for (const suburb of SEQ_SUBURBS) {
+    if (upper.includes(suburb.toUpperCase())) {
+      return suburb;
+    }
+  }
+  // Check for common QLD postcode patterns
+  const postcodeMatch = address.match(/\b4\d{3}\b/);
+  if (postcodeMatch) {
+    return 'QLD ' + postcodeMatch[0];
+  }
+  return null;
+}
+
+function populateCompanyFilter() {
+  const table = document.querySelector('table tbody');
+  const companySelect = document.getElementById('filterCompany');
+  const companies = new Set();
+  
+  table.querySelectorAll('tr').forEach(row => {
+    const companyCell = row.cells[1]; // Company is the 2nd column
+    if (companyCell && companyCell.textContent.trim() && companyCell.textContent.trim() !== '—') {
+      companies.add(companyCell.textContent.trim());
+    }
+  });
+  
+  // Sort alphabetically
+  const sortedCompanies = Array.from(companies).sort();
+  sortedCompanies.forEach(company => {
+    const option = document.createElement('option');
+    option.value = company;
+    option.textContent = company;
+    companySelect.appendChild(option);
+  });
+}
+
+function populateLocationFilter() {
+  const table = document.querySelector('table tbody');
+  const locationSelect = document.getElementById('filterLocation');
+  const locations = new Set();
+  
+  table.querySelectorAll('tr').forEach(row => {
+    const addressCell = row.cells[3]; // Address is the 4th column
+    if (addressCell) {
+      const suburb = extractSuburb(addressCell.textContent);
+      if (suburb) {
+        locations.add(suburb);
+      }
+    }
+  });
+  
+  // Sort alphabetically
+  const sortedLocations = Array.from(locations).sort();
+  sortedLocations.forEach(location => {
+    const option = document.createElement('option');
+    option.value = location;
+    option.textContent = location;
+    locationSelect.appendChild(option);
+  });
+}
+
+function applyFilters() {
+  const statusFilter = document.getElementById('filterStatus').value;
+  const companyFilter = document.getElementById('filterCompany').value;
+  const locationFilter = document.getElementById('filterLocation').value;
+  const sortBy = document.getElementById('filterSort').value;
+  
+  const table = document.querySelector('table tbody');
+  const rows = Array.from(table.querySelectorAll('tr'));
+  let visibleCount = 0;
+  
+  // Filter first
+  rows.forEach(row => {
+    const projectNameCell = row.cells[0]; // Project name (has link inside)
+    const companyCell = row.cells[1]; // Company
+    const statusCell = row.cells[2]; // Status (span inside)
+    const addressCell = row.cells[3]; // Address
+    
+    // Get status text from span or cell
+    let statusText = '';
+    const statusSpan = statusCell.querySelector('span');
+    if (statusSpan) {
+      statusText = statusSpan.textContent.trim();
+    } else {
+      statusText = statusCell.textContent.trim();
+    }
+    
+    // Get project name from link text
+    const projectLink = projectNameCell.querySelector('a');
+    const projectName = projectLink ? projectLink.textContent.trim() : '';
+    
+    const statusMatch = !statusFilter || statusText === statusFilter;
+    const companyMatch = !companyFilter || (companyCell && companyCell.textContent.trim() === companyFilter);
+    const locationMatch = !locationFilter || extractSuburb(addressCell.textContent) === locationFilter;
+    
+    if (statusMatch && companyMatch && locationMatch) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  // Then sort
+  const visibleRows = rows.filter(r => r.style.display !== 'none');
+  
+  visibleRows.sort((a, b) => {
+    switch(sortBy) {
+      case 'company':
+        const compA = a.cells[1].textContent.trim() || 'ZZZ';
+        const compB = b.cells[1].textContent.trim() || 'ZZZ';
+        return compA.localeCompare(compB);
+      case 'status':
+        const statA = a.cells[2].textContent.trim() || '';
+        const statB = b.cells[2].textContent.trim() || '';
+        return statA.localeCompare(statB);
+      case 'date':
+        // For date, we'd need created_at - but it's not displayed
+        // Fall back to project name sort
+      default:
+        const nameA = a.cells[0].textContent.trim() || '';
+        const nameB = b.cells[0].textContent.trim() || '';
+        return nameA.localeCompare(nameB);
+    }
+  });
+  
+  // Re-append in sorted order
+  visibleRows.forEach(row => table.appendChild(row));
+  
+  updateFilterCount(visibleCount);
+}
+
+function clearFilters() {
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterCompany').value = '';
+  document.getElementById('filterLocation').value = '';
+  document.getElementById('filterSort').value = '';
+  applyFilters();
+}
+
+function updateFilterCount(visibleCount) {
+  const table = document.querySelector('table tbody');
+  const totalRows = table.querySelectorAll('tr').length;
+  const countElement = document.getElementById('filterCount');
+  
+  if (visibleCount === undefined || visibleCount === totalRows) {
+    countElement.textContent = `Showing all ${totalRows} projects`;
+  } else {
+    countElement.textContent = `Showing ${visibleCount} of ${totalRows} projects`;
+  }
+}
+
+// Form handling
+function showAddForm() {
+  document.getElementById('formTitle').textContent = 'Add Project';
+  document.getElementById('projectForm').reset();
+  document.getElementById('projectId').value = '';
+  document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('formContainer').style.display = 'block';
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+function editProject(id) {
+  fetch('/api/project/' + id)
+    .then(r => r.json())
+    .then(p => {
+      document.getElementById('formTitle').textContent = 'Edit Project';
+      document.getElementById('projectId').value = p.id;
+      document.getElementById('projectName').value = p.name || '';
+      document.getElementById('projectAddress').value = p.address || '';
+      document.getElementById('projectCompany').value = p.company_id || '';
+      document.getElementById('projectDANumber').value = p.da_number || '';
+      document.getElementById('projectStatus').value = p.status || 'Live';
+      document.getElementById('projectDescription').value = p.description || '';
+      document.getElementById('deleteBtn').style.display = 'inline-block';
+      document.getElementById('formContainer').style.display = 'block';
+    });
+}
+
+document.getElementById('projectForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const data = {
+    id: document.getElementById('projectId').value || null,
+    name: document.getElementById('projectName').value,
+    address: document.getElementById('projectAddress').value,
+    company_id: document.getElementById('projectCompany').value || null,
+    da_number: document.getElementById('projectDANumber').value,
+    status: document.getElementById('projectStatus').value,
+    description: document.getElementById('projectDescription').value
+  };
+  
+  fetch('/api/projects', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(d => {
+    alert('Project saved!');
+    hideForm();
+    location.reload();
+  })
+  .catch(err => alert('Error: ' + err));
+});
+
+function deleteProject() {
+  const id = document.getElementById('projectId').value;
+  if (!id) return;
+  if (!confirm('Delete this project?')) return;
+  
+  fetch('/api/project/' + id, {method: 'DELETE'})
+    .then(r => r.json())
+    .then(d => {
+      alert('Project deleted!');
+      hideForm();
+      location.reload();
+    })
+    .catch(err => alert('Error: ' + err));
+}
+</script>
+
+{% endblock %}

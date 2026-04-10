@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+
+{% block title %}Candidates - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>👥 Candidates</h1>
+  <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <form method="get" style="display: inline;">
+      <input type="text" name="search" placeholder="Search candidates..." value="{{ search }}" style="padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; width: 220px;">
+      <button type="submit" class="btn">Search</button>
+      {% if search %}
+      <a href="/candidates" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
+      {% endif %}
+    </form>
+    <button class="btn" onclick="window.location.href='/candidates/add'">+ Add Candidate</button>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div style="background: linear-gradient(135deg, #1e3a5f 0%, #2a4a73 100%); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; color: white;">
+    <span style="font-weight: 600; color: #ff6b35;">Filters:</span>
+    
+    <input type="text" id="filterTitle" placeholder="Title" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; width: 140px;">
+    
+    <input type="text" id="filterCompany" placeholder="Company" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; width: 140px;">
+    
+    <select id="filterLocation" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; width: 150px;">
+      <option value="">Location</option>
+      {% for loc in locations %}
+      <option value="{{ loc }}">{{ loc }}</option>
+      {% endfor %}
+    </select>
+    
+    <select id="filterSalary" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; width: 150px;">
+      <option value="">Salary</option>
+      <option value="under120">Under $120k</option>
+      <option value="120-150">$120k-$150k</option>
+      <option value="150-180">$150k-$180k</option>
+      <option value="180-200">$180k-$200k</option>
+      <option value="over200">$200k+</option>
+    </select>
+    
+    <select id="filterFlightRisk" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; width: 120px;">
+      <option value="">Flight Risk</option>
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+    </select>
+    
+    <input type="text" id="filterSpecialism" placeholder="Specialism" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; width: 140px;">
+    
+    <button type="button" class="btn" onclick="applyFilters()" style="background: #ff6b35; border: none;">Apply</button>
+    <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+    
+    <span id="filterCount" style="margin-left: auto; font-size: 14px; color: #ff6b35;"></span>
+  </div>
+</div>
+
+<!-- Add/Edit Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add/Edit Candidate</h2>
+  <form id="candidateForm">
+    <input type="hidden" id="candidateId" name="id" />
+    
+    <div class="form-group">
+      <label>Name *</label>
+      <input type="text" id="candidateName" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Current Company</label>
+      <input type="text" id="candidateCompany" />
+    </div>
+    
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="candidateTitle" placeholder="e.g., Senior Project Manager" />
+    </div>
+    
+    <div class="form-group">
+      <label>Specialism</label>
+      <input type="text" id="candidateSpecialism" placeholder="e.g., Commercial PM, Civil Engineer, Estimator" />
+    </div>
+    
+    <div class="form-group">
+      <label>Years Experience</label>
+      <input type="number" id="candidateYearsExp" />
+    </div>
+    
+    <div class="form-group">
+      <label>Salary Band</label>
+      <input type="text" id="candidateSalaryBand" placeholder="e.g., $150-180k" />
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="candidateLocation" placeholder="Gold Coast, Brisbane, etc." />
+    </div>
+    
+    <div class="form-group">
+      <label>Mobility</label>
+      <input type="text" id="candidateMobility" placeholder="e.g., Willing to relocate, Local only" />
+    </div>
+    
+    <div class="form-group">
+      <label>Flight Risk</label>
+      <select id="candidateFlightRisk">
+        <option value="">Select...</option>
+        <option>Low</option>
+        <option>Medium</option>
+        <option>High</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Known Offers?</label>
+      <input type="text" id="candidateKnownOffers" placeholder="e.g., No, Pending Icon Co offer" />
+    </div>
+    
+    <div class="form-group">
+      <label>Who Wants Them</label>
+      <textarea id="candidateWhoWants" rows="2" placeholder="Companies interested in this candidate"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Relationship (1-5)</label>
+      <select id="candidateRelationship">
+        <option value="1">1 - Cold</option>
+        <option value="2">2</option>
+        <option value="3">3 - Warm</option>
+        <option value="4">4</option>
+        <option value="5">5 - Hot</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Last Contact</label>
+      <input type="date" id="candidateLastContact" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Follow Up</label>
+      <input type="date" id="candidateNextFollowUp" />
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="candidateNotes" rows="3"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Candidate</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Candidates Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Current Company</th>
+      <th>Title</th>
+      <th>Specialism</th>
+      <th>Location</th>
+      <th>Salary</th>
+      <th>Flight Risk</th>
+      <th>Last Contact</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="candidatesTableBody">
+    {% for candidate in candidates %}
+    <tr data-title="{{ candidate.title or '' }}" data-company="{{ candidate.current_company or '' }}" data-location="{{ candidate.location or '' }}" data-salary="{{ candidate.salary_band or '' }}" data-flight="{{ candidate.flight_risk or '' }}" data-specialism="{{ candidate.specialism or '' }}">
+      <td><a href="/candidates/{{ candidate.id }}/deep"><strong>{{ candidate.name }}</strong></a></td>
+      <td>
+        {% if company_lookup[candidate.id] %}
+        <a href="/company/{{ company_lookup[candidate.id] }}" style="color: #1e3a5f; font-weight: 500;">{{ candidate.current_company or '-' }}</a>
+        {% else %}
+        {{ candidate.current_company or '-' }}
+        {% endif %}
+      </td>
+      <td>{{ candidate.title or '-' }}</td>
+      <td>{{ candidate.specialism or '-' }}</td>
+      <td>{{ candidate.location or '-' }}</td>
+      <td>{{ candidate.salary_band or '-' }}</td>
+      <td>
+        {% if candidate.flight_risk == 'High' %}
+          🔴 {{ candidate.flight_risk }}
+        {% elif candidate.flight_risk == 'Medium' %}
+          🟠 {{ candidate.flight_risk }}
+        {% else %}
+          🟢 {{ candidate.flight_risk or '-' }}
+        {% endif %}
+      </td>
+      <td>
+        {% if candidate.last_contact %}
+        {{ candidate.last_contact|format_date }} ({{ candidate.last_contact|days_ago }} days ago)
+        {% else %}
+        Never
+        {% endif %}
+      </td>
+      <td>
+        <a href="#" onclick="editCandidateFromList({{ candidate.id }}, '{{ candidate.name }}', '{{ candidate.current_company or '' }}', '{{ candidate.title or '' }}', '{{ candidate.specialism or '' }}', {{ candidate.years_experience or 0 }}, '{{ candidate.salary_band or '' }}', '{{ candidate.location or '' }}', '{{ candidate.mobility or '' }}', '{{ candidate.flight_risk or '' }}', '{{ candidate.known_offers or '' }}', '{{ candidate.who_wants_them or '' }}', {{ candidate.relationship_score if candidate.relationship_score is not none else 'null' }}, '{{ candidate.last_contact or '' }}', '{{ candidate.next_follow_up or '' }}', '{{ candidate.notes or '' }}'); return false;">Edit</a>
+        | <a href="#" onclick="showActivityModal('{{ candidate.name }}', {{ candidate.id }}); return false;">📝 Activity</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not candidates %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">No candidates yet. <a href="#" onclick="showAddForm(); return false;">Add one now.</a></p>
+{% endif %}
+
+<script>
+// Store original row count
+const totalCandidates = {{ candidates|length }};
+
+function parseSalary(salaryStr) {
+  if (!salaryStr) return null;
+  // Parse "$145k - $175k" format, take lower bound
+  const match = salaryStr.match(/\$(\d+)k/i);
+  if (match) return parseInt(match[1]);
+  // Try numeric
+  const numMatch = salaryStr.match(/(\d+)/);
+  if (numMatch) return parseInt(numMatch[1]) / 1000; // Assume full dollars, convert to k
+  return null;
+}
+
+function filterSalary(salaryStr, filterValue) {
+  if (!filterValue) return true;
+  const salary = parseSalary(salaryStr);
+  if (salary === null) return true;
+  
+  switch(filterValue) {
+    case 'under120': return salary < 120;
+    case '120-150': return salary >= 120 && salary <= 150;
+    case '150-180': return salary > 150 && salary <= 180;
+    case '180-200': return salary > 180 && salary <= 200;
+    case 'over200': return salary > 200;
+    default: return true;
+  }
+}
+
+function applyFilters() {
+  const titleFilter = document.getElementById('filterTitle').value.toLowerCase();
+  const companyFilter = document.getElementById('filterCompany').value.toLowerCase();
+  const locationFilter = document.getElementById('filterLocation').value;
+  const salaryFilter = document.getElementById('filterSalary').value;
+  const flightFilter = document.getElementById('filterFlightRisk').value;
+  const specialismFilter = document.getElementById('filterSpecialism').value.toLowerCase();
+  
+  const rows = document.querySelectorAll('#candidatesTableBody tr');
+  let visibleCount = 0;
+  
+  rows.forEach(row => {
+    const title = row.getAttribute('data-title') || '';
+    const company = row.getAttribute('data-company') || '';
+    const location = row.getAttribute('data-location') || '';
+    const salary = row.getAttribute('data-salary') || '';
+    const flight = row.getAttribute('data-flight') || '';
+    const specialism = row.getAttribute('data-specialism') || '';
+    
+    const matchTitle = !titleFilter || title.toLowerCase().includes(titleFilter);
+    const matchCompany = !companyFilter || company.toLowerCase().includes(companyFilter);
+    const matchLocation = !locationFilter || location === locationFilter;
+    const matchSalary = filterSalary(salary, salaryFilter);
+    const matchFlight = !flightFilter || flight === flightFilter;
+    const matchSpecialism = !specialismFilter || specialism.toLowerCase().includes(specialismFilter);
+    
+    if (matchTitle && matchCompany && matchLocation && matchSalary && matchFlight && matchSpecialism) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  document.getElementById('filterCount').textContent = `Showing ${visibleCount} of ${totalCandidates} candidates`;
+}
+
+function clearFilters() {
+  document.getElementById('filterTitle').value = '';
+  document.getElementById('filterCompany').value = '';
+  document.getElementById('filterLocation').value = '';
+  document.getElementById('filterSalary').value = '';
+  document.getElementById('filterFlightRisk').value = '';
+  document.getElementById('filterSpecialism').value = '';
+  applyFilters();
+}
+
+// Auto-apply on enter in filter inputs
+document.querySelectorAll('#filterTitle, #filterCompany, #filterSpecialism').forEach(input => {
+  input.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') applyFilters();
+  });
+});
+document.querySelectorAll('#filterLocation, #filterSalary, #filterFlightRisk').forEach(select => {
+  select.addEventListener('change', applyFilters);
+});
+
+// Initial count
+document.addEventListener('DOMContentLoaded', function() {
+  applyFilters();
+});
+</script>
+
+<script>
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('candidateForm').reset();
+  document.getElementById('candidateId').value = '';
+  document.getElementById('candidateRelationship').value = '1';
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+function editCandidateFromList(id, name, company, title, specialism, yearsExp, salaryBand, location, mobility, flightRisk, knownOffers, whoWants, relationship, lastContact, nextFollowUp, notes) {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('candidateId').value = id;
+  document.getElementById('candidateName').value = name;
+  document.getElementById('candidateCompany').value = company;
+  document.getElementById('candidateTitle').value = title;
+  document.getElementById('candidateSpecialism').value = specialism;
+  document.getElementById('candidateYearsExp').value = yearsExp;
+  document.getElementById('candidateSalaryBand').value = salaryBand;
+  document.getElementById('candidateLocation').value = location;
+  document.getElementById('candidateMobility').value = mobility;
+  document.getElementById('candidateFlightRisk').value = flightRisk;
+  document.getElementById('candidateKnownOffers').value = knownOffers;
+  document.getElementById('candidateWhoWants').value = whoWants;
+  document.getElementById('candidateRelationship').value = relationship;
+  document.getElementById('candidateLastContact').value = lastContact;
+  document.getElementById('candidateNextFollowUp').value = nextFollowUp;
+  document.getElementById('candidateNotes').value = notes;
+  window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+}
+
+document.getElementById('candidateForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    id: document.getElementById('candidateId').value || null,
+    name: document.getElementById('candidateName').value,
+    current_company: document.getElementById('candidateCompany').value,
+    title: document.getElementById('candidateTitle').value,
+    specialism: document.getElementById('candidateSpecialism').value,
+    years_experience: document.getElementById('candidateYearsExp').value,
+    salary_band: document.getElementById('candidateSalaryBand').value,
+    location: document.getElementById('candidateLocation').value,
+    mobility: document.getElementById('candidateMobility').value,
+    flight_risk: document.getElementById('candidateFlightRisk').value,
+    known_offers: document.getElementById('candidateKnownOffers').value,
+    who_wants_them: document.getElementById('candidateWhoWants').value,
+    relationship_score: document.getElementById('candidateRelationship').value,
+    last_contact: document.getElementById('candidateLastContact').value,
+    next_follow_up: document.getElementById('candidateNextFollowUp').value,
+    notes: document.getElementById('candidateNotes').value
+  };
+  
+  const response = await fetch('/api/candidate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Error saving candidate');
+  }
+});
+</script>
+
+<!-- Activity Modal for Candidate -->
+<div id="activityModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;">
+  <div style="background:white;padding:20px;margin:50px auto;max-width:450px;border-radius:8px;">
+    <h2>Log Activity: <span id="activityCandidateName"></span></h2>
+    <form id="activityModalForm">
+      <input type="hidden" id="activityCandidateId" />
+      
+      <label>Type:</label>
+      <select id="activityType" required onchange="updateCandidateActivityFields()">
+        <option value="call">📞 Call</option>
+        <option value="email">📧 Email</option>
+        <option value="meeting">🤝 Meeting</option>
+        <option value="linkedin">💼 LinkedIn Message</option>
+        <option value="interview">🎤 Interview</option>
+        <option value="reference">📋 Reference Check</option>
+        <option value="other">📌 Other</option>
+      </select><br><br>
+      
+      <div id="activityOutcomeRow">
+        <label>Outcome:</label>
+        <select id="activityOutcome">
+          <option value="">-- Select --</option>
+          
+          <!-- Call outcomes -->
+          <optgroup id="candidateOutcomeCall" label="Call">
+            <option value="successful">✅ Successful</option>
+            <option value="voicemail">📧 Voicemail</option>
+            <option value="no_answer">❌ No Answer</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Email outcomes -->
+          <optgroup id="candidateOutcomeEmail" label="Email">
+            <option value="introduction">👋 Introduction Sent</option>
+            <option value="general">💬 General Update</option>
+            <option value="job_description">📋 Job Description Sent</option>
+            <option value="job_brief">📝 Job Brief Sent</option>
+            <option value="cv_requested">📄 CV Requested</option>
+            <option value="cv_received">✅ CV Received</option>
+            <option value="send_offer">💼 Send Offer</option>
+            <option value="no_response">❌ No Response</option>
+          </optgroup>
+          
+          <!-- LinkedIn outcomes -->
+          <optgroup id="candidateOutcomeLinkedIn" label="LinkedIn Message">
+            <option value="successful">✅ Successful</option>
+            <option value="no_reply">❌ No Reply</option>
+            <option value="inmailed">📬 InMailed</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Interview outcomes -->
+          <optgroup id="candidateOutcomeInterview" label="Interview">
+            <option value="next_stage">➡️ Moved to Next Stage</option>
+            <option value="offer_made">💼 Offer Made</option>
+            <option value="offer_accepted">🎉 Offer Accepted</option>
+            <option value="candidate_rejected">❌ Candidate Rejected</option>
+            <option value="client_rejected">🚫 Client Rejected</option>
+            <option value="withdrawn">↩️ Withdrawn</option>
+          </optgroup>
+          
+          <!-- Reference Check outcomes -->
+          <optgroup id="candidateOutcomeReference" label="Reference Check">
+            <option value="positive">✅ Positive</option>
+            <option value="neutral">➖ Neutral</option>
+            <option value="negative">❌ Negative</option>
+          </optgroup>
+        </select><br><br>
+      </div>
+      
+      <label>Notes:</label>
+      <textarea id="activityNotes" rows="3" placeholder="Activity details..."></textarea><br><br>
+      
+      <button type="submit" class="btn">Save Activity</button>
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('activityModal').style.display='none'" style="margin-left:10px;">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function showActivityModal(candidateName, candidateId) {
+  document.getElementById('activityCandidateName').textContent = candidateName;
+  document.getElementById('activityCandidateId').value = candidateId;
+  document.getElementById('activityModal').style.display = 'block';
+  updateCandidateActivityFields();
+}
+
+function updateCandidateActivityFields() {
+  const type = document.getElementById('activityType').value;
+  const outcomeRow = document.getElementById('activityOutcomeRow');
+  const typesWithOutcome = ['email', 'interview', 'reference'];
+  outcomeRow.style.display = typesWithOutcome.includes(type) ? 'block' : 'none';
+  
+  const callGroup = document.getElementById('candidateOutcomeCall');
+  const emailGroup = document.getElementById('candidateOutcomeEmail');
+  const linkedinGroup = document.getElementById('candidateOutcomeLinkedIn');
+  const interviewGroup = document.getElementById('candidateOutcomeInterview');
+  const referenceGroup = document.getElementById('candidateOutcomeReference');
+  
+  if (callGroup) callGroup.style.display = (type === 'call') ? 'block' : 'none';
+  if (emailGroup) emailGroup.style.display = (type === 'email') ? 'block' : 'none';
+  if (linkedinGroup) linkedinGroup.style.display = (type === 'linkedin') ? 'block' : 'none';
+  if (interviewGroup) interviewGroup.style.display = (type === 'interview') ? 'block' : 'none';
+  if (referenceGroup) referenceGroup.style.display = (type === 'reference') ? 'block' : 'none';
+}
+
+document.getElementById('activityModalForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const candidateId = document.getElementById('activityCandidateId').value;
+  
+  const data = {
+    type: document.getElementById('activityType').value,
+    candidate_id: candidateId,
+
+    outcome: document.getElementById('activityOutcomeRow').style.display !== 'none' ? document.getElementById('activityOutcome').value : null,
+    notes: document.getElementById('activityNotes').value
+  };
+  
+  const response = await fetch('/api/activity', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    document.getElementById('activityModal').style.display = 'none';
+    alert('Activity logged!');
+  } else {
+    alert('Error logging activity');
+  }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Territory Intelligence — Lead Group SEQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d1117; --surface: #161b22; --surface2: #21262d;
+      --border: #30363d; --text: #e6edf3; --muted: #7d8590;
+      --orange: #f78166; --cyan: #58a6ff; --green: #3fb950;
+      --purple: #d2a8ff; --yellow: #d29922; --pink: #db61a2;
+      --red: #f85149; --blue: #79c0ff;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    a { text-decoration: none; color: inherit; }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 30px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 20px; }
+    .logo { font-size: 1.25rem; font-weight: 700; color: var(--cyan); }
+    .logo span { color: var(--orange); }
+    .header-badge {
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      color: #fff; font-size: 0.65rem; font-weight: 700;
+      padding: 4px 12px; border-radius: 20px; letter-spacing: 1px;
+    }
+    .header-right { display: flex; align-items: center; gap: 15px; }
+    .header-right span { color: var(--muted); font-size: 0.8rem; }
+    .day-count {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.8rem; padding: 6px 14px;
+      border-radius: 8px; font-weight: 600;
+    }
+
+    /* MAIN */
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 24px 60px; }
+    .page-title { text-align: center; margin-bottom: 30px; }
+    .page-title h1 { font-size: 1.8rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .page-title p { color: var(--muted); font-size: 0.9rem; }
+
+    /* STATS ROW */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .stat-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .stat-card .value { font-size: 2rem; font-weight: 800; }
+    .stat-card .sub { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+    /* SECTION TITLE */
+    .section-title {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px; margin-top: 30px;
+    }
+    .section-title h2 { font-size: 1.1rem; font-weight: 700; }
+    .section-title .icon { font-size: 1.2rem; }
+
+    /* TIER CARDS */
+    .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .tier-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tier-card:hover { border-color: var(--cyan); transform: translateY(-2px); }
+    .tier-card.tier-1 { border-top: 3px solid var(--orange); }
+    .tier-card.tier-2 { border-top: 3px solid var(--cyan); }
+    .tier-card.tier-3 { border-top: 3px solid var(--yellow); }
+    .tier-card.boutique { border-top: 3px solid var(--purple); }
+    .tier-card.consultant { border-top: 3px solid var(--green); }
+    .tier-card.government { border-top: 3px solid var(--blue); }
+    .tier-card.sme { border-top: 3px solid var(--pink); }
+    .tier-card.none-tier { border-top: 3px solid var(--muted); }
+    .tier-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .tier-name { font-size: 1rem; font-weight: 700; }
+    .tier-count { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-size: 0.9rem; font-weight: 700; padding: 3px 10px; border-radius: 6px; }
+    .tier-description { font-size: 0.78rem; color: var(--muted); margin-bottom: 12px; }
+    .tier-bar-bg { background: var(--bg); border-radius: 6px; height: 6px; margin-bottom: 10px; overflow: hidden; }
+    .tier-bar-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
+    .tier-card.tier-1 .tier-bar-fill { background: var(--orange); }
+    .tier-card.tier-2 .tier-bar-fill { background: var(--cyan); }
+    .tier-card.tier-3 .tier-bar-fill { background: var(--yellow); }
+    .tier-card.boutique .tier-bar-fill { background: var(--purple); }
+    .tier-card.consultant .tier-bar-fill { background: var(--green); }
+    .tier-card.government .tier-bar-fill { background: var(--blue); }
+    .tier-card.sme .tier-bar-fill { background: var(--pink); }
+    .tier-card.none-tier .tier-bar-fill { background: var(--muted); }
+    .company-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .company-chip {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.7rem; padding: 3px 8px;
+      border-radius: 4px; transition: all 0.15s; cursor: pointer;
+    }
+    .company-chip:hover { background: var(--cyan); color: #000; border-color: var(--cyan); }
+
+    /* EXPANDED PANEL */
+    .expand-panel {
+      display: none; margin-top: 14px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px;
+      max-height: 300px; overflow-y: auto;
+    }
+    .expand-panel.active { display: block; }
+    .expand-panel table { width: 100%; border-collapse: collapse; }
+    .expand-panel th { text-align: left; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+    .expand-panel td { padding: 8px 10px; font-size: 0.82rem; border-bottom: 1px solid var(--surface2); }
+    .expand-panel tr:last-child td { border-bottom: none; }
+    .tier-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+    .tier-badge.t1 { background: var(--orange); color: #fff; }
+    .tier-badge.t2 { background: var(--cyan); color: #000; }
+    .tier-badge.t3 { background: var(--yellow); color: #000; }
+    .tier-badge.boutique { background: var(--purple); color: #fff; }
+    .tier-badge.consultant { background: var(--green); color: #fff; }
+    .tier-badge.govt { background: var(--blue); color: #fff; }
+    .tier-badge.sme { background: var(--pink); color: #fff; }
+    .tier-badge.none { background: var(--muted); color: #fff; }
+
+    /* SECTOR GRID */
+    .sector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .sector-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .sector-card:hover { border-color: var(--green); transform: translateY(-2px); }
+    .sector-name { font-size: 0.85rem; font-weight: 600; }
+    .sector-count { background: var(--surface2); font-size: 0.85rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+    .sector-bar { height: 4px; background: var(--bg); border-radius: 4px; margin-top: 10px; overflow: hidden; }
+    .sector-bar-fill { height: 100%; background: var(--green); border-radius: 4px; }
+
+    /* LOCATION GRID */
+    .location-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .location-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+    }
+    .location-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+    .location-card .loc-sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 14px; }
+    .location-firms { display: flex; flex-direction: column; gap: 6px; }
+    .location-firm {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.8rem; padding: 6px 10px; background: var(--surface2);
+      border-radius: 6px; border-left: 3px solid var(--cyan);
+    }
+    .location-firm .tier-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .location-firm span { font-size: 0.75rem; color: var(--muted); margin-left: auto; }
+
+    /* PROJECTS SECTION */
+    .project-list { display: flex; flex-direction: column; gap: 10px; }
+    .project-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .project-card .phase-tag {
+      font-size: 0.65rem; font-weight: 700; padding: 3px 9px;
+      border-radius: 4px; flex-shrink: 0; min-width: 90px; text-align: center;
+    }
+    .project-card .phase-tag.construction { background: var(--green); color: #000; }
+    .project-card .phase-tag.tender { background: var(--yellow); color: #000; }
+    .project-card .phase-tag.preconstruction { background: var(--cyan); color: #000; }
+    .project-info { flex: 1; min-width: 0; }
+    .project-info .name { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .project-info .meta { font-size: 0.72rem; color: var(--muted); }
+    .project-info .meta span { margin-right: 10px; }
+
+    /* QUICK ACTIONS */
+    .quick-actions {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      margin-top: 28px;
+    }
+    .quick-action {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; text-align: center;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .quick-action:hover { border-color: var(--cyan); transform: translateY(-2px); }
+    .quick-action .icon { font-size: 1.4rem; margin-bottom: 6px; }
+    .quick-action .label { font-size: 0.8rem; font-weight: 600; }
+    .quick-action .desc { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+
+    @media (max-width: 900px) {
+      .tier-grid, .sector-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .quick-actions { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .tier-grid, .sector-grid, .location-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">🏗️ Territory <span>Intelligence</span></div>
+    <div class="header-badge">LEAD GROUP SEQ</div>
+  </div>
+  <div class="header-right">
+    <span>Apr 9, 2026</span>
+    <div class="day-count">Day -25</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="page-title">
+    <h1>🎯 Territory Command Center</h1>
+    <p>Your entire SEQ construction market — 78 companies, ranked &amp; ready to sell</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="label">Total Companies</div>
+      <div class="value" style="color:var(--cyan)">78</div>
+      <div class="sub">across all tiers</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Active Projects</div>
+      <div class="value" style="color:var(--green)">34</div>
+      <div class="sub">across 17 companies</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Tier 1 Allies</div>
+      <div class="value" style="color:var(--orange)">10</div>
+      <div class="sub">your power players</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Gold Coast Cos</div>
+      <div class="value" style="color:var(--purple)">52+</div>
+      <div class="sub">your home turf</div>
+    </div>
+  </div>
+
+  <!-- TIER MAP -->
+  <div class="section-title">
+    <span class="icon">🏆</span>
+    <h2>Tier Strategy — Know Who You're Calling</h2>
+  </div>
+  <div class="tier-grid" id="tierGrid"></div>
+  <div id="expandPanels"></div>
+
+  <!-- SECTOR BREAKDOWN -->
+  <div class="section-title">
+    <span class="icon">📊</span>
+    <h2>Sector Breakdown — Where the Work Is</h2>
+  </div>
+  <div class="sector-grid" id="sectorGrid"></div>
+
+  <!-- GEOGRAPHIC FOCUS -->
+  <div class="section-title">
+    <span class="icon">🗺️</span>
+    <h2>Gold Coast Heartland — Your Home Turf</h2>
+  </div>
+  <div class="location-grid" id="locationGrid"></div>
+
+  <!-- LIVE PROJECTS -->
+  <div class="section-title">
+    <span class="icon">🚧</span>
+    <h2>Live Projects — Hiring Signals Right Now</h2>
+  </div>
+  <div class="project-list" id="projectList"></div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="section-title">
+    <span class="icon">⚡</span>
+    <h2>Quick Actions</h2>
+  </div>
+  <div class="quick-actions">
+    <a href="/companies" class="quick-action">
+      <div class="icon">🏢</div>
+      <div class="label">All Companies</div>
+      <div class="desc">Browse full CRM</div>
+    </a>
+    <a href="/candidates" class="quick-action">
+      <div class="icon">👥</div>
+      <div class="label">Candidates</div>
+      <div class="desc">6 in database</div>
+    </a>
+    <a href="/lead-command" class="quick-action">
+      <div class="icon">⚡</div>
+      <div class="label">Lead Command</div>
+      <div class="desc">Prioritised pipeline</div>
+    </a>
+    <a href="/boolean" class="quick-action">
+      <div class="icon">🔍</div>
+      <div class="label">Boolean Builder</div>
+      <div class="desc">Search strings</div>
+    </a>
+  </div>
+
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const companies = [
+  {name:"Multiplex",tier:"Tier 2",sector:"Construction",location:"Gold Coast"},
+  {name:"CPB Contractors (CIMIC)",tier:"Tier 1",sector:"Contractor / Infra",location:"Brisbane / Gold Coast"},
+  {name:"McNab",tier:"Tier 2",sector:"Contractor",location:"Broadbeach / Gold Coast"},
+  {name:"ADCO Constructions",tier:"Tier 1",sector:"Contractor",location:"Gold Coast"},
+  {name:"Seymour Whyte (VINCI)",tier:"Tier 2",sector:"Civil Contractor",location:"Eight Mile Plains / Coomera"},
+  {name:"Icon Co",tier:"Tier 2",sector:"Construction",location:"Gold Coast"},
+  {name:"BMD Group",tier:"Tier 2",sector:"Civil Contractor",location:"Manly QLD / GC project-based"},
+  {name:"Mosaic Property Group",tier:"Tier 2",sector:"Construction",location:"Gold Coast"},
+  {name:"SIERA Group",tier:"Tier 2",sector:"Construction",location:"Gold Coast"},
+  {name:"Alder Group",tier:"Tier 2",sector:"Contractor (Civil + Building)",location:"Coomera / Beaudesert / Northern NSW"},
+  {name:"BESIX Watpac",tier:"Tier 1",sector:"Contractor",location:"Gold Coast"},
+  {name:"Richard Crookes",tier:"Tier 1",sector:"Contractor",location:"Gold Coast"},
+  {name:"Laing ORourke",tier:"Tier 1",sector:"Construction",location:"SEQ"},
+  {name:"Lendlease",tier:"Tier 1",sector:"Contractor / Developer",location:"Brisbane HQ / SEQ project-based"},
+  {name:"ACCIONA",tier:"Tier 1",sector:"Contractor (Civil / Infrastructure / Renewables)",location:"Brisbane / SEQ"},
+  {name:"AECOM",tier:"Tier 1",sector:"Civil Infrastructure",location:null},
+  {name:"Stantec",tier:"Tier 1",sector:"Civil Infrastructure",location:null},
+  {name:"UGL Group",tier:"Tier 1",sector:"Civil Infrastructure",location:null},
+  {name:"BADGE Constructions",tier:"Tier 2",sector:"Contractor (Health / Education / Commercial)",location:"Brisbane / Gold Coast project-based"},
+  {name:"Buildcorp",tier:"Tier 2",sector:"Contractor (Commercial / Health / Education / Fitout)",location:"Brisbane / Gold Coast"},
+  {name:"Condev Construction",tier:"Tier 2",sector:"Contractor (Residential / Commercial)",location:"Mermaid Beach HQ"},
+  {name:"Drew Group",tier:"Tier 2",sector:"Residential",location:"Gold Coast"},
+  {name:"FKG Group",tier:"Tier 2",sector:"Contractor (Health / Education / Government / Civil)",location:"Toowoomba / Brisbane / GC"},
+  {name:"Georgiou Group",tier:"Tier 2",sector:"Contractor (Civil / Infrastructure / Transport)",location:"Brisbane / Gold Coast / SEQ"},
+  {name:"Golding Contractors",tier:"Tier 2",sector:"Civil Infrastructure",location:null},
+  {name:"Hansen Yuncken",tier:"Tier 2",sector:"Contractor (Commercial / Health / Education)",location:"Brisbane / Gold Coast"},
+  {name:"Harrison Development Group",tier:"Tier 2",sector:"Development Consultancy",location:"Gold Coast"},
+  {name:"Hutchinson Builders",tier:"Tier 2",sector:"Construction",location:"Gold Coast"},
+  {name:"John Holland",tier:"Tier 2",sector:"Construction",location:"Gold Coast"},
+  {name:"Lattice Construction",tier:"Tier 2",sector:"Construction",location:"SEQ"},
+  {name:"Mainbrace Constructions",tier:"Tier 2",sector:"Contractor (Commercial / Fitout / Refurb)",location:"Gold Coast / Brisbane"},
+  {name:"Mayd Group",tier:"Tier 2",sector:"Developer (Boutique Luxury Residential / Mixed-Use)",location:"Burleigh Heads HQ"},
+  {name:"Monford Group",tier:"Tier 2",sector:"Infrastructure/Renewables",location:"Brisbane"},
+  {name:"Rohrig Constructions",tier:"Tier 2",sector:"Contractor (Commercial / Hospitality / Health / Education)",location:"Gold Coast / Brisbane / Northern NSW"},
+  {name:"S&S Projects",tier:"Tier 2",sector:"Developer (High-Rise Residential)",location:"Brisbane / Coolangatta / Southern GC"},
+  {name:"SHAPE Australia",tier:"Tier 2",sector:"Contractor (Commercial Fitout / Refurb / New Build)",location:"Burleigh + Brisbane"},
+  {name:"The Kasa Group",tier:"Tier 2",sector:"Residential/Commercial",location:"Gold Coast"},
+  {name:"Veolia",tier:"Tier 2",sector:"Industrial",location:null},
+  {name:"Zinfra",tier:"Tier 2",sector:"Energy Infrastructure",location:"Brisbane"},
+  {name:"5Point Projects",tier:"Tier 3",sector:"Construction",location:"Gold Coast"},
+  {name:"Coast Construct Co",tier:"Tier 3",sector:"Construction",location:"Gold Coast"},
+  {name:"G-Force Constructions",tier:"Tier 3",sector:"Commercial",location:"Gold Coast"},
+  {name:"Niecon Developments",tier:"Tier 3",sector:"Developer (Residential / Commercial)",location:"Broadbeach / Surfers Paradise"},
+  {name:"Shadforth Civil Contractors",tier:"Tier 3",sector:"Civil Infrastructure",location:"Gold Coast"},
+  {name:"Bastion Group",tier:"Boutique",sector:"Property Development",location:"Gold Coast"},
+  {name:"Chateau Developments",tier:"Boutique",sector:"Property Development",location:"Gold Coast"},
+  {name:"Gallery Group",tier:"Boutique",sector:"Property Development",location:"Gold Coast"},
+  {name:"Kokoda Property",tier:"Boutique",sector:"Developer",location:"Gold Coast"},
+  {name:"Lloyd Group",tier:"Boutique",sector:"Commercial",location:"Gold Coast"},
+  {name:"Northeast Group",tier:"Boutique",sector:"Commercial",location:"Gold Coast"},
+  {name:"CPM Advisory & Project Management",tier:"Consultant",sector:"Consultant (Independent Advisory / Project Management)",location:"Brisbane / SEQ"},
+  {name:"RCP Australia",tier:"Consultant",sector:"Consultant (Independent Project Management)",location:"Brisbane / Gold Coast"},
+  {name:"Turner & Townsend",tier:"Consultant",sector:"Consultant (Cost Management / Project Management)",location:"Brisbane / Gold Coast"},
+  {name:"City of Gold Coast (Council)",tier:"Government",sector:"Government / Client-Side",location:"Nerang / Gold Coast-wide"},
+  {name:"Cross River Rail Delivery Authority",tier:"Government",sector:"Government / Client-Side (Transport Infrastructure)",location:"Fortitude Valley / SEQ"},
+  {name:"Queensland Health Infrastructure",tier:"Government",sector:"Government / Client-Side (Health Infrastructure)",location:"Brisbane / GC University Hospital"},
+  {name:"G&H Plant Hire",tier:"SME",sector:"Civil/Plant Hire",location:"Yatala / Gold Coast"},
+  {name:"Inspire Homes QLD",tier:"SME",sector:"Residential",location:"Maudsland / Gold Coast"},
+  {name:"Aniko Group",tier:null,sector:"Construction",location:"Gold Coast"},
+  {name:"Bassar Group",tier:null,sector:"Residential",location:"Broadbeach"},
+  {name:"Gurner",tier:null,sector:"Property Development",location:"Gold Coast"},
+  {name:"Metricon Homes",tier:null,sector:"Developer/Builder",location:"Gold Coast"},
+  {name:"Morris Property Group",tier:null,sector:"Property Development",location:"Gold Coast"},
+  {name:"Mosaic",tier:null,sector:"Residential",location:"Mermaid Beach"},
+  {name:"Pettina Group",tier:null,sector:"Developer",location:"Gold Coast"},
+  {name:"Red & Co",tier:null,sector:"Developer",location:"Gold Coast"},
+  {name:"SandSky Developments",tier:null,sector:"Property Development",location:"Gold Coast"},
+  {name:"The Spit Development",tier:null,sector:"Developer",location:"Gold Coast"},
+  {name:"Villa World",tier:null,sector:"Developer",location:"Gold Coast"},
+  {name:"Dankav",tier:null,sector:null,location:null},
+  {name:"Mermaid Beach Development",tier:null,sector:null,location:null},
+  {name:"Mermaid Waters Construction",tier:null,sector:null,location:null},
+  {name:"Palm Beach Builders",tier:null,sector:null,location:null},
+  {name:"Paradise Point Development",tier:null,sector:null,location:null},
+  {name:"SPG Land",tier:null,sector:null,location:null},
+  {name:"Ausco",tier:"Tier 2",sector:"Modular",location:"Gold Coast"},
+  {name:"Interflow",tier:"Tier 2",sector:"Water Infrastructure",location:"Brisbane"},
+];
+
+const projects = [
+  {name:"Paradise Point Development",phase:"Tender",company:"Unknown",value:null},
+  {name:"Palm Beach Builders",phase:"Construction",company:"Unknown",value:null},
+  {name:"Mermaid Waters Construction",phase:"Construction",company:"Unknown",value:null},
+  {name:"Mermaid Beach Development",phase:"Construction",company:"Unknown",value:null},
+  {name:"Gold Coast Light Rail Stage 3",phase:"Construction",company:"John Holland / ACCIONA Alliance",value:"$1.2B+"},
+  {name:"Cross River Rail",phase:"Construction",company:"CRRDA / Pulse / UGL",value:"$5.4B"},
+  {name:"Queensland Health Infrastructure projects",phase:"Construction",company:"QHI",value:"Various"},
+  {name:"Brisbane Metro",phase:"Construction",company:"Brisbane City Council",value:"$1B+"},
+];
+
+const tierMeta = {
+  "Tier 1": {color:"var(--orange)",desc:"Major players. National + international scale. Hire regularly across all roles.",pct:13},
+  "Tier 2": {color:"var(--cyan)",desc:"Your bread & butter. 31 companies. Mid-scale SEQ-focused. Most active hiring.",pct:40},
+  "Tier 3": {color:"var(--yellow)",desc:"Smaller operators. 5 companies. Often need staff but less predictable.",pct:6},
+  "Boutique": {color:"var(--purple)",desc:"Luxury/high-end developers. 6 companies. Quality over quantity hiring.",pct:8},
+  "Consultant": {color:"var(--green)",desc:"Advisory & PM firms. 3 companies. Project-based need for staff.",pct:4},
+  "Government": {color:"var(--blue)",desc:"Client-side decision makers. 3 orgs. Key relationships for intel.",pct:4},
+  "SME": {color:"var(--pink)",desc:"Small/mid operators. 2 companies. Owner-run, can move fast on hires.",pct:3},
+  "null": {color:"var(--muted)",desc:"Tier TBD. 18 companies. Needs research to classify.",pct:23},
+};
+
+const tierClass = {
+  "Tier 1":"tier-1","Tier 2":"tier-2","Tier 3":"tier-3",
+  "Boutique":"boutique","Consultant":"consultant","Government":"government","SME":"sme","null":"none-tier"
+};
+const tierBadgeClass = {
+  "Tier 1":"t1","Tier 2":"t2","Tier 3":"t3",
+  "Boutique":"boutique","Consultant":"consultant","Government":"govt","SME":"sme","null":"none"
+};
+
+// ─── TIER GRID ───────────────────────────────────────────────────────────────
+const tierCounts = {};
+const tierCompanies = {};
+companies.forEach(c => {
+  const t = c.tier || "null";
+  tierCounts[t] = (tierCounts[t]||0)+1;
+  if(!tierCompanies[t]) tierCompanies[t]=[];
+  tierCompanies[t].push(c);
+});
+
+const sortedTiers = ["Tier 1","Tier 2","Tier 3","Boutique","Consultant","Government","SME","null"];
+const totalCos = companies.length;
+
+let tierGridHTML = '';
+sortedTiers.forEach(tier => {
+  const count = tierCounts[tier]||0;
+  const meta = tierMeta[tier];
+  const tc = tierClass[tier];
+  const pct = Math.round((count/totalCos)*100);
+  const cos = (tierCompanies[tier]||[]).slice(0,8);
+  tierGridHTML += `
+  <div class="tier-card ${tc}" onclick="togglePanel('${tier}')">
+    <div class="tier-header">
+      <div class="tier-name">${tier==='null'?'Unclassified':tier}</div>
+      <div class="tier-count">${count}</div>
+    </div>
+    <div class="tier-description">${meta.desc}</div>
+    <div class="tier-bar-bg"><div class="tier-bar-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:10px">${pct}% of market</div>
+    <div class="company-chips">
+      ${cos.map(c=>`<span class="company-chip">${c.name}</span>`).join('')}
+      ${count > 8 ? `<span class="company-chip" style="color:var(--cyan)">+${count-8} more →</span>` : ''}
+    </div>
+  </div>`;
+});
+document.getElementById('tierGrid').innerHTML = tierGridHTML;
+
+// ─── EXPAND PANELS ────────────────────────────────────────────────────────────
+let panelHTML = '';
+sortedTiers.forEach(tier => {
+  const cos = tierCompanies[tier]||[];
+  panelHTML += `
+  <div id="panel-${tier}" class="expand-panel">
+    <table>
+      <tr>
+        <th>Company</th><th>Sector</th><th>Location</th><th>Tier</th>
+      </tr>
+      ${cos.map(c=>`<tr>
+        <td><strong>${c.name}</strong></td>
+        <td style="color:var(--muted)">${c.sector||'—'}</td>
+        <td style="color:var(--muted)">${c.location||'—'}</td>
+        <td><span class="tier-badge ${tierBadgeClass[tier]||'none'}">${c.tier||'Unclassified'}</span></td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
+});
+document.getElementById('expandPanels').innerHTML = panelHTML;
+
+function togglePanel(tier) {
+  const panel = document.getElementById('panel-'+tier);
+  if(!panel) return;
+  const wasActive = panel.classList.contains('active');
+  document.querySelectorAll('.expand-panel').forEach(p=>p.classList.remove('active'));
+  if(!wasActive) panel.classList.add('active');
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ─── SECTOR GRID ──────────────────────────────────────────────────────────────
+const sectorCounts = {};
+companies.forEach(c => {
+  if(c.sector) sectorCounts[c.sector]=(sectorCounts[c.sector]||0)+1;
+});
+const sortedSectors = Object.entries(sectorCounts).sort((a,b)=>b[1]-a[1]).slice(0,12);
+const maxSector = sortedSectors[0]?sortedSectors[0][1]:1;
+
+let sectorGridHTML = '';
+sortedSectors.forEach(([sector,count]) => {
+  const pct = Math.round((count/maxSector)*100);
+  sectorGridHTML += `
+  <div class="sector-card">
+    <div>
+      <div class="sector-name">${sector}</div>
+      <div class="sector-bar"><div class="sector-bar-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="sector-count">${count}</div>
+  </div>`;
+});
+document.getElementById('sectorGrid').innerHTML = sectorGridHTML;
+
+// ─── LOCATION GRID ────────────────────────────────────────────────────────────
+const gcFirms = companies.filter(c=>c.location&&(c.location.includes('Gold Coast')||c.location.includes('Burleigh')||c.location.includes('Broadbeach')||c.location.includes('Nerang')||c.location.includes('Maudsland')||c.location.includes('Coomera')||c.location.includes('Beaudesert')||c.location.includes('Northern NSW')));
+const bneFirms = companies.filter(c=>c.location&&(c.location.includes('Brisbane')||c.location.includes('SEQ')&&!c.location.includes('Gold Coast')));
+
+const tierDotColor = {
+  "Tier 1":"var(--orange)","Tier 2":"var(--cyan)","Tier 3":"var(--yellow)",
+  "Boutique":"var(--purple)","Consultant":"var(--green)","Government":"var(--blue)","SME":"var(--pink)",null:"var(--muted)"
+};
+
+function makeFirmList(firms,limit=10) {
+  return firms.slice(0,limit).map(f=>`
+    <div class="location-firm">
+      <div class="tier-dot" style="background:${tierDotColor[f.tier]||'var(--muted)'}"></div>
+      ${f.name}
+      <span>${f.tier||'?'}</span>
+    </div>`).join('') + (firms.length>limit?`<div class="location-firm" style="color:var(--cyan)">+${firms.length-limit} more →</div>`:'');
+}
+
+document.getElementById('locationGrid').innerHTML = `
+  <div class="location-card">
+    <h3>🌊 Gold Coast Territory</h3>
+    <div class="loc-sub">${gcFirms.length} companies — your home market</div>
+    <div class="location-firms">${makeFirmList(gcFirms)}</div>
+  </div>
+  <div class="location-card">
+    <h3>🏙️ Brisbane / Regional</h3>
+    <div class="loc-sub">${bneFirms.length} companies — expansion territory</div>
+    <div class="location-firms">${makeFirmList(bneFirms)}</div>
+  </div>`;
+
+// ─── PROJECT LIST ─────────────────────────────────────────────────────────────
+let projectHTML = '';
+projects.forEach(p => {
+  projectHTML += `
+  <div class="project-card">
+    <div class="phase-tag ${p.phase.toLowerCase()}">${p.phase}</div>
+    <div class="project-info">
+      <div class="name">${p.name}</div>
+      <div class="meta">
+        <span>${p.company||'Unknown'}</span>
+        ${p.value?`<span style="color:var(--green)">${p.value}</span>`:''}
+      </div>
+    </div>
+  </div>`;
+});
+document.getElementById('projectList').innerHTML = projectHTML;
+</script>
+</body>
+</html>

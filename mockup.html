@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEQ CRM - Construction Recruitment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e3a5f;
+            --accent: #ff6b35;
+            --success: #2ecc71;
+            --warning: #f1c40f;
+            --danger: #e74c3c;
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #e0e4e8;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        
+        .logo span { color: var(--accent); }
+        
+        .nav {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .nav-btn:hover { background: rgba(255,255,255,0.2); }
+        .nav-btn.active { background: var(--accent); }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            width: 200px;
+            font-size: 14px;
+        }
+        
+        .search::placeholder { color: rgba(255,255,255,0.6); }
+        
+        .add-btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 25px 30px;
+        }
+        
+        .stat-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        
+        .stat-sub {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+        
+        .stat-value.accent { color: var(--accent); }
+        .stat-value.success { color: var(--success); }
+        
+        /* Pipeline */
+        .pipeline {
+            padding: 0 30px 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .kanban {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        
+        .column {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 400px;
+            border: 1px solid var(--border);
+        }
+        
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .column-title {
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .column-lead .column-title { color: var(--text-light); }
+        .column-contacted .column-title { color: #3498db; }
+        .column-interview .column-title { color: var(--warning); }
+        .column-placed .column-title { color: var(--success); }
+        
+        .column-count {
+            background: var(--bg);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .deal-card {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .deal-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .deal-company {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+        
+        .deal-role {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+        
+        .deal-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .deal-fee {
+            font-weight: 700;
+            color: var(--success);
+            font-size: 16px;
+        }
+        
+        .deal-prob {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #f0f0f0;
+            color: var(--text-light);
+        }
+        
+        .deal-prob.high { background: #d5f4e6; color: #27ae60; }
+        
+        .add-deal {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .add-deal:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        /* Contacts Grid */
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 0 30px 30px;
+        }
+        
+        .contact-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        
+        .contact-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .contact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .contact-name {
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .contact-company {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .score {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .score.high { background: #d5f4e6; color: #27ae60; }
+        .score.med { background: #fef3cd; color: #f39c12; }
+        .score.low { background: #f8d7da; color: #dc3545; }
+        
+        .contact-meta {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+        
+        .contact-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Tier Badges */
+        .tier {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .tier-1 { background: #dbeafe; color: #2563eb; }
+        .tier-2 { background: #fef3cd; color: #d97706; }
+        
+        /* Quick Add FAB */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(255, 107, 53, 0.5);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .kanban { grid-template-columns: repeat(2, 1fr); }
+            .contacts-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: 1fr; }
+            .kanban { grid-template-columns: 1fr; }
+            .contacts-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 15px; }
+            .nav { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">SEQ <span>CRM</span></div>
+        <nav class="nav">
+            <button class="nav-btn active">📊 Dashboard</button>
+            <button class="nav-btn">📋 Pipeline</button>
+            <button class="nav-btn">🏢 Companies</button>
+            <button class="nav-btn">👥 Contacts</button>
+            <button class="nav-btn">👔 Candidates</button>
+        </nav>
+        <div class="header-actions">
+            <input type="text" class="search" placeholder="🔍 Search...">
+            <button class="add-btn">+ Add</button>
+        </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-label">Pipeline Value</div>
+            <div class="stat-value accent">$135K</div>
+            <div class="stat-sub">4 Active Deals</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">This Month</div>
+            <div class="stat-value">12</div>
+            <div class="stat-sub">Placements</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Candidates</div>
+            <div class="stat-value success">6</div>
+            <div class="stat-sub">Active</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Contacts</div>
+            <div class="stat-value">34</div>
+            <div class="stat-sub">In Network</div>
+        </div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="pipeline">
+        <div class="section-title">📋 Pipeline</div>
+        <div class="kanban">
+            <!-- Lead -->
+            <div class="column column-lead">
+                <div class="column-header">
+                    <span class="column-title">Lead</span>
+                    <span class="column-count">2</span>
+                </div>
+                <div class="deal-card">
+                    <div class="deal-company">Alder Group</div>
+                    <div class="deal-role">Project Director</div>
+                    <div class="deal-value">
+                        <span class="deal-fee">$45K</span>
+                        <span class="deal-prob">20%</span>
+                    </div>
+                </div>
+                <div class="deal-card">
+                    <div class="deal-company">Lendlease</div>
+                    <div class="deal-role">Senior PM</div>
+                    <div class="deal-value">
+                        <span class="deal-fee">$55K</span>
+                        <span class="deal-prob">15%</span>
+                    </div>
+                </div>
+                <button class="add-deal">+ Add Deal</button>
+            </div>
+            
+            <!-- Contacted -->
+            <div class="column column-contacted">
+                <div class="column-header">
+                    <span class="column-title">Contacted</span>
+                    <span class="column-count">1</span>
+                </div>
+                <div class="deal-card">
+                    <div class="deal-company">CPB Contractors</div>
+                    <div class="deal-role">Construction Director</div>
+                    <div class="deal-value">
+                        <span class="deal-fee">$60K</span>
+                        <span class="deal-prob high">40%</span>
+                    </div>
+                </div>
+                <button class="add-deal">+ Add Deal</button>
+            </div>
+            
+            <!-- Interview -->
+            <div class="column column-interview">
+                <div class="column-header">
+                    <span class="column-title">Interview</span>
+                    <span class="column-count">1</span>
+                </div>
+                <div class="deal-card">
+                    <div class="deal-company">Multiplex</div>
+                    <div class="deal-role">GM Construction</div>
+                    <div class="deal-value">
+                        <span class="deal-fee">$80K</span>
+                        <span class="deal-prob high">60%</span>
+                    </div>
+                </div>
+                <button class="add-deal">+ Add Deal</button>
+            </div>
+            
+            <!-- Placed -->
+            <div class="column column-placed">
+                <div class="column-header">
+                    <span class="column-title">Placed</span>
+                    <span class="column-count">0</span>
+                </div>
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-light);">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🎉</div>
+                    <div>No placements yet</div>
+                </div>
+                <button class="add-deal">+ Add Deal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contacts -->
+    <div class="contacts-grid">
+        <div class="contact-card">
+            <div class="contact-header">
+                <div>
+                    <div class="contact-name">Glenn Robinson</div>
+                    <div class="contact-company">Multiplex</div>
+                </div>
+                <span class="tier tier-1">Tier 1</span>
+            </div>
+            <div class="score high">7</div>
+            <div class="contact-meta">Last: Feb 2026 • Call</div>
+            <div class="contact-actions">
+                <button class="action-btn">📞 Call</button>
+                <button class="action-btn">📧 Email</button>
+                <button class="action-btn">💬 LinkedIn</button>
+            </div>
+        </div>
+        
+        <div class="contact-card">
+            <div class="contact-header">
+                <div>
+                    <div class="contact-name">Nick Johnston</div>
+                    <div class="contact-company">Hutchinson Builders</div>
+                </div>
+                <span class="tier tier-1">Tier 1</span>
+            </div>
+            <div class="score med">6</div>
+            <div class="contact-meta">Last: Jan 2026 • LinkedIn</div>
+            <div class="contact-actions">
+                <button class="action-btn">📞 Call</button>
+                <button class="action-btn">📧 Email</button>
+                <button class="action-btn">💬 LinkedIn</button>
+            </div>
+        </div>
+        
+        <div class="contact-card">
+            <div class="contact-header">
+                <div>
+                    <div class="contact-name">Paul Ryan</div>
+                    <div class="contact-company">Lendlease</div>
+                </div>
+                <span class="tier tier-1">Tier 1</span>
+            </div>
+            <div class="score med">6</div>
+            <div class="contact-meta">Last: Feb 2026 • Call</div>
+            <div class="contact-actions">
+                <button class="action-btn">📞 Call</button>
+                <button class="action-btn">📧 Email</button>
+                <button class="action-btn">💬 LinkedIn</button>
+            </div>
+        </div>
+        
+        <div class="contact-card">
+            <div class="contact-header">
+                <div>
+                    <div class="contact-name">Jason Boyd</div>
+                    <div class="contact-company">Fulton Hogan</div>
+                </div>
+                <span class="tier tier-1">Tier 1</span>
+            </div>
+            <div class="score med">6</div>
+            <div class="contact-meta">Last: Feb 2026 • Call</div>
+            <div class="contact-actions">
+                <button class="action-btn">📞 Call</button>
+                <button class="action-btn">📧 Email</button>
+                <button class="action-btn">💬 LinkedIn</button>
+            </div>
+        </div>
+        
+        <div class="contact-card">
+            <div class="contact-header">
+                <div>
+                    <div class="contact-name">Martin Jacobs</div>
+                    <div class="contact-company">Rider Levett Bucknall</div>
+                </div>
+                <span class="tier tier-2">Tier 2</span>
+            </div>
+            <div class="score med">6</div>
+            <div class="contact-meta">Last: Feb 2026 • Call</div>
+            <div class="contact-actions">
+                <button class="action-btn">📞 Call</button>
+                <button class="action-btn">📧 Email</button>
+                <button class="action-btn">💬 LinkedIn</button>
+            </div>
+        </div>
+        
+        <div class="contact-card">
+            <div class="contact-header">
+                <div>
+                    <div class="contact-name">Brett White</div>
+                    <div class="contact-company">Hansen Yuncken</div>
+                </div>
+                <span class="tier tier-2">Tier 2</span>
+            </div>
+            <div class="score med">5</div>
+            <div class="contact-meta">Last: 2025 • LinkedIn</div>
+            <div class="contact-actions">
+                <button class="action-btn">📞 Call</button>
+                <button class="action-btn">📧 Email</button>
+                <button class="action-btn">💬 LinkedIn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAB -->
+    <button class="fab">+</button>
+</body>
+</html>

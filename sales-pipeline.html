@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Pipeline — SEQ CRM</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;--bg4:#222236;--border:#2a2a40;--blue:#4a9eff;--green:#34d399;--yellow:#fbbf24;--red:#f87171;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--white:#fff;--purple:#a78bfa;--orange:#fb923c;--pink:#f472b6}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;min-height:100vh}
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:4px;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:10}
+  .sidebar .logo{font-size:1.1rem;font-weight:700;color:var(--white);padding:0 8px 16px;border-bottom:1px solid var(--border);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .sidebar a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;text-decoration:none;color:var(--text2);font-size:0.88rem;font-weight:500;transition:all .15s}
+  .sidebar a:hover{background:var(--bg3);color:var(--white)}
+  .sidebar a.active{background:var(--bg4);color:var(--blue)}
+  .main{margin-left:240px;flex:1;padding:32px}
+  .page-header{margin-bottom:28px}
+  .page-header h1{font-size:1.6rem;font-weight:700;color:var(--white);margin-bottom:6px}
+  .page-header p{color:var(--text2);font-size:0.92rem}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+  .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .stat-card .stat-label{font-size:0.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;font-weight:600}
+  .stat-card .stat-value{font-size:1.8rem;font-weight:700;color:var(--white)}
+  .stat-card .stat-sub{font-size:0.8rem;color:var(--text3);margin-top:4px}
+  .pipeline-header{margin-bottom:20px}
+  .pipeline-header h2{font-size:1.2rem;font-weight:600;color:var(--white)}
+  .pipeline-count{font-size:0.8rem;color:var(--text3);margin-top:2px}
+  .stage{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px}
+  .stage-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .stage-dot{width:10px;height:10px;border-radius:50%}
+  .stage-title{font-size:0.9rem;font-weight:600;color:var(--white)}
+  .stage-badge{font-size:0.72rem;background:var(--bg3);color:var(--text3);padding:2px 8px;border-radius:10px;font-weight:600}
+  .deal-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+  .deal-card:hover{border-color:var(--blue);background:var(--bg4)}
+  .deal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+  .deal-name{font-size:0.9rem;font-weight:600;color:var(--white)}
+  .deal-value{font-size:0.82rem;font-weight:700;padding:2px 8px;border-radius:6px}
+  .deal-value.high{background:rgba(52,211,153,0.12);color:var(--green)}
+  .deal-value.med{background:rgba(251,191,36,0.12);color:var(--yellow)}
+  .deal-value.low{background:rgba(148,163,184,0.12);color:var(--text3)}
+  .deal-meta{display:flex;gap:16px;font-size:0.75rem;color:var(--text3)}
+  .deal-meta span{display:flex;align-items:center;gap:4px}
+  .add-deal-btn{width:100%;background:var(--bg3);border:2px dashed var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;color:var(--text3);font-size:0.85rem;font-weight:600;transition:all .15s;margin-top:4px}
+  .add-deal-btn:hover{background:var(--bg4);color:var(--text2);border-color:var(--blue)}
+  .flow-box{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:28px}
+  .flow-box h3{font-size:0.88rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;font-weight:600}
+  .flow-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .flow-step{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:0.8rem;color:var(--text);font-weight:500;white-space:nowrap}
+  .flow-step.active{border-color:var(--blue);background:rgba(74,158,255,0.08);color:var(--blue)}
+  .flow-arrow{color:var(--text3);font-size:0.7rem}
+  .section-gap{height:32px}
+
+  /* Modal */
+  .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center}
+  .modal-overlay.show{display:flex}
+  .modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+  .modal h3{font-size:1.1rem;font-weight:600;color:var(--white);margin-bottom:16px}
+  .modal label{display:block;font-size:0.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;font-weight:600;margin-top:14px}
+  .modal input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--white);font-size:0.88rem;outline:none}
+  .modal input:focus{border-color:var(--blue)}
+  .modal select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--white);font-size:0.88rem;outline:none}
+  .modal textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--white);font-size:0.88rem;outline:none;min-height:80px;resize:vertical;font-family:inherit}
+  .modal-btns{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+  .modal-btns button{padding:10px 20px;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+  .modal-btns .btn-primary{background:var(--blue);color:var(--white)}
+  .modal-btns .btn-primary:hover{background:#3a8eef}
+  .modal-btns .btn-cancel{background:var(--bg3);color:var(--text3)}
+  .modal-btns .btn-cancel:hover{background:var(--bg4);color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="logo">🦄 SEQ CRM</div>
+    <a href="/today">📊 Today</a>
+    <a href="/war-room">⚔️ War Room</a>
+    <a href="/pipeline-command">🎯 Pipeline Command</a>
+    <a href="/network-radar">🎯 Network Radar</a>
+    <a href="/content-command">📝 Content Command</a>
+    <a href="/sales-pipeline" class="active">🔄 Sales Pipeline</a>
+    <a href="/the-vault">🔐 The Vault</a>
+    <a href="/pre-launch">🚀 Pre-Launch</a>
+    <a href="/call-campaign">📞 Call Campaign</a>
+    <a href="/revenue-modeler">💰 Revenue Modeler</a>
+    <a href="/outreach">💌 Outreach Command</a>
+    <a href="/lead-command">📈 Lead Intelligence</a>
+    <a href="/call-summariser">📞 Call Summariser</a>
+  </nav>
+
+  <div class="main">
+    <div class="page-header">
+      <h1>🔄 Sales Pipeline</h1>
+      <p>Content → Nurture → Convert. Zero cold calls, zero sales calls. The automated one-person sales system.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Pipeline</div>
+        <div class="stat-value" id="totalDeals">0</div>
+        <div class="stat-sub">all stages</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pipeline Value</div>
+        <div class="stat-value" id="totalValue">$0</div>
+        <div class="stat-sub">potential revenue</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Briefs</div>
+        <div class="stat-value" id="activeBriefs">0</div>
+        <div class="stat-sub">awaiting candidate delivery</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Placements Closed</div>
+        <div class="stat-value" id="closedDeals">0</div>
+        <div class="stat-sub">won this year</div>
+      </div>
+    </div>
+
+    <div class="flow-box">
+      <h3>The Sales Flow</h3>
+      <div class="flow-steps">
+        <div class="flow-step active">📝 Content Post</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">💬 Comment / DM</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">📧 Email List</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">💌 Nurture (5 emails)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">📋 Placement Brief</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">✅ 3 Candidates Delivered</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">🏆 Placement Closed</div>
+      </div>
+    </div>
+
+    <div id="pipelineStages">
+      <!-- Stages rendered by JS -->
+    </div>
+
+    <div style="height:80px"></div>
+  </div>
+</div>
+
+<!-- Add Deal Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>🔄 New Pipeline Contact</h3>
+    <label>Company / Contact Name</label>
+    <input id="dealName" placeholder="e.g. Built — Sarah Kim HR Manager">
+    <label>Expected Fee</label>
+    <input id="dealValue" type="number" placeholder="e.g. 25000" value="25000">
+    <label>Source</label>
+    <select id="dealSource">
+      <option value="content">LinkedIn Content</option>
+      <option value="referral">Referral</option>
+      <option value="outreach">Direct Outreach</option>
+      <option value="inbound">Inbound (they found you)</option>
+    </select>
+    <label>Notes</label>
+    <textarea id="dealNotes" placeholder="What role are they looking for? Any urgency?"></textarea>
+    <label>Current Stage</label>
+    <select id="dealStage">
+      <option value="aware">Aware — Saw content</option>
+      <option value="engaged">Engaged — Subscribed / Downloading</option>
+      <option value="nurturing">Nurturing — In email sequence</option>
+      <option value="brief">Brief Sent — Placement brief delivered</option>
+      <option value="sourcing">Sourcing — Actively finding candidates</label>
+      <option value="presenting">Presenting — Candidates delivered</option>
+      <option value="negotiating">Negotiating — Terms / interviews</option>
+      <option value="won">🏆 Won — Placement closed</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveDeal()">Add to Pipeline</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGES = [
+  { key: 'aware', name: '🔍 Aware', color: 'var(--text3)', desc: 'Saw your content, following' },
+  { key: 'engaged', name: '💬 Engaged', color: 'var(--blue)', desc: 'Commented, DMd, downloading resource' },
+  { key: 'nurturing', name: '💌 Nurturing', color: 'var(--purple)', desc: 'On email list, receiving nurture sequence' },
+  { key: 'brief', name: '📋 Brief Sent', color: 'var(--orange)', desc: '14-Day Placement Brief delivered' },
+  { key: 'sourcing', name: '🔎 Sourcing', color: 'var(--yellow)', desc: 'Actively finding candidates' },
+  { key: 'presenting', name: '📤 Presenting', color: 'var(--pink)', desc: 'Candidates delivered to client' },
+  { key: 'won', name: '🏆 Won', color: 'var(--green)', desc: 'Placement closed' }
+];
+
+function loadDeals() {
+  const saved = localStorage.getItem('sales_pipeline_deals');
+  return saved ? JSON.parse(saved) : [];
+}
+
+function saveDeals(deals) {
+  localStorage.setItem('sales_pipeline_deals', JSON.stringify(deals));
+}
+
+function renderPipeline() {
+  const deals = loadDeals();
+  const container = document.getElementById('pipelineStages');
+  let totalValue = 0;
+  let activeBriefs = 0;
+  let closedDeals = 0;
+
+  let html = '';
+  STAGES.forEach(stage => {
+    const stageDeals = deals.filter(d => d.stage === stage.key);
+    const stageValue = stageDeals.reduce((sum, d) => sum + (parseInt(d.value) || 0), 0);
+    totalValue += stageValue;
+    if (stage.key === 'sourcing' || stage.key === 'presenting') activeBriefs += stageDeals.length;
+    if (stage.key === 'won') closedDeals += stageDeals.length;
+
+    html += `<div class="stage">
+      <div class="stage-header">
+        <div class="stage-dot" style="background:${stage.color}"></div>
+        <div class="stage-title">${stage.name}</div>
+        <div class="stage-badge">${stageDeals.length}</div>
+        <div style="margin-left:auto;font-size:0.78rem;color:var(--text3)">${stage.desc}</div>
+      </div>`;
+
+    stageDeals.forEach(deal => {
+      const valNum = parseInt(deal.value) || 0;
+      const valClass = valNum >= 25000 ? 'high' : valNum >= 15000 ? 'med' : 'low';
+      const valDisplay = valNum >= 1000 ? `$${(valNum/1000).toFixed(0)}K` : `$${valNum}`;
+
+      html += `<div class="deal-card" onclick="moveDeal('${deal.id}')">
+        <div class="deal-top">
+          <div class="deal-name">${escHtml(deal.name)}</div>
+          <div class="deal-value ${valClass}">${valDisplay}</div>
+        </div>
+        <div class="deal-meta">
+          <span>📅 ${deal.date || '—'}</span>
+          <span>🔗 ${deal.source || '—'}</span>
+          ${deal.notes ? `<span>📝 ${escHtml(deal.notes).substring(0, 40)}${deal.notes.length > 40 ? '...' : ''}</span>` : ''}
+        </div>
+      </div>`;
+    });
+
+    html += `<div class="add-deal-btn" onclick="openModal('${stage.key}')">+ Add contact to ${stage.name}</div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('totalDeals').textContent = deals.length;
+  document.getElementById('totalValue').textContent = `$${(totalValue/1000).toFixed(0)}K`;
+  document.getElementById('activeBriefs').textContent = activeBriefs;
+  document.getElementById('closedDeals').textContent = closedDeals;
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function openModal(stage) {
+  const modal = document.getElementById('addModal');
+  modal.classList.add('show');
+  if (stage) document.getElementById('dealStage').value = stage;
+}
+
+function closeModal() {
+  document.getElementById('addModal').classList.remove('show');
+  document.getElementById('dealName').value = '';
+  document.getElementById('dealNotes').value = '';
+}
+
+function saveDeal() {
+  const name = document.getElementById('dealName').value.trim();
+  const value = document.getElementById('dealValue').value;
+  const source = document.getElementById('dealSource').value;
+  const notes = document.getElementById('dealNotes').value.trim();
+  const stage = document.getElementById('dealStage').value;
+
+  if (!name) { alert('Enter a name'); return; }
+
+  const deals = loadDeals();
+  deals.push({
+    id: 'deal_' + Date.now(),
+    name,
+    value: parseInt(value) || 0,
+    source,
+    notes,
+    stage,
+    date: new Date().toLocaleDateString('en-AU', {day: '2-digit', month: 'short', year: 'numeric'})
+  });
+  saveDeals(deals);
+  renderPipeline();
+  closeModal();
+}
+
+function moveDeal(dealId) {
+  const deals = loadDeals();
+  const deal = deals.find(d => d.id === dealId);
+  if (!deal) return;
+
+  const stageIdx = STAGES.findIndex(s => s.key === deal.stage);
+  if (stageIdx === -1) return;
+
+  // If it's the last stage, ask to remove
+  if (stageIdx === STAGES.length - 1) {
+    if (confirm('Remove this deal from pipeline? (Already won)')) {
+      deals.splice(deals.indexOf(deal), 1);
+      saveDeals(deals);
+      renderPipeline();
+    }
+    return;
+  }
+
+  const nextStage = STAGES[stageIdx + 1];
+  if (confirm(`Move "${deal.name}" from "${STAGES[stageIdx].name}" to "${nextStage.name}"?`)) {
+    deal.stage = nextStage.key;
+    saveDeals(deals);
+    renderPipeline();
+  }
+}
+
+renderPipeline();
+</script>
+</body>
+</html>

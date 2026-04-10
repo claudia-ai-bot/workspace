@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; }
+        
+        .app { display: flex; height: 100vh; }
+        
+        /* SIDEBAR */
+        .sidebar { width: 200px; background: #161616; border-right: 1px solid #2a2a2a; padding: 20px 0; }
+        .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 14px 20px; color: #888; cursor: pointer; transition: 0.2s; border-left: 3px solid transparent; }
+        .sidebar-item:hover { background: #1f1f1f; color: #fff; }
+        .sidebar-item.active { background: #1f1f1f; color: #fff; border-left-color: #2563eb; }
+        
+        /* MAIN */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header { padding: 20px 30px; border-bottom: 1px solid #2a2a2a; }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        
+        .content { flex: 1; padding: 30px; overflow: auto; }
+        .view { display: none; }
+        .view.active { display: block; }
+        
+        /* CALENDAR */
+        .cal-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .cal-nav { display: flex; gap: 10px; }
+        .cal-nav button { background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        .cal-nav button:hover { background: #252525; }
+        
+        .cal-header { display: grid; grid-template-columns: 80px repeat(7, 1fr); gap: 2px; margin-bottom: 2px; }
+        .cal-day { background: #1a1a1a; padding: 12px; text-align: center; font-size: 13px; color: #888; }
+        .cal-day.today { color: #2563eb; }
+        
+        .cal-grid { display: grid; grid-template-columns: 80px repeat(7, 1fr); gap: 2px; min-height: 600px; }
+        .cal-time { background: #1a1a1a; padding: 8px; font-size: 12px; color: #555; text-align: right; }
+        .cal-cell { background: #141414; min-height: 50px; border: 1px solid #1e1e1e; position: relative; }
+        .cal-cell:hover { background: #1a1a1a; }
+        .cal-cell.drag-over { background: #1f1f2f; border-color: #2563eb; }
+        
+        /* TASKS */
+        .task { position: absolute; left: 2px; right: 2px; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: grab; z-index: 10; user-select: none; }
+        .task:active { cursor: grabbing; }
+        .task.reminders { background: #8b5cf6; }
+        .task.trading { background: #f59e0b; }
+        .task.system { background: #06b6d4; }
+        .task.health { background: #10b981; }
+        .task .delete { float: right; cursor: pointer; margin-left: 5px; opacity: 0.7; font-weight: bold; }
+        .task .delete:hover { opacity: 1; }
+        
+        .add-task-btn { background: #2563eb; border: none; color: #fff; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        
+        /* TEAM */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .agent-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 20px; }
+        .agent-card h3 { font-size: 18px; margin-bottom: 5px; }
+        .agent-card p { color: #666; font-size: 14px; }
+        
+        /* OFFICE */
+        .office-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 20px; text-align: center; }
+        .stat-box .value { font-size: 32px; font-weight: 600; color: #2563eb; }
+        .stat-box .label { font-size: 13px; color: #666; margin-top: 5px; }
+        
+        .jobs-list { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; overflow: hidden; }
+        .job-row { display: flex; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #2a2a2a; align-items: center; }
+        .job-row:last-child { border-bottom: none; }
+        .job-row .name { font-weight: 500; }
+        .job-row .status { font-size: 12px; padding: 4px 10px; border-radius: 12px; }
+        .job-row .status.enabled { background: #10b98122; color: #10b981; }
+        .job-row .status.disabled { background: #666622; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="sidebar">
+            <div class="sidebar-item active" data-view="calendar" onclick="switchView('calendar')">📅 Calendar</div>
+            <div class="sidebar-item" data-view="team" onclick="switchView('team')">👥 Team</div>
+            <div class="sidebar-item" data-view="office" onclick="switchView('office')">🏢 Office</div>
+        </div>
+        
+        <div class="main">
+            <!-- CALENDAR -->
+            <div class="view active" id="calendar-view">
+                <div class="header"><h1>Weekly Schedule</h1></div>
+                <div class="content">
+                    <div class="cal-controls">
+                        <div class="cal-nav">
+                            <button onclick="prevWeek()">← Prev</button>
+                            <button onclick="goToday()">Today</button>
+                            <button onclick="nextWeek()">Next →</button>
+                        </div>
+                        <span id="week-label"></span>
+                    </div>
+                    <div class="cal-header" id="cal-header"></div>
+                    <div class="cal-grid" id="cal-grid"></div>
+                    <button class="add-task-btn" onclick="addTask()">+ Add Task</button>
+                </div>
+            </div>
+            
+            <!-- TEAM -->
+            <div class="view" id="team-view">
+                <div class="header"><h1>Team</h1></div>
+                <div class="content">
+                    <div class="team-grid">
+                        <div class="agent-card"><h3>🤖 Claudia</h3><p>AI Assistant - Active</p></div>
+                        <div class="agent-card"><h3>🔧 Jason</h3><p>Coding Agent - Ready</p></div>
+                        <div class="agent-card"><h3>📊 Data</h3><p>Analytics Bot</p></div>
+                        <div class="agent-card"><h3>🔔 Alerts</h3><p>Notification Runner</p></div>
+                        <div class="agent-card"><h3>🔧 Jason</h3><p>Coding Agent - Ready</p></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- OFFICE -->
+            <div class="view" id="office-view">
+                <div class="header"><h1>Office</h1></div>
+                <div class="content">
+                    <div class="office-stats">
+                        <div class="stat-box"><div class="value" id="stat-total">-</div><div class="label">Total Jobs</div></div>
+                        <div class="stat-box"><div class="value" id="stat-enabled">-</div><div class="label">Enabled</div></div>
+                        <div class="stat-box"><div class="value" id="stat-runs">-</div><div class="label">Runs Today</div></div>
+                        <div class="stat-box"><div class="value" id="stat-next">-</div><div class="label">Next Run</div></div>
+                    </div>
+                    <h3 style="margin-bottom:15px;">Scheduled Jobs</h3>
+                    <div class="jobs-list" id="jobs-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var tasks = [
+            { id: 1, name: 'Morning Scan', day: 1, hour: 8, type: 'system' },
+            { id: 2, name: 'Trading Check', day: 1, hour: 9, type: 'trading' },
+            { id: 3, name: 'Health Reminder', day: 2, hour: 10, type: 'health' },
+            { id: 4, name: 'Reminder Check', day: 3, hour: 14, type: 'reminders' },
+            { id: 5, name: 'Evening Wrap', day: 4, hour: 18, type: 'system' },
+        ];
+        var currentWeekStart = getWeekStart(new Date());
+        var draggedTask = null;
+        
+        function getWeekStart(date) {
+            var d = new Date(date);
+            var day = d.getDay();
+            d.setDate(d.getDate() - day);
+            d.setHours(0,0,0,0);
+            return d;
+        }
+        
+        function switchView(viewName) {
+            document.querySelectorAll('.sidebar-item').forEach(function(el) { el.classList.remove('active'); });
+            document.querySelector('[data-view="'+viewName+'"]').classList.add('active');
+            document.querySelectorAll('.view').forEach(function(el) { el.classList.remove('active'); });
+            document.getElementById(viewName + '-view').classList.add('active');
+            if(viewName === 'calendar') renderCalendar();
+            if(viewName === 'office') loadOfficeData();
+        }
+        
+        function renderCalendar() {
+            var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            var today = new Date();
+            today.setHours(0,0,0,0);
+            
+            var weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            document.getElementById('week-label').textContent = 
+                currentWeekStart.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + 
+                ' - ' + weekEnd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+            
+            var hhtml = '<div class="cal-day"></div>';
+            for(var i=0; i<7; i++) {
+                var d = new Date(currentWeekStart);
+                d.setDate(d.getDate() + i);
+                var isToday = d.getTime() === today.getTime();
+                hhtml += '<div class="cal-day'+(isToday?' today':'')+'">'+days[i]+' '+d.getDate()+'</div>';
+            }
+            document.getElementById('cal-header').innerHTML = hhtml;
+            
+            var ghtml = '';
+            for(var h=6; h<22; h++) {
+                ghtml += '<div class="cal-time">'+(h<10?'0'+h:h)+':00</div>';
+                for(var d=0; d<7; d++) {
+                    ghtml += '<div class="cal-cell" data-day="'+d+'" data-hour="'+h+'" ondragover="allowDrop(event)" ondrop="drop(event)"></div>';
+                }
+            }
+            document.getElementById('cal-grid').innerHTML = ghtml;
+            
+            tasks.forEach(function(task) {
+                var cell = document.querySelector('.cal-cell[data-day="'+task.day+'"][data-hour="'+task.hour+'"]');
+                if(cell) {
+                    var div = document.createElement('div');
+                    div.className = 'task '+task.type;
+                    div.draggable = true;
+                    div.ondragstart = function(e) { draggedTask = task; e.dataTransfer.setData('text', task.id); };
+                    div.innerHTML = task.name+'<span class="delete" onclick="deleteTask('+task.id+')">×</span>';
+                    cell.appendChild(div);
+                }
+            });
+        }
+        
+        function allowDrop(e) {
+            e.preventDefault();
+            e.target.closest('.cal-cell').classList.add('drag-over');
+        }
+        
+        function drop(e) {
+            e.preventDefault();
+            var cell = e.target.closest('.cal-cell');
+            cell.classList.remove('drag-over');
+            if(draggedTask && cell) {
+                draggedTask.day = parseInt(cell.dataset.day);
+                draggedTask.hour = parseInt(cell.dataset.hour);
+                renderCalendar();
+            }
+        }
+        
+        function prevWeek() { currentWeekStart.setDate(currentWeekStart.getDate()-7); renderCalendar(); }
+        function nextWeek() { currentWeekStart.setDate(currentWeekStart.getDate()+7); renderCalendar(); }
+        function goToday() { currentWeekStart = getWeekStart(new Date()); renderCalendar(); }
+        
+        function addTask() {
+            var name = prompt('Task name:');
+            if(!name) return;
+            var day = parseInt(prompt('Day (0=Sun, 1=Mon, ... 6=Sat):') || '1');
+            var hour = parseInt(prompt('Hour (6-21):') || '12');
+            var type = prompt('Type (system, trading, health, reminders):') || 'system';
+            var id = tasks.length > 0 ? Math.max.apply(null, tasks.map(function(t){return t.id;})) + 1 : 1;
+            tasks.push({ id: id, name: name, day: day, hour: hour, type: type });
+            renderCalendar();
+        }
+        
+        function deleteTask(id) {
+            tasks = tasks.filter(function(t) { return t.id !== id; });
+            renderCalendar();
+        }
+        
+        function loadOfficeData() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/cron/jobs.json');
+            xhr.onload = function() {
+                if(xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        document.getElementById('stat-total').textContent = data.jobs ? data.jobs.length : 0;
+                        var enabled = data.jobs ? data.jobs.filter(function(j){ return j.enabled; }).length : 0;
+                        document.getElementById('stat-enabled').textContent = enabled;
+                        document.getElementById('stat-runs').textContent = '0';
+                        document.getElementById('stat-next').textContent = data.jobs && data.jobs[0] ? new Date(data.jobs[0].state.nextRunAtMs).toLocaleTimeString() : '-';
+                        var html = '';
+                        if(data.jobs) {
+                            data.jobs.forEach(function(job) {
+                                html += '<div class="job-row"><span class="name">'+job.name+'</span><span class="status '+(job.enabled?'enabled':'disabled')+'">'+(job.enabled?'Active':'Disabled')+'</span></div>';
+                            });
+                        }
+                        document.getElementById('jobs-list').innerHTML = html || 'No jobs';
+                    } catch(e) { document.getElementById('jobs-list').innerHTML = 'Error loading'; }
+                }
+            };
+            xhr.onerror = function() { document.getElementById('jobs-list').innerHTML = 'Error loading'; };
+            xhr.send();
+        }
+        
+        renderCalendar();
+    </script>
+</body>
+</html>

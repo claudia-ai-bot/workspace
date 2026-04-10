@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Candidate Submittal - {{ candidate.name }} - SEQ CRM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    @media print {
+      .no-print { display: none !important; }
+      body { padding: 0; }
+      .container { max-width: 100%; }
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    
+    .header { border-bottom: 3px solid #1e3a5f; padding-bottom: 20px; margin-bottom: 30px; }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    h1 { color: #1e3a5f; font-size: 28px; margin-bottom: 5px; }
+    .meta { color: #64748b; font-size: 16px; }
+    .meta span { margin-right: 15px; }
+    .availability { background: #ff6b35; color: white; padding: 6px 12px; border-radius: 20px; font-weight: 600; display: inline-block; margin-top: 10px; }
+    
+    .section { margin-bottom: 25px; }
+    .section-title { 
+      background: #1e3a5f; 
+      color: white; 
+      padding: 8px 15px; 
+      font-size: 14px; 
+      font-weight: 600; 
+      text-transform: uppercase; 
+      letter-spacing: 1px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    .overview { 
+      background: #f8fafc; 
+      padding: 20px; 
+      border-left: 4px solid #ff6b35; 
+      font-size: 16px; 
+      line-height: 1.6;
+    }
+    
+    .strengths { list-style: none; }
+    .strengths li { 
+      padding: 12px 15px; 
+      margin-bottom: 10px; 
+      background: #f1f5f9; 
+      border-radius: 6px; 
+      font-size: 15px;
+      border-left: 4px solid #10b981;
+    }
+    .strengths li:before { content: "✓ "; color: #10b981; font-weight: bold; margin-right: 5px; }
+    
+    .experience { 
+      background: #f8fafc; 
+      padding: 20px; 
+      border-radius: 6px; 
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+    
+    .interview-notes { 
+      background: #fff7ed; 
+      padding: 20px; 
+      border-radius: 6px; 
+      border-left: 4px solid #ff6b35;
+      line-height: 1.6;
+    }
+    
+    .no-content { color: #94a3b8; font-style: italic; }
+    
+    .buttons { 
+      position: fixed; 
+      bottom: 20px; 
+      right: 20px; 
+      display: flex; 
+      gap: 10px; 
+    }
+    .btn { 
+      background: #ff6b35; 
+      color: white; 
+      padding: 12px 24px; 
+      border: none; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      cursor: pointer; 
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+      text-decoration: none;
+    }
+    .btn:hover { background: #e55a2b; }
+    .btn-secondary { background: #64748b; }
+    .btn-secondary:hover { background: #475569; }
+    
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <h1>{{ candidate.name }}</h1>
+          <div class="meta">
+            <span>{{ submittal.title or candidate.title or 'TBD' }}</span> |
+            <span>{{ submittal.location or candidate.location or 'TBD' }}</span> |
+            <span>{{ submittal.salary or candidate.salary_band or 'TBD' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="availability">Available: {{ submittal.availability }}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Overview</div>
+      {% if submittal.why_good_fit %}
+      <div class="overview">{{ submittal.why_good_fit }}</div>
+      {% else %}
+      <p class="no-content">No overview provided.</p>
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <div class="section-title">Key Strengths</div>
+      <ul class="strengths">
+        {% if submittal.strength_1 %}<li>{{ submittal.strength_1 }}</li>{% endif %}
+        {% if submittal.strength_2 %}<li>{{ submittal.strength_2 }}</li>{% endif %}
+        {% if submittal.strength_3 %}<li>{{ submittal.strength_3 }}</li>{% endif %}
+        {% if not submittal.strength_1 and not submittal.strength_2 and not submittal.strength_3 %}
+        <li class="no-content">No strengths listed.</li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Experience Highlights</div>
+      {% if submittal.notes or candidate.notes %}
+      <div class="experience">{{ submittal.notes or candidate.notes }}</div>
+      {% else %}
+      <p class="no-content">No experience notes available.</p>
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <div class="section-title">Interview Notes</div>
+      {% if submittal.interview_notes %}
+      <div class="interview-notes">{{ submittal.interview_notes }}</div>
+      {% else %}
+      <p class="no-content">No interview notes provided.</p>
+      {% endif %}
+    </div>
+
+    <div class="footer">
+      Generated by SEQ Construction CRM | {{ "now"|date }}
+    </div>
+  </div>
+
+  <div class="buttons no-print">
+    <a href="/candidate/{{ candidate.id }}/submittal" class="btn btn-secondary">&larr; Back</a>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</body>
+</html>

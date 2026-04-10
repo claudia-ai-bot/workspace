@@ -1,0 +1,777 @@
+{% extends "base.html" %}
+
+{% block title %}Leads / Intel - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📰 Leads / Intel</h1>
+  <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <form method="get" style="display: inline;">
+      <input type="text" name="search" placeholder="Search intel..." value="{{ search }}" style="padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; width: 220px;">
+      <button type="submit" class="btn">Search</button>
+      {% if search %}
+      <a href="/leads" class="btn btn-secondary" style="margin-left: 5px;">Clear</a>
+      {% endif %}
+    </form>
+    <button class="btn" onclick="showAddForm()">+ Add Intel</button>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px;">
+  <span style="font-weight: 600; color: #374151; margin-right: 4px;">Filters:</span>
+  <select id="filterSector" onchange="applyFilters()" style="padding: 5px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; min-width: 130px;">
+    <option value="">All Sectors</option>
+    <option value="Civil Infrastructure">Civil Infrastructure</option>
+    <option value="Residential">Residential</option>
+    <option value="Commercial">Commercial</option>
+    <option value="Mixed-Use">Mixed-Use</option>
+    <option value="Industrial">Industrial</option>
+    <option value="Government">Government</option>
+    <option value="Construction">Construction</option>
+  </select>
+  <select id="filterLocation" onchange="applyFilters()" style="padding: 5px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; min-width: 110px;">
+    <option value="">All Locations</option>
+    <option value="Gold Coast">Gold Coast</option>
+    <option value="Brisbane">Brisbane</option>
+    <option value="Logan">Logan</option>
+    <option value="Sunshine Coast">Sunshine Coast</option>
+    <option value="Ipswich">Ipswich</option>
+    <option value="Moreton Bay">Moreton Bay</option>
+  </select>
+  <select id="filterOutcome" onchange="applyFilters()" style="padding: 5px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; min-width: 130px;">
+    <option value="">All Outcomes</option>
+    <option value="New Lead">New Lead</option>
+    <option value="In Progress">In Progress</option>
+    <option value="Closed">Closed</option>
+    <option value="Filled - Us">Filled - Us</option>
+    <option value="Filled - Competitor">Filled - Competitor</option>
+    <option value="Cancelled">Cancelled</option>
+  </select>
+  <select id="filterScore" onchange="applyFilters()" style="padding: 5px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; min-width: 120px;">
+    <option value="">All Scores</option>
+    <option value="hot">★ 70+ Hot</option>
+    <option value="warm">★ 50-69 Warm</option>
+    <option value="cool">30-49 Cool</option>
+    <option value="cold">&lt;30 Cold</option>
+  </select>
+  <select id="filterSource" onchange="applyFilters()" style="padding: 5px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; min-width: 110px;">
+    <option value="">All Sources</option>
+    <option value="LinkedIn">LinkedIn</option>
+    <option value="Adzuna">Adzuna</option>
+    <option value="Seek">Seek</option>
+    <option value="Google News">Google News</option>
+    <option value="Referral">Referral</option>
+    <option value="Website">Website</option>
+  </select>
+  <button onclick="clearFilters()" style="padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; cursor: pointer; font-size: 12px; color: #64748b;">Clear ✕</button>
+  <span id="filterCount" style="margin-left: auto; color: #64748b; font-size: 12px;"></span>
+</div>
+
+<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;font-size:12px;color:#64748b;">
+  <span style="font-weight:600;color:#374151;">Lead Score:</span>
+  <span style="background:#dcfce7;color:#166534;padding:1px 6px;border-radius:8px;">★ 70+</span> <span>Hot</span>
+  <span style="background:#fef9c3;color:#854d0e;padding:1px 6px;border-radius:8px;">★ 50-69</span> <span>Warm</span>
+  <span style="background:#fed7aa;color:#9a3412;padding:1px 6px;border-radius:8px;">30-49</span> <span>Cool</span>
+  <span style="background:#fee2e2;color:#991b1b;padding:1px 6px;border-radius:8px;">&lt;30</span> <span>Needs attention</span>
+  <span style="margin-left:auto;color:#94a3b8;">Auto-scored daily at 6:30am AEST</span>
+</div>
+
+<!-- Add Form -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2>Add Intel</h2>
+  <form id="leadForm">
+    <input type="hidden" id="leadId" />
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="text" id="leadDate" placeholder="e.g., 2026-03-11" />
+      </div>
+      <div class="form-group">
+        <label>Company</label>
+        <input type="text" id="leadCompany" placeholder="Company name" />
+      </div>
+      <div class="form-group">
+        <label>Intel Type</label>
+        <input type="text" id="leadType" placeholder="e.g., New Project, Hiring, Expansion" />
+      </div>
+      <div class="form-group">
+        <label>Source</label>
+        <input type="text" id="leadSource" placeholder="e.g., LinkedIn, Website, Referral" />
+      </div>
+      <div class="form-group">
+        <label>Source URL</label>
+        <input type="text" id="leadSourceUrl" placeholder="https://..." />
+      </div>
+      <div class="form-group">
+        <label>Role being hired for</label>
+        <input type="text" id="leadRoleSought" placeholder="e.g., Estimator, Site Manager, Project Manager" />
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>What It Means</label>
+      <textarea id="leadMeaning" rows="2" placeholder="Key intelligence..."></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Action Trigger</label>
+      <textarea id="leadAction" rows="2" placeholder="What should you do?"></textarea>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="leadLocation" placeholder="Gold Coast" />
+      </div>
+      <div class="form-group">
+        <label>Sector</label>
+        <select id="leadSector">
+          <option value="">-- Select --</option>
+          <option value="Civil Infrastructure">Civil Infrastructure</option>
+          <option value="Residential">Residential</option>
+          <option value="Commercial">Commercial</option>
+          <option value="Mixed-Use">Mixed-Use</option>
+          <option value="Industrial">Industrial</option>
+          <option value="Government">Government</option>
+          <option value="Construction">Construction</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Advert URL</label>
+        <input type="url" id="leadAdvertUrl" placeholder="https://..." />
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div class="form-group">
+        <label>Hiring Manager</label>
+        <input type="text" id="leadHiringManager" placeholder="Name" />
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" id="leadPhone" placeholder="Number" />
+      </div>
+    </div>
+    
+    <button type="submit" class="btn">Save</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Leads Table -->
+<style>
+th { background: #f8fafc; position: sticky; top: 0; z-index: 2; }
+th[onclick] { color: #1e3a5f; }
+th[onclick]:hover { background: #e2e8f0; }
+.sortIcon { font-size: 10px; margin-left: 3px; color: #94a3b8; }
+thead th { box-shadow: 0 1px 0 #e2e8f0; }
+table { border-collapse: collapse; }
+td, th { padding: 6px 8px; text-align: left; }
+tbody tr:hover { background: #f8fafc; }
+</style>
+<table style="table-layout:fixed; width:100%;">
+  <colgroup>
+    <col style="width:60px">    <!-- Score -->
+    <col style="width:80px">    <!-- Date -->
+    <col style="width:160px">   <!-- Company -->
+    <col style="width:90px">    <!-- Location -->
+    <col style="width:100px">  <!-- Sector -->
+    <col style="width:70px">   <!-- Source -->
+    <col style="width:190px">  <!-- What It Means -->
+    <col style="width:120px">  <!-- Hiring Manager -->
+    <col style="width:100px">  <!-- Phone -->
+    <col style="width:55px">   <!-- Advert -->
+    <col style="width:100px">  <!-- Outcome -->
+    <col style="width:120px">   <!-- Action -->
+  </colgroup>
+  <thead>
+    <tr style="background: #f8fafc;">
+      <th style="cursor:pointer; user-select:none;" onclick="sortTable('score')" title="Sort by Score">Score <span class="sortIcon" data-col="score"></span></th>
+      <th style="cursor:pointer; user-select:none;" onclick="sortTable('date')" title="Sort by Date">Date <span class="sortIcon" data-col="date"></span></th>
+      <th style="cursor:pointer; user-select:none;" onclick="sortTable('company')" title="Sort by Company">Company <span class="sortIcon" data-col="company"></span></th>
+      <th style="cursor:pointer; user-select:none;" onclick="sortTable('location')" title="Sort by Location">Location <span class="sortIcon" data-col="location"></span></th>
+      <th style="cursor:pointer; user-select:none;" onclick="sortTable('sector')" title="Sort by Sector">Sector <span class="sortIcon" data-col="sector"></span></th>
+      <th style="cursor:pointer; user-select:none;" onclick="sortTable('source')" title="Sort by Source">Source <span class="sortIcon" data-col="source"></span></th>
+      <th>What It Means</th>
+      <th>Hiring Manager</th>
+      <th>Phone</th>
+      <th>Advert</th>
+      <th style="cursor:pointer; user-select:none;" onclick="sortTable('outcome')" title="Sort by Outcome">Outcome <span class="sortIcon" data-col="outcome"></span></th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for lead in leads %}
+    <tr>
+      <td style="white-space:nowrap;">
+        {% if lead.lead_score is not none %}
+          {% if lead.lead_score >= 70 %}
+            <span style="background:#dcfce7;color:#166534;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;" title="Score: {{ lead.lead_score }}/100">★ {{ lead.lead_score }}</span>
+          {% elif lead.lead_score >= 50 %}
+            <span style="background:#fef9c3;color:#854d0e;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;" title="Score: {{ lead.lead_score }}/100">★ {{ lead.lead_score }}</span>
+          {% elif lead.lead_score >= 30 %}
+            <span style="background:#fed7aa;color:#9a3412;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;" title="Score: {{ lead.lead_score }}/100">{{ lead.lead_score }}</span>
+          {% else %}
+            <span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;" title="Score: {{ lead.lead_score }}/100">{{ lead.lead_score }}</span>
+          {% endif %}
+        {% else %}
+          <span style="color:#cbd5e1;">—</span>
+        {% endif %}
+      </td>
+      <td style="white-space:nowrap;">{{ lead.date|format_date_short if lead.date else '-' }}</td>
+      <td>
+        {% if lead.company_id %}<a href="/company/{{ lead.company_id }}" style="color:#1e3a5f; font-weight:600;">{{ lead.company }}</a>{% else %}<a href="/companies?search={{ lead.company|urlencode }}" style="color:#1e3a5f; font-weight:600;">{{ lead.company }}</a>{% endif %}
+        {% if lead.intel_type and '(' in lead.intel_type %}
+          <div style="font-size:12px; color:#64748b; margin-top:2px;">{{ lead.intel_type.split('(')[1].rstrip(')') }}</div>
+        {% endif %}
+      </td>
+      <td>{{ lead.location or '-' }}</td>
+      <td>
+        {% set s = lead.sector or '' %}
+        {% if s == 'Civil Infrastructure' %}<span style="background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:10px;font-size:11px;white-space:nowrap;">🏗 Civil</span>
+        {% elif s == 'Residential' %}<span style="background:#dcfce7;color:#166534;padding:2px 7px;border-radius:10px;font-size:11px;">🏠 Residential</span>
+        {% elif s == 'Commercial' %}<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:11px;">🏢 Commercial</span>
+        {% elif s == 'Mixed-Use' %}<span style="background:#f3e8ff;color:#6b21a8;padding:2px 7px;border-radius:10px;font-size:11px;">🔀 Mixed-Use</span>
+        {% elif s == 'Government' %}<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:11px;">🏛 Govt</span>
+        {% elif s == 'Industrial' %}<span style="background:#fff7ed;color:#c2410c;padding:2px 7px;border-radius:10px;font-size:11px;">🏭 Industrial</span>
+        {% elif s %}<span style="background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:10px;font-size:11px;">{{ s }}</span>
+        {% else %}-{% endif %}
+      </td>
+      <td>{{ lead.source or '-' }}</td>
+      <td style="overflow:hidden; max-width:220px;" title="{{ lead.what_it_means or '' }}">{{ lead.what_it_means or '-' }}</td>
+      <td>
+        <input type="text" value="{{ lead.hiring_manager or '' }}" onblur="updateLeadField({{ lead.id }}, 'hiring_manager', this.value)" placeholder="Name" style="width:100%; border:none; background:transparent; padding:2px; font-size:13px;" />
+        <input type="text" value="{{ lead.hiring_manager_title or '' }}" onblur="updateLeadField({{ lead.id }}, 'hiring_manager_title', this.value)" placeholder="Title" style="width:100%; border:none; background:transparent; padding:2px; font-size:11px; color:#64748b;" />
+      </td>
+      <td><input type="text" value="{{ lead.phone or '' }}" onblur="updateLeadField({{ lead.id }}, 'phone', this.value)" placeholder="Number" style="width:100%; border:none; background:transparent; padding:2px; font-size:13px;" /></td>
+      <td>{% if lead.job_advert_id %}<a href="/job-advert/{{ lead.job_advert_id }}" style="color: var(--primary);">View ↗</a>{% elif lead.advert_url %}<a href="{{ lead.advert_url }}" target="_blank" style="color: var(--primary);">View ↗</a>{% elif lead.source_url %}<a href="{{ lead.source_url }}" target="_blank" rel="noopener noreferrer" style="color: var(--primary);">View ↗</a>{% elif lead.action_trigger and lead.action_trigger.startswith('http') %}<a href="{{ lead.action_trigger }}" target="_blank" rel="noopener noreferrer" style="color: var(--primary);">View ↗</a>{% else %}—{% endif %}</td>
+      <td>
+        <select onchange="updateLeadOutcome({{ lead.id }}, this.value)" style="padding:3px 6px; border-radius:4px; border:1px solid #ddd; font-size:12px; background:{% if lead.outcome == 'Filled - Us' %}#dcfce7{% elif lead.outcome == 'Filled - Competitor' %}#fef9c3{% elif lead.outcome == 'Closed' or lead.outcome == 'Cancelled' %}#fee2e2{% elif lead.outcome == 'In Progress' %}#dbeafe{% else %}#f1f5f9{% endif %};">
+          {% for opt in ['New Lead', 'In Progress', 'Closed', 'Filled - Us', 'Filled - Competitor', 'Cancelled'] %}
+          <option value="{{ opt }}" {% if lead.outcome == opt %}selected{% endif %}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td>
+        {% if lead.hiring_manager %}<button class="quick-action" onclick="addContactFromLead({{ lead.id }}, '{{ lead.company|replace("'","\\'") }}', '{{ lead.hiring_manager|replace("'","\\'") }}', '{{ (lead.hiring_manager_title or '')|replace("'","\\'") }}')" title="Add to CRM contacts" style="background:#dcfce7;color:#166534;">+ Contact</button>{% endif %}
+        <a href="#" onclick="editLead({{ lead.id }}); return false;">Edit</a> | 
+        <a href="#" onclick="deleteLead('{{ lead.company }}', {{ lead.id }}); return false;" style="color: #ef4444;">Del</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not leads %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">
+  No intel yet. <a href="#" onclick="showAddForm(); return false;">Add one now.</a>
+</p>
+{% endif %}
+
+<!-- Add Contact from Lead Modal -->
+<div id="addContactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:28px; border-radius:8px; max-width:480px; width:90%;">
+    <h2 style="color:#1e3a5f; margin-bottom:16px;">➕ Add Contact to CRM</h2>
+    
+    <div id="companyWarning" style="display:none; background:#fef3c7; border:1px solid #fcd34d; padding:12px; border-radius:6px; margin-bottom:16px; font-size:13px;">
+      ⚠️ <strong id="companyWarningName"></strong> is not in your CRM companies list.<br>
+      <div style="margin-top:8px; display:flex; gap:8px;">
+        <button onclick="createNewCompany()" style="background:#1e3a5f;color:white;padding:6px 14px;border:none;border-radius:4px;cursor:pointer;font-size:12px;">+ Create Company</button>
+        <button onclick="linkToExisting()" style="background:#e2e8f0;color:#334155;padding:6px 14px;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Link to Existing</button>
+      </div>
+    </div>
+
+    <div id="existingCompanyPicker" style="display:none; margin-bottom:16px;">
+      <label style="font-size:13px; font-weight:600;">Choose existing company:</label>
+      <select id="existingCompanySelect" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin-top:6px;">
+        <option value="">-- Select --</option>
+      </select>
+      <button onclick="confirmExistingCompany()" style="margin-top:8px; background:#1e3a5f;color:white;padding:6px 14px;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Use This Company</button>
+    </div>
+
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="acName" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+    </div>
+    <div class="form-group">
+      <label>Title / Role</label>
+      <input type="text" id="acTitle" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+    </div>
+    <div class="form-group">
+      <label>Company</label>
+      <input type="text" id="acCompany" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" readonly />
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" id="acPhone" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="text" id="acEmail" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="acNotes" rows="2" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;"></textarea>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button onclick="saveContactFromLead()" style="background:#1e3a5f;color:white;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;flex:1;">Save Contact</button>
+      <button onclick="document.getElementById('addContactModal').style.display='none'" style="background:#e2e8f0;color:#334155;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px;">
+    <h2 style="color: #ef4444;">Delete Intel?</h2>
+    <p>Type company name to confirm:</p>
+    <p id="deleteConfirmText" style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-weight: bold;"></p>
+    <input type="text" id="deleteConfirmInput" placeholder="Type to confirm" style="width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ddd; border-radius: 4px;" />
+    <div style="display: flex; gap: 10px;">
+      <button onclick="confirmDelete()" class="btn" style="background: #ef4444; flex: 1;">Delete</button>
+      <button onclick="closeDeleteModal()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('leadForm').reset();
+  document.getElementById('leadId').value = '';
+  document.querySelector('#formContainer h2').textContent = 'Add Intel';
+  window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+let deleteLeadId = null;
+
+function updateLeadOutcome(id, outcome) {
+  fetch('/api/lead/' + id + '/outcome', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({outcome: outcome})
+  });
+}
+
+function updateLeadField(id, field, value) {
+  fetch('/api/lead/' + id + '/field', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({field: field, value: value})
+  });
+}
+
+function deleteLead(company, id) {
+  deleteLeadId = id;
+  document.getElementById('deleteConfirmText').textContent = company;
+  document.getElementById('deleteModal').style.display = 'flex';
+  document.getElementById('deleteConfirmInput').value = '';
+  document.getElementById('deleteConfirmInput').focus();
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
+async function confirmDelete() {
+  const input = document.getElementById('deleteConfirmInput').value;
+  const confirmText = document.getElementById('deleteConfirmText').textContent;
+  if (input !== confirmText) { alert('Name does not match'); return; }
+  await fetch('/api/delete/lead/' + deleteLeadId, { method: 'POST' });
+  location.reload();
+}
+
+function editLead(id) {
+  fetch('/api/lead/' + id)
+    .then(r => r.json())
+    .then(lead => {
+      // Show form first (without reset)
+      document.getElementById('formContainer').style.display = 'block';
+      window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+      document.querySelector('#formContainer h2').textContent = 'Edit Lead';
+      // Now populate
+      document.getElementById('leadId').value = lead.id;
+      document.getElementById('leadDate').value = lead.date || '';
+      document.getElementById('leadCompany').value = lead.company || '';
+      document.getElementById('leadType').value = lead.intel_type || '';
+      document.getElementById('leadSource').value = lead.source || '';
+      document.getElementById('leadSourceUrl').value = lead.source_url || '';
+      document.getElementById('leadRoleSought').value = lead.role_sought || '';
+      document.getElementById('leadMeaning').value = lead.what_it_means || '';
+      document.getElementById('leadAction').value = lead.action_trigger || '';
+      document.getElementById('leadAdvertUrl').value = lead.advert_url || '';
+      if (document.getElementById('leadSector')) document.getElementById('leadSector').value = lead.sector || '';
+      if (document.getElementById('leadLocation')) document.getElementById('leadLocation').value = lead.location || '';
+      if (document.getElementById('leadHiringManager')) document.getElementById('leadHiringManager').value = lead.hiring_manager || '';
+      if (document.getElementById('leadPhone')) document.getElementById('leadPhone').value = lead.phone || '';
+    });
+}
+
+document.getElementById('leadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    id: parseInt(document.getElementById('leadId').value) || null,
+    date: document.getElementById('leadDate').value,
+    company: document.getElementById('leadCompany').value,
+    intel_type: document.getElementById('leadType').value,
+    source: document.getElementById('leadSource').value,
+    role_sought: document.getElementById('leadRoleSought').value,
+    what_it_means: document.getElementById('leadMeaning').value,
+    action_trigger: document.getElementById('leadAction').value,
+    advert_url: document.getElementById('leadAdvertUrl').value,
+    source_url: document.getElementById('leadSourceUrl').value,
+    location: document.getElementById('leadLocation') ? document.getElementById('leadLocation').value : '',
+    sector: document.getElementById('leadSector') ? document.getElementById('leadSector').value : '',
+    hiring_manager: document.getElementById('leadHiringManager') ? document.getElementById('leadHiringManager').value : '',
+    phone: document.getElementById('leadPhone') ? document.getElementById('leadPhone').value : ''
+  };
+  const response = await fetch('/api/lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (response.ok) { location.reload(); } else { alert('Error saving'); }
+});
+
+// Add Contact from Lead
+let _acLeadId = null;
+let _acCompanyId = null;
+
+async function addContactFromLead(leadId, company, name, title) {
+  _acLeadId = leadId;
+  _acCompanyId = null;
+  
+  document.getElementById('acName').value = name;
+  document.getElementById('acTitle').value = title;
+  document.getElementById('acCompany').value = company;
+  document.getElementById('acPhone').value = '';
+  document.getElementById('acEmail').value = '';
+  document.getElementById('acNotes').value = `Lead from job advert — ${title} role`;
+  document.getElementById('companyWarning').style.display = 'none';
+  document.getElementById('existingCompanyPicker').style.display = 'none';
+  
+  // Check if company exists in CRM
+  const resp = await fetch('/api/companies-list');
+  const companies = await resp.json();
+  const match = companies.find(c => c.name.toLowerCase().includes(company.toLowerCase()) || company.toLowerCase().includes(c.name.toLowerCase()));
+  
+  if (match) {
+    _acCompanyId = match.id;
+  } else {
+    // Company not in CRM — show warning
+    document.getElementById('companyWarningName').textContent = company;
+    document.getElementById('companyWarning').style.display = 'block';
+    
+    // Populate existing company picker
+    const sel = document.getElementById('existingCompanySelect');
+    sel.innerHTML = '<option value="">-- Select company --</option>';
+    companies.forEach(c => {
+      sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+  }
+  
+  document.getElementById('addContactModal').style.display = 'flex';
+}
+
+function createNewCompany() {
+  const company = document.getElementById('acCompany').value;
+  document.getElementById('companyWarning').style.display = 'none';
+  // Will create company on save
+  _acCompanyId = -1;  // Flag: create new
+}
+
+function linkToExisting() {
+  document.getElementById('existingCompanyPicker').style.display = 'block';
+}
+
+function confirmExistingCompany() {
+  const sel = document.getElementById('existingCompanySelect');
+  _acCompanyId = parseInt(sel.value) || null;
+  const selectedText = sel.options[sel.selectedIndex].text;
+  if (_acCompanyId) {
+    document.getElementById('acCompany').value = selectedText;
+    document.getElementById('existingCompanyPicker').style.display = 'none';
+    document.getElementById('companyWarning').style.display = 'none';
+  }
+}
+
+async function saveContactFromLead() {
+  const name = document.getElementById('acName').value;
+  const company = document.getElementById('acCompany').value;
+  
+  if (!name || !company) { alert('Name and company are required'); return; }
+  
+  // Create company first if needed
+  if (_acCompanyId === -1) {
+    const resp = await fetch('/api/company', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name: company, sector: 'Construction', tier: 'Tier 2'})
+    });
+    const data = await resp.json();
+    _acCompanyId = data.id || null;
+  }
+  
+  const contactData = {
+    contact_name: name,
+    company: company,
+    company_id: _acCompanyId,
+    type: 'Hiring Manager',
+    relationship_score: 1,
+    notes: document.getElementById('acNotes').value,
+    phone: document.getElementById('acPhone').value || null,
+    email: document.getElementById('acEmail').value || null,
+    personal_detail: document.getElementById('acTitle').value
+  };
+  
+  const resp = await fetch('/api/contact', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(contactData)
+  });
+  
+  if (resp.ok) {
+    document.getElementById('addContactModal').style.display = 'none';
+    alert(`✅ ${name} added to contacts!`);
+  } else {
+    alert('Error saving contact');
+  }
+}
+
+// Hunter.io Enrichment Modal with Role Intelligence
+// ── Filter & Sort ──────────────────────────────────────────────
+let currentSort = { col: 'date', dir: 'desc' };
+
+function applyFilters() {
+  const sector = document.getElementById('filterSector').value;
+  const location = document.getElementById('filterLocation').value;
+  const outcome = document.getElementById('filterOutcome').value;
+  const score = document.getElementById('filterScore').value;
+  const source = document.getElementById('filterSource').value;
+  const search = document.querySelector('input[name="search"]').value.toLowerCase();
+  const rows = document.querySelectorAll('tbody tr');
+  let visible = 0;
+
+  rows.forEach(row => {
+    const sectorText  = row.dataset.sector   || '';
+    const locationText= row.dataset.location || '';
+    const outcomeText = row.dataset.outcome  || '';
+    const scoreText   = row.dataset.score    || '';
+    const sourceText  = row.dataset.source   || '';
+    const companyText = row.dataset.company  || '';
+    const textContent = row.textContent.toLowerCase();
+
+    let show = true;
+    if (sector   && sectorText   !== sector)   show = false;
+    if (location && locationText !== location) show = false;
+    if (outcome  && outcomeText  !== outcome)  show = false;
+    if (source   && sourceText    !== source)   show = false;
+    if (score) {
+      const s = parseInt(scoreText) || 0;
+      if (score === 'hot'  && s < 70) show = false;
+      if (score === 'warm' && (s < 50 || s >= 70)) show = false;
+      if (score === 'cool' && (s < 30 || s >= 50)) show = false;
+      if (score === 'cold' && s >= 30) show = false;
+    }
+    if (search && !textContent.includes(search) && !companyText.toLowerCase().includes(search)) show = false;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  document.getElementById('filterCount').textContent = visible + ' of ' + rows.length + ' shown';
+  if (sector || location || outcome || score || source || search) {
+    document.getElementById('filterCount').textContent += ' ✕';
+    document.getElementById('filterCount').style.cursor = 'pointer';
+    document.getElementById('filterCount').onclick = clearFilters;
+  } else {
+    document.getElementById('filterCount').onclick = null;
+    document.getElementById('filterCount').style.cursor = '';
+  }
+}
+
+function clearFilters() {
+  document.getElementById('filterSector').value   = '';
+  document.getElementById('filterLocation').value = '';
+  document.getElementById('filterOutcome').value  = '';
+  document.getElementById('filterScore').value    = '';
+  document.getElementById('filterSource').value    = '';
+  applyFilters();
+}
+
+function sortTable(col) {
+  if (currentSort.col === col) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.col = col;
+    currentSort.dir = 'desc';
+  }
+  document.querySelectorAll('.sortIcon').forEach(el => el.textContent = '');
+  const icon = document.querySelector('.sortIcon[data-col="' + col + '"]');
+  icon.textContent = currentSort.dir === 'asc' ? '▲' : '▼';
+
+  const tbody = document.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+
+  rows.sort((a, b) => {
+    let aVal = a.dataset[col] || a.querySelector('td:nth-child(' + getColIndex(col) + ')')?.textContent.trim() || '';
+    let bVal = b.dataset[col] || b.querySelector('td:nth-child(' + getColIndex(col) + ')')?.textContent.trim() || '';
+
+    // Numeric score
+    if (col === 'score') {
+      aVal = parseInt(aVal) || 0;
+      bVal = parseInt(bVal) || 0;
+    }
+    // Date
+    if (col === 'date') {
+      aVal = aVal ? new Date(aVal) : new Date(0);
+      bVal = bVal ? new Date(bVal) : new Date(0);
+    }
+    if (aVal < bVal) return currentSort.dir === 'asc' ? -1 : 1;
+    if (aVal > bVal) return currentSort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  rows.forEach(row => tbody.appendChild(row));
+}
+
+function getColIndex(col) {
+  const map = { score:1, date:2, company:3, location:4, sector:5, source:6, outcome:11 };
+  return map[col] || 1;
+}
+
+// Init data attributes and filters on load
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('tbody tr').forEach(row => {
+    const cells = row.querySelectorAll('td');
+    // Extract data attributes from cell content
+    const scoreCell    = cells[0];
+    const dateCell     = cells[1];
+    const companyCell  = cells[2];
+    const locationCell = cells[3];
+    const sectorCell   = cells[4];
+    const sourceCell   = cells[5];
+    const outcomeCell  = cells[10];
+
+    const scoreMatch = scoreCell.textContent.match(/(\d+)/);
+    row.dataset.score    = scoreMatch ? scoreMatch[1] : '';
+    row.dataset.date     = dateCell.textContent.trim();
+    row.dataset.company = companyCell.textContent.trim();
+    row.dataset.location = locationCell.textContent.trim().replace(/🏗|🏠|🏢|🔀|🏛|🏭/g, '').trim();
+    const sectorText = sectorCell.textContent.replace(/[🏗🏠🏢🔀🏛🏭]/g, '').trim();
+    row.dataset.sector   = sectorText;
+    row.dataset.source   = sourceCell.textContent.trim();
+    row.dataset.outcome  = outcomeCell.querySelector('select')?.value || '';
+  });
+  applyFilters();
+  // Default sort by date desc
+  sortTable('date');
+});
+
+// ── Hunter.io Enrichment ──────────────────────────────────────
+function enrichLead(id, companyName) {
+  fetch('/api/lead/' + id + '/enrich', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'error') {
+        alert(d.message || 'Error enriching lead');
+        return;
+      }
+      
+      // Build the enriched modal
+      let html = '<div style="background: white; padding: 24px; border-radius: 8px; max-width: 600px; max-height: 85vh; overflow-y: auto; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">';
+      html += '<h2 style="color: #1e3a5f; margin-bottom: 16px;">🔍 ' + d.company + '</h2>';
+      html += '<p style="color: #64748b; margin-bottom: 20px; font-size: 13px;">Domain: <strong>' + d.domain + '</strong></p>';
+      
+      // Role Intelligence Section
+      if (d.role_sought || d.reports_to) {
+        html += '<div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); color: white; padding: 16px; border-radius: 8px; margin-bottom: 20px;">';
+        html += '<div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 8px;">🎯 Role Intelligence</div>';
+        if (d.role_sought) {
+          html += '<div style="font-size: 15px; margin-bottom: 6px;"><strong>Recruiting for:</strong> ' + d.role_sought + '</div>';
+        }
+        if (d.reports_to && d.reports_to.length > 0) {
+          html += '<div style="font-size: 14px;"><strong>Likely reports to:</strong> ' + d.reports_to.join(', ') + '</div>';
+        }
+        html += '</div>';
+      }
+      
+      // Best Matches Section (if role intelligence found matches)
+      if (d.best_matches && d.best_matches.length > 0) {
+        html += '<div style="background: #f0fdf4; border: 1px solid #86efac; padding: 16px; border-radius: 8px; margin-bottom: 20px;">';
+        html += '<div style="font-size: 14px; font-weight: 600; color: #166534; margin-bottom: 12px;">✅ BEST MATCHES (from Hunter)</div>';
+        html += '<div style="display: flex; flex-direction: column; gap: 10px;">';
+        d.best_matches.forEach(function(contact) {
+          html += '<div style="background: white; padding: 10px; border-radius: 6px; border-left: 3px solid #22c55e;">';
+          html += '<div style="font-weight: 600; color: #1e293b;">' + (contact.first_name || '') + ' ' + (contact.last_name || '') + '</div>';
+          html += '<div style="font-size: 13px; color: #64748b;">' + (contact.position || 'N/A') + '</div>';
+          html += '<div style="font-size: 13px;">';
+          if (contact.email) {
+            html += '<a href="mailto:' + contact.email + '" style="color: #0ea5e9;">' + contact.email + '</a>';
+          } else {
+            html += 'No email';
+          }
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div></div>';
+      }
+      
+      // All Contacts Found
+      if (d.all_contacts && d.all_contacts.length > 0) {
+        html += '<div style="margin-bottom: 20px;">';
+        html += '<div style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 10px;">📋 ALL CONTACTS FOUND (' + d.all_contacts.length + ')</div>';
+        html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+        d.all_contacts.forEach(function(contact) {
+          html += '<div style="background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid #94a3b8;">';
+          html += '<div style="font-weight: 500; color: #1e293b;">' + (contact.first_name || '') + ' ' + (contact.last_name || '') + '</div>';
+          html += '<div style="font-size: 13px; color: #64748b;">' + (contact.position || 'N/A') + '</div>';
+          html += '<div style="font-size: 13px;">';
+          if (contact.email) {
+            html += '<a href="mailto:' + contact.email + '" style="color: #0ea5e9;">' + contact.email + '</a>';
+          } else {
+            html += 'No email';
+          }
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div></div>';
+      } else {
+        html += '<div style="background: #fef9f0; border: 1px solid #fed7aa; padding: 16px; border-radius: 8px; margin-bottom: 16px;">';
+        html += '<div style="font-size: 14px; font-weight: 600; color: #c2410c; margin-bottom: 8px;">⚠️ No emails found in Hunter for ' + d.domain + '</div>';
+        html += '<div style="font-size: 13px; color: #7c2d12;">Try searching LinkedIn or calling the main number and asking for the person below.</div>';
+        html += '</div>';
+      }
+      
+      // Recommended Approach
+      if (d.recommended_approach) {
+        html += '<div style="background: #fef3c7; border: 1px solid #fcd34d; padding: 14px; border-radius: 8px; margin-top: 16px;">';
+        html += '<div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #92400e; margin-bottom: 6px;">💡 RECOMMENDED APPROACH</div>';
+        html += '<div style="font-size: 14px; color: #78350f;">' + d.recommended_approach + '</div>';
+        html += '</div>';
+      }
+      
+      html += '<button onclick="document.getElementById(\'enrichModal\').style.display=\'none\'" class="btn btn-secondary" style="margin-top: 20px;">Close</button>';
+      html += '</div>';
+      
+      let modal = document.getElementById('enrichModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'enrichModal';
+        modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;';
+        document.body.appendChild(modal);
+      }
+      modal.style.display = 'flex';
+      modal.innerHTML = html;
+    })
+    .catch(err => alert('Error: ' + err));
+}
+</script>
+
+{% endblock %}

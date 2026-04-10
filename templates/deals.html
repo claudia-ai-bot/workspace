@@ -1,0 +1,614 @@
+{% extends "base.html" %}
+
+{% block title %}Pipeline - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>💼 Live Jobs</h1>
+  <div style="margin-top: 15px;">
+    <form method="get" style="display: inline;">
+      {% if stages %}
+      <select name="stage" onchange="this.form.submit()" style="padding: 8px; border-radius: 4px; border: 1px solid #e2e8f0;">
+        <option value="">All Stages</option>
+        {% for stage_row in stages %}
+          <option value="{{ stage_row.stage }}" {% if stage_row.stage == current_stage %}selected{% endif %}>
+            {{ stage_row.stage }}
+          </option>
+        {% endfor %}
+      </select>
+      {% endif %}
+    </form>
+    <button class="btn" onclick="showAddForm()" style="margin-left: 10px;">+ Add Deal</button>
+  </div>
+</div>
+
+<!-- Add/Edit Form (hidden by default) -->
+<div id="formContainer" style="display:none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+  <h2 id="formTitle">Add/Edit Deal</h2>
+  <form id="dealForm">
+    <input type="hidden" id="dealId" name="id" />
+    
+    <div class="form-group">
+      <label>Client (Company) *</label>
+      <select id="dealClient" required onchange="loadContactsDropdown(this.value)">
+        <option value="">-- Select Company --</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Contact</label>
+      <select id="dealContact" onchange="updatePhoneFromContact()">
+        <option value="">-- Select Contact --</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" id="dealPhone" />
+    </div>
+    
+    <div class="form-group">
+      <label>Role *</label>
+      <input type="text" id="dealRole" required />
+    </div>
+    
+    <div class="form-group">
+      <label>Salary Value ($)</label>
+      <input type="number" id="dealSalary" />
+    </div>
+    
+    <div class="form-group">
+      <label>Fee Value ($)</label>
+      <input type="number" id="dealFee" />
+    </div>
+    
+    <div class="form-group">
+      <label>Stage</label>
+      <select id="dealStage" onchange="checkCVShortlist(this.value)">
+        <option>Lead Generation</option>
+        <option>Client Visit</option>
+        <option>Job Order</option>
+        <option>Sourcing</option>
+        <option>CV Send</option>
+        <option>Screening</option>
+        <option>Interview</option>
+        <option>Offer</option>
+        <option>Placement</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Source</label>
+      <select id="dealSource">
+        <option value="">-- Select Source --</option>
+        <option value="LinkedIn">LinkedIn</option>
+        <option value="Referral">Referral</option>
+        <option value="Website">Website</option>
+        <option value="Cold Call">Cold Call</option>
+        <option value="Job Board">Job Board</option>
+        <option value="Database">Database</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Req Date (when role opened)</label>
+      <input type="date" id="dealReqDate" />
+    </div>
+    
+    <div class="form-group">
+      <label>Fee Achieved ($)</label>
+      <input type="number" id="dealFeeAchieved" />
+    </div>
+    
+    <div class="form-group">
+      <label>Days to Fill</label>
+      <input type="number" id="dealDaysToFill" readonly style="background: #f1f5f9;" />
+    </div>
+    
+    <div class="form-group">
+      <label>Commission Rate (%)</label>
+      <input type="number" id="dealCommissionRate" step="0.1" placeholder="e.g., 10" />
+    </div>
+    
+    <div class="form-group">
+      <label>Commission Achieved ($)</label>
+      <input type="number" id="dealCommissionAchieved" />
+    </div>
+    
+    <div class="form-group" id="shortlistCandidateGroup" style="display:none;">
+      <label>Select Shortlisted Candidates:</label>
+      <input type="text" id="candidateSearch" placeholder="🔍 Search candidates..." onkeyup="filterCandidates()" style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #e2e8f0; border-radius:4px;">
+      <div id="shortlistCandidates" style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px;">
+        <p style="color:#999; font-size:13px;">Loading candidates...</p>
+      </div>
+      <p style="font-size:12px; color:#666; margin-top:5px;">Select all candidates you're submitting</p>
+    </div>
+    
+    <div class="form-group">
+      <label>Competition</label>
+      <input type="text" id="dealCompetition" placeholder="e.g., McNab, ADCO, 1-2 others" />
+    </div>
+    
+    <div class="form-group">
+      <label>Probability (%)</label>
+      <input type="number" id="dealProbability" min="0" max="100" value="50" />
+    </div>
+    
+    <div class="form-group">
+      <label>Next Action</label>
+      <textarea id="dealNextAction" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="dealNotes" rows="3"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Deal</button>
+    <button type="button" class="btn btn-secondary" onclick="hideForm()" style="margin-left: 10px;">Cancel</button>
+  </form>
+</div>
+
+<!-- Deals Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Client</th>
+      <th>Contact</th>
+      <th>Phone</th>
+      <th>Role</th>
+      <th>Salary</th>
+      <th>Fee Value</th>
+      <th>Stage</th>
+      <th>Probability</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for deal in deals %}
+    <tr>
+      <td><strong>{{ deal.client }}</strong></td>
+      <td>{{ deal.contact_name or '-' }}</td>
+      <td>{{ deal.phone or '-' }}</td>
+      <td>{{ deal.role }}</td>
+      <td>${{ "{:,.0f}".format(deal.salary_value) if deal.salary_value else '-' }}</td>
+      <td>${{ "{:,.0f}".format(deal.fee_value) if deal.fee_value else '-' }}</td>
+      <td><strong>{{ deal.stage }}</strong></td>
+      <td>{{ deal.competition or '-' }}</td>
+      <td>
+        <div style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; text-align: center;">
+          {{ deal.probability }}%
+        </div>
+      </td>
+      <td>
+        <a href="/deal/{{ deal.id }}">View</a> | 
+        <a href="#" onclick="editJobById({{ deal.id }}); return false;">Edit</a> |
+        <a href="#" onclick="showDealActivityModal('{{ deal.client }}', '{{ deal.role }}', {{ deal.id }}); return false;">📝 Activity</a>
+        <a href="#" onclick="deleteJobById('{{ deal.client }}', '{{ deal.role }}', {{ deal.id }}); return false;" style="color: #ef4444;">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not deals %}
+<p style="text-align: center; color: #64748b; margin-top: 20px;">No deals yet. <a href="#" onclick="showAddForm(); return false;">Add one now.</a></p>
+{% endif %}
+
+<script>
+// Delete modal HTML
+document.body.insertAdjacentHTML('beforeend', `
+<div id="deleteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:30px; border-radius:8px; max-width:400px;">
+    <h2 style="color:#ef4444;">Delete Job?</h2>
+    <p>Type to confirm:</p>
+    <p id="deleteConfirmText" style="background:#f1f5f9; padding:10px; border-radius:4px; font-weight:bold;"></p>
+    <input type="text" id="deleteConfirmInput" placeholder="Type to confirm" style="width:100%; padding:10px; margin:15px 0; border:1px solid #e2e8f0; border-radius:4px;" />
+    <div style="display:flex; gap:10px;">
+      <button id="confirmDeleteBtn" class="btn" style="background:#ef4444; flex:1;">Delete</button>
+      <button onclick="closeDeleteModal()" class="btn btn-secondary" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+`);
+
+let deleteJobId = null;
+
+function deleteJobById(client, role, id) {
+  deleteJobId = id;
+  document.getElementById('deleteConfirmText').textContent = client + ' - ' + role;
+  document.getElementById('deleteModal').style.display = 'flex';
+  document.getElementById('deleteConfirmInput').value = '';
+  document.getElementById('deleteConfirmInput').focus();
+  
+  document.getElementById('confirmDeleteBtn').onclick = async () => {
+    const input = document.getElementById('deleteConfirmInput').value;
+    const confirmText = client + ' - ' + role;
+    if (input !== confirmText) { alert('Name does not match'); return; }
+    const response = await fetch('/api/delete/deal/' + deleteJobId, { method: 'POST' });
+    if (response.ok) { location.reload(); } else { alert('Error deleting'); }
+  };
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
+function showAddForm() {
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('dealForm').reset();
+  document.getElementById('dealId').value = '';
+  document.getElementById('dealProbability').value = '50';
+  document.getElementById('formTitle').textContent = 'Add Deal';
+  loadCompaniesDropdown();
+  loadContactsDropdown('');
+}
+
+function loadCompaniesDropdown() {
+  const select = document.getElementById('dealClient');
+  select.innerHTML = '<option value="">-- Select Company --</option>';
+  
+  fetch('/api/companies-list')
+    .then(r => r.json())
+    .then(companies => {
+      companies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    });
+}
+
+function loadContactsDropdown(company) {
+  const select = document.getElementById('dealContact');
+  select.innerHTML = '<option value="">-- Select Contact --</option>';
+  
+  if (!company) {
+    // Load all contacts if no company selected
+    fetch('/api/contacts-by-company?company=')
+      .then(r => r.json())
+      .then(contacts => {
+        contacts.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.contact_name;
+          opt.dataset.phone = c.phone || '';
+          opt.textContent = c.contact_name;
+          select.appendChild(opt);
+        });
+      });
+    return;
+  }
+  
+  fetch('/api/contacts-by-company?company=' + encodeURIComponent(company))
+    .then(r => r.json())
+    .then(contacts => {
+      contacts.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.contact_name;
+        opt.dataset.phone = c.phone || '';
+        opt.textContent = c.contact_name;
+        select.appendChild(opt);
+      });
+    });
+}
+
+function updatePhoneFromContact() {
+  const select = document.getElementById('dealContact');
+  const phoneField = document.getElementById('dealPhone');
+  const selectedOpt = select.options[select.selectedIndex];
+  if (selectedOpt && selectedOpt.dataset.phone) {
+    phoneField.value = selectedOpt.dataset.phone;
+  }
+}
+
+function hideForm() {
+  document.getElementById('formContainer').style.display = 'none';
+}
+
+async function editJobById(id) {
+  try {
+    const response = await fetch('/api/deal/' + id);
+    if (!response.ok) throw new Error('Failed to load');
+    const deal = await response.json();
+    
+    document.getElementById('formTitle').textContent = 'Edit Deal';
+    document.getElementById('formContainer').style.display = 'block';
+    document.getElementById('dealId').value = deal.id;
+    document.getElementById('dealClient').value = deal.client || '';
+    loadContactsDropdown(deal.client || '');
+    loadCompaniesDropdown();
+    setTimeout(() => {
+      document.getElementById('dealContact').value = deal.contact_name || '';
+      updatePhoneFromContact();
+    }, 150);
+    document.getElementById('dealPhone').value = deal.phone || '';
+    document.getElementById('dealRole').value = deal.role || '';
+    document.getElementById('dealSalary').value = deal.salary_value || '';
+    document.getElementById('dealFee').value = deal.fee_value || '';
+    document.getElementById('dealStage').value = deal.stage || 'Prospect Identified';
+    
+    // If CV Shortlisted, load candidates
+    if (deal.stage === 'CV Shortlisted') {
+      checkCVShortlist('CV Shortlisted');
+      // Load existing shortlisted candidates for this deal
+      setTimeout(async () => {
+        const res = await fetch('/api/submissions-for-deal/' + id);
+        const submissions = await res.json();
+        submissions.forEach(sub => {
+          const cb = document.querySelector('input[name="shortlisted_candidates"][value="'+sub.candidate_id+'"]');
+          if (cb) cb.checked = true;
+        });
+      }, 300);
+    }
+    
+    document.getElementById('dealSource').value = deal.source || '';
+    document.getElementById('dealReqDate').value = deal.req_date || '';
+    document.getElementById('dealFeeAchieved').value = deal.fee_achieved || '';
+    document.getElementById('dealDaysToFill').value = deal.days_to_fill || '';
+    document.getElementById('dealCommissionRate').value = deal.commission_rate || '';
+    document.getElementById('dealCommissionAchieved').value = deal.commission_achieved || '';
+    document.getElementById('dealCompetition').value = deal.competition || '';
+    document.getElementById('dealProbability').value = deal.probability || 50;
+    document.getElementById('dealNextAction').value = deal.next_action || '';
+    document.getElementById('dealNotes').value = deal.notes || '';
+    window.scrollTo(0, document.getElementById('formContainer').offsetTop);
+  } catch (err) {
+    alert('Error loading deal: ' + err.message);
+  }
+}
+
+document.getElementById('dealForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const stage = document.getElementById('dealStage').value;
+  // Get all selected candidates
+  const selectedCandidates = Array.from(document.querySelectorAll('input[name="shortlisted_candidates"]:checked')).map(cb => cb.value);
+  
+  const data = {
+    id: document.getElementById('dealId').value || null,
+    client: document.getElementById('dealClient').value,
+    contact_name: document.getElementById('dealContact').value,
+    phone: document.getElementById('dealPhone').value,
+    role: document.getElementById('dealRole').value,
+    salary_value: document.getElementById('dealSalary').value,
+    fee_value: document.getElementById('dealFee').value,
+    source: document.getElementById('dealSource').value,
+    req_date: document.getElementById('dealReqDate').value,
+    fee_achieved: document.getElementById('dealFeeAchieved').value,
+    days_to_fill: document.getElementById('dealDaysToFill').value,
+    commission_rate: document.getElementById('dealCommissionRate').value,
+    commission_achieved: document.getElementById('dealCommissionAchieved').value,
+    stage: stage,
+    competition: document.getElementById('dealCompetition').value,
+    probability: parseInt(document.getElementById('dealProbability').value),
+    next_action: document.getElementById('dealNextAction').value,
+    notes: document.getElementById('dealNotes').value
+  };
+  
+  const response = await fetch('/api/deal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    // If CV Shortlisted with candidates, create submission records for each
+    if (stage === 'CV Shortlisted' && selectedCandidates.length > 0) {
+      // Get company_id from client name
+      const companiesRes = await fetch('/api/companies-list');
+      const companies = await companiesRes.json();
+      const company = companies.find(c => c.name === data.client);
+      const companyIdNum = company?.id || null;
+      const dealId = document.getElementById('dealId').value || null;
+      
+      // Create submission for each selected candidate
+      for (const candidateId of selectedCandidates) {
+        await fetch('/api/submission/update-stage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deal_id: dealId,
+            candidate_id: candidateId,
+            company_id: companyIdNum,
+            stage: 'shortlisted'
+          })
+        });
+      }
+      // Create activity for CV Sent (increments CVs Sent counter)
+      await fetch('/api/activity', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          type: 'cv_sent',
+          company_id: companyIdNum,
+          notes: 'CVs shortlisted for ' + data.role + ' (' + selectedCandidates.length + ' candidates)'
+        })
+      });
+    }
+    location.reload();
+  } else {
+    alert('Error saving deal');
+  }
+});
+
+async function checkCVShortlist(stage) {
+  const group = document.getElementById('shortlistCandidateGroup');
+  if (stage === 'CV Shortlisted') {
+    group.style.display = 'block';
+    document.getElementById('candidateSearch').value = '';
+    const res = await fetch('/api/candidates-list');
+    const candidates = await res.json();
+    const container = document.getElementById('shortlistCandidates');
+    container.innerHTML = '';
+    candidates.forEach(c => {
+      container.innerHTML += '<label style="display:block; padding:5px 0; border-bottom:1px solid #f1f5f9;" data-name="'+c.name.toLowerCase()+'"><input type="checkbox" name="shortlisted_candidates" value="'+c.id+'" style="margin-right:8px;">'+c.name+'</label>';
+    });
+  } else {
+    group.style.display = 'none';
+  }
+}
+
+function filterCandidates() {
+  const search = document.getElementById('candidateSearch').value.toLowerCase();
+  const labels = document.querySelectorAll('#shortlistCandidates label');
+  labels.forEach(label => {
+    const name = label.getAttribute('data-name');
+    label.style.display = name.includes(search) ? 'block' : 'none';
+  });
+}
+
+// Pre-load candidates on page load for edit form
+(async function() {
+  const res = await fetch('/api/candidates-list');
+  const candidates = await res.json();
+  window.allCandidates = candidates;
+})();
+</script>
+
+<!-- Activity Modal for Deal -->
+<div id="dealActivityModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;">
+  <div style="background:white;padding:20px;margin:50px auto;max-width:450px;border-radius:8px;">
+    <h2>Log Activity: <span id="dealActivityTitle"></span></h2>
+    <form id="dealActivityForm">
+      <input type="hidden" id="dealActivityDealId" />
+      
+      <label>Type:</label>
+      <select id="dealActivityType" required onchange="updateActivityFields()">
+        <option value="call">📞 Call</option>
+        <option value="email">📧 Email</option>
+        <option value="meeting">🤝 Meeting</option>
+        <option value="linkedin">💼 LinkedIn Message</option>
+        <option value="interview">🎤 Interview</option>
+        <option value="reference">📋 Reference Check</option>
+        <option value="other">📌 Other</option>
+      </select><br><br>
+      
+      <div id="activityOutcomeRow">
+        <label>Outcome:</label>
+        <select id="dealActivityOutcome">
+          <option value="">-- Select --</option>
+          
+          <!-- Call outcomes -->
+          <optgroup id="outcomeCall" label="Call">
+            <option value="successful">✅ Successful</option>
+            <option value="voicemail">📧 Voicemail</option>
+            <option value="no_answer">❌ No Answer</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Email outcomes -->
+          <optgroup id="outcomeEmail" label="Email">
+            <option value="introduction">👋 Introduction Sent</option>
+            <option value="general">💬 General Update</option>
+            <option value="job_description">📋 Job Description Sent</option>
+            <option value="job_brief">📝 Job Brief Sent</option>
+            <option value="cv_requested">📄 CV Requested</option>
+            <option value="cv_received">✅ CV Received</option>
+            <option value="send_offer">💼 Send Offer</option>
+            <option value="no_response">❌ No Response</option>
+          </optgroup>
+          
+          <!-- LinkedIn outcomes -->
+          <optgroup id="outcomeLinkedIn" label="LinkedIn Message">
+            <option value="successful">✅ Successful</option>
+            <option value="no_reply">❌ No Reply</option>
+            <option value="inmailed">📬 InMailed</option>
+            <option value="callback">🔄 Callback</option>
+            <option value="meeting_scheduled">📅 Meeting Scheduled</option>
+          </optgroup>
+          
+          <!-- Interview outcomes -->
+          <optgroup id="outcomeInterview" label="Interview">
+            <option value="next_stage">➡️ Moved to Next Stage</option>
+            <option value="offer_made">💼 Offer Made</option>
+            <option value="offer_accepted">🎉 Offer Accepted</option>
+            <option value="candidate_rejected">❌ Candidate Rejected</option>
+            <option value="client_rejected">🚫 Client Rejected</option>
+            <option value="withdrawn">↩️ Withdrawn</option>
+          </optgroup>
+          
+          <!-- Reference Check outcomes -->
+          <optgroup id="outcomeReference" label="Reference Check">
+            <option value="positive">✅ Positive</option>
+            <option value="neutral">➖ Neutral</option>
+            <option value="negative">❌ Negative</option>
+          </optgroup>
+        </select><br><br>
+      </div>
+      
+      <label>Notes:</label>
+      <textarea id="dealActivityNotes" rows="3" placeholder="Activity details..."></textarea><br><br>
+      
+      <button type="submit" class="btn">Save Activity</button>
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('dealActivityModal').style.display='none'" style="margin-left:10px;">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function showDealActivityModal(client, role, dealId) {
+  document.getElementById('dealActivityTitle').textContent = client + ' - ' + role;
+  document.getElementById('dealActivityDealId').value = dealId;
+  document.getElementById('dealActivityModal').style.display = 'block';
+  updateActivityFields();
+}
+
+function updateActivityFields() {
+  const type = document.getElementById('dealActivityType').value;
+  
+  // Show/hide outcome row based on activity type
+  const outcomeRow = document.getElementById('activityOutcomeRow');
+  const typesWithOutcome = ['email', 'interview', 'reference'];
+  outcomeRow.style.display = typesWithOutcome.includes(type) ? 'block' : 'none';
+  
+  // Show/hide outcome option groups based on activity type
+  const callGroup = document.getElementById('outcomeCall');
+  const emailGroup = document.getElementById('outcomeEmail');
+  const linkedinGroup = document.getElementById('outcomeLinkedIn');
+  const interviewGroup = document.getElementById('outcomeInterview');
+  const referenceGroup = document.getElementById('outcomeReference');
+  
+  if (callGroup) callGroup.style.display = (type === 'call') ? 'block' : 'none';
+  if (emailGroup) emailGroup.style.display = (type === 'email') ? 'block' : 'none';
+  if (linkedinGroup) linkedinGroup.style.display = (type === 'linkedin') ? 'block' : 'none';
+  if (interviewGroup) interviewGroup.style.display = (type === 'interview') ? 'block' : 'none';
+  if (referenceGroup) referenceGroup.style.display = (type === 'reference') ? 'block' : 'none';
+}
+
+document.getElementById('dealActivityForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const dealId = document.getElementById('dealActivityDealId').value;
+  
+  // Get company_id from deal
+  const dealRes = await fetch('/api/deal/' + dealId);
+  const deal = await dealRes.json();
+  
+  const data = {
+    type: document.getElementById('dealActivityType').value,
+    deal_id: dealId,
+    company_id: deal.company_id,
+
+    outcome: document.getElementById('activityOutcomeRow').style.display !== 'none' ? document.getElementById('dealActivityOutcome').value : null,
+    notes: document.getElementById('dealActivityNotes').value
+  };
+  
+  const response = await fetch('/api/activity', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if (response.ok) {
+    document.getElementById('dealActivityModal').style.display = 'none';
+    alert('Activity logged!');
+  } else {
+    alert('Error logging activity');
+  }
+});
+</script>
+
+{% endblock %}

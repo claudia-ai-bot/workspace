@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}🎯 Today - SEQ Construction CRM{% endblock %}
+{% block content %}
+<div class="header">
+  <div class="header-row">
+    <div>
+      <h1>🎯 Today's Action List</h1>
+      <p>{{ today_date }} — {{ total_actions }} actions need attention</p>
+    </div>
+    <div class="header-actions">
+      <span class="pill pill-danger" style="font-size:14px;padding:8px 16px;">🔴 {{ overdue_count }} Overdue</span>
+      <span class="pill pill-warning" style="font-size:14px;padding:8px 16px;">🟡 {{ due_today_count }} Due Today</span>
+      <span class="pill pill-info" style="font-size:14px;padding:8px 16px;">🔵 {{ stale_count }} Stale</span>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="cards">
+  <div class="card">
+    <div class="card-header"><h3>Calls to Make</h3><span class="icon">📞</span></div>
+    <div class="value accent">{{ calls_to_make }}</div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>Visits Today</h3><span class="icon">🤝</span></div>
+    <div class="value">{{ visits_today }}</div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>Follow-ups Due</h3><span class="icon">📋</span></div>
+    <div class="value warning">{{ followups_due }}</div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>Deals in Pipeline</h3><span class="icon">💼</span></div>
+    <div class="value success">{{ deals_in_pipeline }}</div>
+  </div>
+</div>
+
+{% if overdue_contacts %}
+<!-- Overdue Contact Follow-ups -->
+<div class="table-card" style="margin-bottom:20px;">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="font-size:16px;color:var(--primary);">🔴 Overdue Contact Follow-ups</h2>
+    <span class="pill pill-danger">{{ overdue_contacts|length }} items</span>
+  </div>
+  <table>
+    <tr><th>Contact</th><th>Company</th><th>Type</th><th>Due Date</th><th>Days Overdue</th><th>Actions</th></tr>
+    {% for item in overdue_contacts %}
+    <tr>
+      <td><a href="/contact/{{ item.id }}">{{ item.contact_name }}</a></td>
+      <td>{% if item.company_id %}<a href="/company/{{ item.company_id }}" style="color:#1e3a5f;">{{ item.company or "—" }}</a>{% else %}{{ item.company or "—" }}{% endif %}</td>
+      <td><span class="pill pill-default">{{ item.type or 'Contact' }}</span></td>
+      <td>{{ item.next_touch_date|format_date }}</td>
+      <td><span class="pill pill-danger">{{ item.days_overdue }}d</span></td>
+      <td class="quick-actions">
+        <button class="quick-action" onclick="snoozeContact({{ item.id }}, 1)" title="Snooze 1 day">⏰ +1d</button>
+        <button class="quick-action" onclick="markContactDone({{ item.id }})" title="Mark done">✅</button>
+        <a href="/contact/{{ item.id }}" class="quick-action">📂 Open</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if overdue_candidates %}
+<!-- Overdue Candidate Follow-ups -->
+<div class="table-card" style="margin-bottom:20px;">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="font-size:16px;color:var(--primary);">🔴 Overdue Candidate Follow-ups</h2>
+    <span class="pill pill-danger">{{ overdue_candidates|length }} items</span>
+  </div>
+  <table>
+    <tr><th>Candidate</th><th>Company</th><th>Title</th><th>Due Date</th><th>Days Overdue</th><th>Actions</th></tr>
+    {% for item in overdue_candidates %}
+    <tr>
+      <td><a href="/candidate/{{ item.id }}">{{ item.name }}</a></td>
+      <td>{{ item.current_company or '—' }}</td>
+      <td>{{ item.title or '—' }}</td>
+      <td>{{ item.next_follow_up|format_date }}</td>
+      <td><span class="pill pill-danger">{{ item.days_overdue }}d</span></td>
+      <td class="quick-actions">
+        <button class="quick-action" onclick="snoozeCandidate({{ item.id }}, 1)" title="Snooze 1 day">⏰ +1d</button>
+        <button class="quick-action" onclick="markCandidateDone({{ item.id }})" title="Mark done">✅</button>
+        <a href="/candidate/{{ item.id }}" class="quick-action">📂 Open</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if stale_tier1 %}
+<!-- Stale Tier 1 Contacts -->
+<div class="table-card" style="margin-bottom:20px;">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="font-size:16px;color:var(--primary);">⚠️ Stale Tier 1 Contacts <small style="color:var(--text-light);font-weight:400;">(no contact in 14+ days)</small></h2>
+    <span class="pill pill-warning">{{ stale_tier1|length }} items</span>
+  </div>
+  <table>
+    <tr><th>Contact</th><th>Company</th><th>Last Contact</th><th>Days Stale</th><th>Actions</th></tr>
+    {% for item in stale_tier1 %}
+    <tr>
+      <td><a href="/contact/{{ item.id }}">{{ item.contact_name }}</a></td>
+      <td>{% if item.company_id %}<a href="/company/{{ item.company_id }}" style="color:#1e3a5f;">{{ item.company or "—" }}</a>{% else %}{{ item.company or "—" }}{% endif %}</td>
+      <td>{{ item.last_interaction|format_date if item.last_interaction else 'Never' }}</td>
+      <td><span class="pill pill-warning">{{ item.days_stale }}d</span></td>
+      <td class="quick-actions">
+        <button class="quick-action" onclick="snoozeContact({{ item.id }}, 1)" title="Snooze 1 day">⏰ +1d</button>
+        <button class="quick-action" onclick="markContactDone({{ item.id }})" title="Mark touched">✅</button>
+        <a href="/contact/{{ item.id }}" class="quick-action">📂 Open</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if stale_tier2 %}
+<!-- Stale Tier 2 Contacts -->
+<div class="table-card" style="margin-bottom:20px;">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="font-size:16px;color:var(--primary);">⚠️ Stale Tier 2 Contacts <small style="color:var(--text-light);font-weight:400;">(no contact in 21+ days)</small></h2>
+    <span class="pill pill-info">{{ stale_tier2|length }} items</span>
+  </div>
+  <table>
+    <tr><th>Contact</th><th>Company</th><th>Last Contact</th><th>Days Stale</th><th>Actions</th></tr>
+    {% for item in stale_tier2 %}
+    <tr>
+      <td><a href="/contact/{{ item.id }}">{{ item.contact_name }}</a></td>
+      <td>{% if item.company_id %}<a href="/company/{{ item.company_id }}" style="color:#1e3a5f;">{{ item.company or "—" }}</a>{% else %}{{ item.company or "—" }}{% endif %}</td>
+      <td>{{ item.last_interaction|format_date if item.last_interaction else 'Never' }}</td>
+      <td><span class="pill pill-info">{{ item.days_stale }}d</span></td>
+      <td class="quick-actions">
+        <button class="quick-action" onclick="snoozeContact({{ item.id }}, 1)" title="Snooze 1 day">⏰ +1d</button>
+        <button class="quick-action" onclick="markContactDone({{ item.id }})" title="Mark touched">✅</button>
+        <a href="/contact/{{ item.id }}" class="quick-action">📂 Open</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if stuck_deals %}
+<!-- Stuck Deals -->
+<div class="table-card" style="margin-bottom:20px;">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="font-size:16px;color:var(--primary);">🚧 Deals Stuck 10+ Days</h2>
+    <span class="pill pill-warning">{{ stuck_deals|length }} items</span>
+  </div>
+  <table>
+    <tr><th>Client</th><th>Role</th><th>Stage</th><th>Fee Value</th><th>Days in Stage</th><th>Actions</th></tr>
+    {% for item in stuck_deals %}
+    <tr>
+      <td>{{ item.client }}</td>
+      <td><a href="/deal/{{ item.id }}">{{ item.role }}</a></td>
+      <td><span class="pill pill-accent">{{ item.stage }}</span></td>
+      <td>${{ '{:,.0f}'.format(item.fee_value or 0) }}</td>
+      <td><span class="pill pill-warning">{{ item.days_stuck }}d</span></td>
+      <td class="quick-actions">
+        <a href="/deal/{{ item.id }}" class="quick-action">📂 Open</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if visits_due %}
+<!-- Visits Due Today -->
+<div class="table-card" style="margin-bottom:20px;">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="font-size:16px;color:var(--primary);">🤝 Visits Due Today</h2>
+    <span class="pill pill-success">{{ visits_due|length }} items</span>
+  </div>
+  <table>
+    <tr><th>Company</th><th>Contact</th><th>Notes</th><th>Actions</th></tr>
+    {% for item in visits_due %}
+    <tr>
+      <td>{{ item.company_name or '—' }}</td>
+      <td>{{ item.contact_name or '—' }}</td>
+      <td>{{ item.notes or '—' }}</td>
+      <td class="quick-actions">
+        <a href="/visits" class="quick-action">📂 Open</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if total_actions == 0 %}
+<div class="table-card" style="padding:60px;text-align:center;">
+  <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+  <h2 style="color:var(--primary);margin-bottom:8px;">All Clear!</h2>
+  <p style="color:var(--text-light);">No overdue items or stale contacts. You're on top of it.</p>
+</div>
+{% endif %}
+
+<script>
+function snoozeContact(id, days) {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + days);
+  const dateStr = tomorrow.toISOString().split('T')[0];
+  fetch('/api/today/snooze', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({table: 'contacts', id: id, days: days})
+  }).then(r => r.json()).then(d => {
+    if(d.status === 'success') location.reload();
+    else alert('Error: ' + (d.message || 'Unknown'));
+  });
+}
+
+function snoozeCandidate(id, days) {
+  fetch('/api/today/snooze', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({table: 'candidates', id: id, days: days})
+  }).then(r => r.json()).then(d => {
+    if(d.status === 'success') location.reload();
+    else alert('Error: ' + (d.message || 'Unknown'));
+  });
+}
+
+function markContactDone(id) {
+  fetch('/api/today/done', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({table: 'contacts', id: id})
+  }).then(r => r.json()).then(d => {
+    if(d.status === 'success') location.reload();
+    else alert('Error: ' + (d.message || 'Unknown'));
+  });
+}
+
+function markCandidateDone(id) {
+  fetch('/api/today/done', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({table: 'candidates', id: id})
+  }).then(r => r.json()).then(d => {
+    if(d.status === 'success') location.reload();
+    else alert('Error: ' + (d.message || 'Unknown'));
+  });
+}
+</script>
+{% endblock %}

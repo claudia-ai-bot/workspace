@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; }
+        .app { display: flex; }
+        
+        /* SIDEBAR */
+        .sidebar { width: 220px; background: #1a1a1a; padding: 20px 15px; border-right: 1px solid #333; }
+        .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #888; cursor: pointer; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; }
+        .sidebar-item:hover { background: #252525; color: #fff; }
+        .sidebar-item.active { background: #2563eb; color: #fff; }
+        .sidebar-item .icon { font-size: 18px; }
+        
+        /* MAIN */
+        .main { flex: 1; padding: 25px; }
+        
+        /* ALWAYS RUNNING */
+        .always-running { margin-bottom: 25px; }
+        .ar-title { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #666; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .ar-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+        .ar-chip { background: #1e1e2e; border: 1px solid #333; padding: 8px 14px; border-radius: 20px; font-size: 12px; color: #aaa; }
+        
+        /* CALENDAR GRID */
+        .calendar-header { display: grid; grid-template-columns: 60px repeat(7, 1fr); gap: 2px; margin-bottom: 2px; }
+        .cal-day-header { background: #1a1a1a; padding: 12px 8px; text-align: center; font-size: 12px; color: #666; text-transform: uppercase; }
+        .cal-day-header.today { color: #2563eb; }
+        
+        .calendar-grid { display: grid; grid-template-columns: 60px repeat(7, 1fr); gap: 2px; min-height: 500px; }
+        .time-col { background: #1a1a1a; }
+        .time-slot { height: 40px; padding: 5px 8px; font-size: 11px; color: #555; border-bottom: 1px solid #252525; }
+        .day-col { background: #141414; position: relative; }
+        .hour-slot { height: 40px; border-bottom: 1px solid #1e1e1e; }
+        
+        /* EVENT BLOCKS */
+        .event { position: absolute; left: 2px; right: 2px; padding: 4px 6px; border-radius: 4px; font-size: 10px; overflow: hidden; cursor: pointer; z-index: 10; }
+        .event:hover { transform: scale(1.02); z-index: 20; }
+        .event.reminders { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .event.trading { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .event.health { background: linear-gradient(135deg, #10b981, #059669); }
+        .event.system { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .event.default { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        
+        /* NEXT UP */
+        .next-up { margin-top: 25px; }
+        .next-up h3 { font-size: 13px; color: #666; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .next-list { display: flex; gap: 10px; flex-wrap: wrap; }
+        .next-item { background: #1e1e2e; border: 1px solid #333; padding: 10px 16px; border-radius: 8px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="sidebar">
+            <div class="sidebar-item" onclick="switchView('calendar')"><span class="icon">📅</span> Calendar</div>
+            <div class="sidebar-item" onclick="switchView('team')"><span class="icon">👥</span> Team</div>
+            <div class="sidebar-item" onclick="switchView('office')"><span class="icon">🏢</span> Office</div>
+        </div>
+        
+        <div class="main" id="calendar-view">
+            <div class="always-running">
+                <div class="ar-title">⭐ Always Running</div>
+                <div class="ar-chips" id="ar-chips">Loading...</div>
+            </div>
+            
+            <div class="calendar-header" id="cal-header"></div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+            
+            <div class="next-up">
+                <h3>📌 Next Up</h3>
+                <div class="next-list" id="next-list">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var jobsData = null;
+        var currentWeekStart = getWeekStart(new Date());
+        
+        function getWeekStart(date) {
+            var d = new Date(date);
+            var day = d.getDay();
+            d.setDate(d.getDate() - day);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+        
+        function switchView(name) {
+            document.querySelectorAll('.sidebar-item').forEach(function(el) { el.classList.remove('active'); });
+            event.target.closest('.sidebar-item').classList.add('active');
+            document.getElementById('calendar-view').style.display = 'block';
+        }
+        
+        function loadJobs() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/cron/jobs.json');
+            xhr.onload = function() {
+                if(xhr.status === 200) {
+                    try { jobsData = JSON.parse(xhr.responseText); } catch(e) { jobsData = {jobs:[]}; }
+                } else { jobsData = {jobs:[]}; }
+                renderAll();
+            };
+            xhr.onerror = function() { jobsData = {jobs:[]}; renderAll(); };
+            xhr.send();
+        }
+        
+        function renderAll() {
+            renderChips();
+            renderCalendar();
+            renderNextUp();
+        }
+        
+        function renderChips() {
+            var html = '';
+            if(jobsData && jobsData.jobs) {
+                jobsData.jobs.forEach(function(job) {
+                    if(job.enabled) {
+                        html += '<div class="ar-chip">' + job.name + '</div>';
+                    }
+                });
+            }
+            document.getElementById('ar-chips').innerHTML = html || 'No active jobs';
+        }
+        
+        function renderCalendar() {
+            var header = document.getElementById('cal-header');
+            var grid = document.getElementById('calendar-grid');
+            var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            var today = new Date();
+            today.setHours(0,0,0,0);
+            
+            // Header
+            var hhtml = '<div></div>';
+            for(var i=0; i<7; i++) {
+                var d = new Date(currentWeekStart);
+                d.setDate(d.getDate() + i);
+                var isToday = d.getTime() === today.getTime();
+                hhtml += '<div class="cal-day-header'+(isToday?' today':'')+'">'+days[i]+' '+d.getDate()+'</div>';
+            }
+            header.innerHTML = hhtml;
+            
+            // Grid
+            var ghtml = '';
+            for(var h=0; h<24; h++) {
+                ghtml += '<div class="time-col"><div class="time-slot">'+(h<10?'0'+h:h)+':00</div></div>';
+                for(var d=0; d<7; d++) {
+                    ghtml += '<div class="day-col" data-day="'+d+'" data-hour="'+h+'"></div>';
+                }
+            }
+            grid.innerHTML = ghtml;
+            
+            // Add events
+            if(jobsData && jobsData.jobs) {
+                jobsData.jobs.forEach(function(job) {
+                    addJobToCalendar(job);
+                });
+            }
+        }
+        
+        function addJobToCalendar(job) {
+            // Simple: add to random time slots for demo
+            var hour = Math.floor(Math.random() * 12) + 8; // 8am-8pm
+            var day = Math.floor(Math.random() * 7);
+            var cell = document.querySelector('.day-col[data-day="'+day+'"][data-hour="'+hour+'"]');
+            if(cell) {
+                var div = document.createElement('div');
+                div.className = 'event ' + (job.name.includes('reminder') ? 'reminders' : (job.name.includes('trading') ? 'trading' : 'system'));
+                div.innerHTML = job.name;
+                cell.appendChild(div);
+            }
+        }
+        
+        function renderNextUp() {
+            var html = '';
+            if(jobsData && jobsData.jobs && jobsData.jobs.length > 0) {
+                html = '<div class="next-item">' + jobsData.jobs[0].name + '</div>';
+                if(jobsData.jobs[1]) html += '<div class="next-item">' + jobsData.jobs[1].name + '</div>';
+            }
+            document.getElementById('next-list').innerHTML = html || 'No jobs scheduled';
+        }
+        
+        window.onload = loadJobs;
+    </script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Profile - {{ candidate.name }}{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 20px;">
+  <a href="/candidate/{{ candidate.id }}">&larr; Back to {{ candidate.name }}</a>
+</div>
+
+<div class="header">
+  <h1>👤 Generate Candidate Profile</h1>
+  <p>{{ candidate.name }} | {{ candidate.title or 'TBD' }}</p>
+</div>
+
+<form method="POST">
+  <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <h2>CRM Data (Pre-filled)</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+      <div>
+        <label style="font-weight: bold; color: #1e3a5f;">Current Company</label>
+        <p>{{ candidate.current_company or 'Not specified' }}</p>
+      </div>
+      <div>
+        <label style="font-weight: bold; color: #1e3a5f;">Title</label>
+        <p>{{ candidate.title or 'Not specified' }}</p>
+      </div>
+      <div>
+        <label style="font-weight: bold; color: #1e3a5f;">Location</label>
+        <p>{{ candidate.location or 'Not specified' }}</p>
+      </div>
+      <div>
+        <label style="font-weight: bold; color: #1e3a5f;">Specialism</label>
+        <p>{{ candidate.specialism or 'Not specified' }}</p>
+      </div>
+      <div>
+        <label style="font-weight: bold; color: #1e3a5f;">Years Experience</label>
+        <p>{{ candidate.years_experience or 'Not specified' }}</p>
+      </div>
+      <div>
+        <label style="font-weight: bold; color: #1e3a5f;">Salary Band</label>
+        <p>{{ candidate.salary_band or 'Not specified' }}</p>
+      </div>
+    </div>
+    
+    {% if candidate.notes %}
+    <div style="margin-top: 15px;">
+      <label style="font-weight: bold; color: #1e3a5f;">CRM Notes</label>
+      <p style="white-space: pre-wrap; background: #f8fafc; padding: 10px; border-radius: 4px;">{{ candidate.notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <h2>Additional Profile Details</h2>
+    
+    <div class="form-group">
+      <label>Career Summary *</label>
+      <textarea name="career_summary" rows="4" placeholder="Write a brief 2-3 sentence overview of their career trajectory and key strengths..." required></textarea>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+      <div class="form-group">
+        <label>Top Achievement #1</label>
+        <input type="text" name="achievement_1" placeholder="e.g., Led team of 20 on $50M project">
+      </div>
+      <div class="form-group">
+        <label>Top Achievement #2</label>
+        <input type="text" name="achievement_2" placeholder="e.g., Reduced delivery time by 30%">
+      </div>
+      <div class="form-group">
+        <label>Top Achievement #3</label>
+        <input type="text" name="achievement_3" placeholder="e.g., Secured $2M new contracts">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>Technical Skills (comma-separated)</label>
+      <input type="text" name="technical_skills" placeholder="e.g., Project Management, AutoCAD, Budgeting, QA/QC">
+    </div>
+    
+    <div class="form-group">
+      <label>Industries Worked In</label>
+      <input type="text" name="industries" placeholder="e.g., Commercial Construction, Civil Infrastructure, Residential">
+    </div>
+    
+    <div class="form-group">
+      <label>Why They're Seeking a New Role</label>
+      <textarea name="why_seeking" rows="2" placeholder="e.g., Looking for progression, seeking larger projects, relocating to Gold Coast..."></textarea>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div class="form-group">
+        <label>Preferred Work Style</label>
+        <select name="work_style">
+          <option value="">Select...</option>
+          <option value="Site-based">🏗️ Site-based</option>
+          <option value="Hybrid">🏢 Hybrid</option>
+          <option value="Office-based">🏠 Office-based</option>
+          <option value="Remote">💻 Remote</option>
+          <option value="Flexible">🔄 Flexible</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>References Available?</label>
+        <select name="references">
+          <option value="yes">✅ Yes</option>
+          <option value="no">❌ No</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+  <div style="margin-top: 20px;">
+    <button type="submit" class="btn" style="background: #ff6b35; font-size: 16px; padding: 12px 24px;">
+      ✨ Generate Profile
+    </button>
+    <a href="/candidate/{{ candidate.id }}" class="btn btn-secondary" style="margin-left: 10px;">
+      Cancel
+    </a>
+  </div>
+</form>
+
+{% endblock %}

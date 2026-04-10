@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Profile - {{ candidate.name }}{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom: 20px; display: flex; gap: 10px;">
+  <a href="/candidate/{{ candidate.id }}">&larr; Back to {{ candidate.name }}</a>
+  <button onclick="window.print()" class="btn" style="background: #1e3a5f; margin-left: 10px;">
+    🖨️ Print
+  </button>
+</div>
+
+<style>
+@media print {
+  body { font-size: 12px; }
+  .no-print { display: none; }
+  .page-break { page-break-before: always; }
+  .profile-container { box-shadow: none; border: 1px solid #ccc; }
+}
+</style>
+
+<div class="profile-container" style="background: white; max-width: 800px; margin: 0 auto; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <!-- Header -->
+  <div style="background: #1e3a5f; color: white; padding: 25px; text-align: center;">
+    <h1 style="margin: 0; font-size: 28px; font-weight: 700;">CANDIDATE PROFILE</h1>
+    <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">
+      {{ candidate.name }} | {{ candidate.title or 'N/A' }} | {{ candidate.location or 'Location TBD' }}
+    </p>
+  </div>
+
+  <div style="padding: 25px;">
+    <!-- Contact Preference -->
+    <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #ff6b35; margin-bottom: 20px;">
+      <strong style="color: #1e3a5f; text-transform: uppercase; font-size: 12px;">📞 Contact Preference</strong>
+      <p style="margin: 5px 0 0 0; color: #374151;">Available via recruiter only</p>
+    </div>
+
+    <!-- Career Overview -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Career Overview
+      </h3>
+      <p style="color: #374151; line-height: 1.6;">{{ profile.career_summary }}</p>
+    </div>
+
+    <!-- Current Position -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Current Position
+      </h3>
+      <p style="color: #374151;">
+        {% if candidate.current_company %}{{ candidate.current_company }}{% else %}Not specified{% endif %}
+        {% if candidate.title %} - {{ candidate.title }}{% endif %}
+      </p>
+    </div>
+
+    <!-- Experience Highlights -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Experience Highlights
+      </h3>
+      <p style="color: #374151; white-space: pre-wrap;">{% if candidate.notes %}{{ candidate.notes }}{% else %}No additional notes on file.{% endif %}</p>
+    </div>
+
+    <!-- Key Achievements -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Key Achievements
+      </h3>
+      <ul style="color: #374151; padding-left: 20px;">
+        {% if profile.achievement_1 %}<li style="margin-bottom: 8px;">{{ profile.achievement_1 }}</li>{% endif %}
+        {% if profile.achievement_2 %}<li style="margin-bottom: 8px;">{{ profile.achievement_2 }}</li>{% endif %}
+        {% if profile.achievement_3 %}<li style="margin-bottom: 8px;">{{ profile.achievement_3 }}</li>{% endif %}
+        {% if not profile.achievement_1 and not profile.achievement_2 and not profile.achievement_3 %}
+        <li style="margin-bottom: 8px; color: #94a3b8;">No achievements specified</li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <!-- Skills & Expertise -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Skills & Expertise
+      </h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        {% if profile.technical_skills %}
+          {% for skill in profile.technical_skills.split(',') %}
+            <span style="background: #1e3a5f; color: white; padding: 5px 12px; border-radius: 20px; font-size: 13px;">{{ skill.strip() }}</span>
+          {% endfor %}
+        {% else %}
+          <span style="color: #94a3b8; font-style: italic;">No skills specified</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Industry Background -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Industry Background
+      </h3>
+      <p style="color: #374151;">{% if profile.industries %}{{ profile.industries }}{% else %}Not specified{% endif %}</p>
+    </div>
+
+    <!-- Salary Expectation -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Salary Expectation
+      </h3>
+      <p style="color: #374151;">{% if candidate.salary_band %}{{ candidate.salary_band }}{% else %}Not specified{% endif %}</p>
+    </div>
+
+    <!-- Availability -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Availability
+      </h3>
+      <p style="color: #374151;">
+        {% if candidate.years_experience %}{{ candidate.years_experience }} years experience{% else %}Experience not specified{% endif %}
+        {% if profile.why_seeking %}<br><strong>Reason for change:</strong> {{ profile.why_seeking }}{% endif %}
+      </p>
+    </div>
+
+    <!-- Work Preferences -->
+    <div style="margin-bottom: 20px;">
+      <h3 style="color: #1e3a5f; margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #ff6b35; padding-bottom: 5px;">
+        Work Preferences
+      </h3>
+      <p style="color: #374151;">{% if profile.work_style %}{{ profile.work_style }}{% else %}Not specified{% endif %}</p>
+    </div>
+
+    <!-- References -->
+    <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #ff6b35; margin-top: 20px;">
+      <strong style="color: #1e3a5f; text-transform: uppercase; font-size: 12px;">📋 References</strong>
+      <p style="margin: 5px 0 0 0; color: #374151;">
+        {% if profile.references == 'yes' %}References available upon request ✅{% else %}References not currently available{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="background: #1e3a5f; color: white; padding: 15px; text-align: center;">
+    <p style="margin: 0; font-size: 14px; opacity: 0.9;">Presented by Lead Group Recruitment</p>
+  </div>
+</div>
+
+{% endblock %}

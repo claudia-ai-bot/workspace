@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Project Intelligence - {{ project.name }} - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+/* Dark theme */
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+.form-section { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+.form-section h3 { color: #00d4ff; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #30363d; }
+.form-group { margin-bottom: 16px; }
+label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #8b949e; }
+textarea { 
+  width: 100%; padding: 10px 14px; border: 1px solid #30363d; border-radius: 6px; 
+  font-family: inherit; font-size: 14px; background: #0d1117; color: #e6edf3; 
+  min-height: 100px;
+}
+input, select { 
+  width: 100%; padding: 10px 14px; border: 1px solid #30363d; border-radius: 6px; 
+  font-family: inherit; font-size: 14px; background: #0d1117; color: #e6edf3; 
+}
+input:focus, textarea:focus, select:focus { outline: none; border-color: #00d4ff; box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.btn-primary { background: #238636; color: white; }
+.btn-primary:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+.btn-accent { background: #00d4ff; color: #0d1117; }
+h1 { color: #00d4ff; }
+a { color: #00d4ff; }
+</style>
+
+<div class="header">
+  <h1>🎯 Edit Project Intelligence</h1>
+  <div style="margin-top: 8px;">
+    <a href="/project-intelligence/{{ project.id }}" class="btn btn-secondary">← Back to {{ project.name }}</a>
+  </div>
+</div>
+
+<form method="POST">
+  <div class="form-section">
+    <h3>🏗️ Project: {{ project.name }}</h3>
+    <div style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
+      {% if project.company_name %}Company: {{ project.company_name }}{% endif %}
+      {% if project.address %} | Address: {{ project.address }}{% endif %}
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>🧠 Intelligence</h3>
+    
+    <div class="form-group">
+      <label>Project Type</label>
+      <select name="project_type">
+        <option value="">Select type...</option>
+        <option value="Residential" {% if project.project_type == 'Residential' %}selected{% endif %}>Residential</option>
+        <option value="Commercial" {% if project.project_type == 'Commercial' %}selected{% endif %}>Commercial</option>
+        <option value="Civil" {% if project.project_type == 'Civil' %}selected{% endif %}>Civil</option>
+        <option value="Industrial" {% if project.project_type == 'Industrial' %}selected{% endif %}>Infrastructure</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Pace</label>
+      <select name="pace">
+        <option value="">Select pace...</option>
+        <option value="Fast-paced" {% if project.pace == 'Fast-paced' %}selected{% endif %}>Fast-paced</option>
+        <option value="Steady" {% if project.pace == 'Steady' %}selected{% endif %}>Steady</option>
+        <option value="Relaxed" {% if project.pace == 'Relaxed' %}selected{% endif %}>Relaxed</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>What Makes It Interesting (for candidates)</label>
+      <textarea name="what_makes_interesting" placeholder="Why would a candidate want to work on this project? What's the draw?">{{ project.what_makes_interesting or '' }}</textarea>
+      <div style="font-size: 12px; color: #6e7681; margin-top: 4px;">Example: "Landmark high-rise withSEQ skyline views. Complex structural challenges. Brand-new tower crane. Developer with deep pockets for QA."</div>
+    </div>
+    
+    <div class="form-group">
+      <label>Ideal Candidate Profile</label>
+      <textarea name="ideal_profile" placeholder="What type of candidate thrives here?">{{ project.ideal_profile or '' }}</textarea>
+      <div style="font-size: 12px; color: #6e7681; margin-top: 4px;">Example: "Senior PM with 15+ years high-rise experience. Must have handled tower cranes. Prefers hands-on, boots-on-ground managers."</div>
+    </div>
+    
+    <div class="form-group">
+      <label>Team Culture</label>
+      <textarea name="team_culture" placeholder="What's the team like?">{{ project.team_culture or '' }}</textarea>
+      <div style="font-size: 12px; color: #6e7681; margin-top: 4px;">Example: "Small tight-knit team. Everyone gets stuck in. Late nights during concrete pours but fun after-work drinks."</div>
+    </div>
+    
+    <div class="form-group">
+      <label>Hiring Manager Style</label>
+      <textarea name="manager_style" placeholder="What's the PM/GM's management style?">{{ project.manager_style or '' }}</textarea>
+      <div style="font-size: 12px; color: #6e7681; margin-top: 4px;">Example: "Expects 110% but gives back in flexibility. Data-driven. Hates micromanagement but wants daily updates on critical path."</div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>🏷️ Skills & Requirements</h3>
+    
+    <div class="form-group">
+      <label>Key Skills (comma-separated)</label>
+      <input type="text" name="key_skills" value="{{ project.key_skills or '' }}" placeholder="e.g., high-rise, tower-crane, concrete, structural, facade, basement">
+      <div style="font-size: 12px; color: #6e7681; margin-top: 4px;">These tags help match candidates to this project</div>
+    </div>
+    
+    <div class="form-group">
+      <label>Nice to Have</label>
+      <textarea name="nice_to_have" rows="2" placeholder="Bonus skills or experience">{{ project.nice_to_have or '' }}</textarea>
+    </div>
+  </div>
+
+  <div class="form-actions" style="display: flex; gap: 12px;">
+    <button type="submit" class="btn btn-primary">💾 Save Intelligence</button>
+    <a href="/project-intelligence/{{ project.id }}" class="btn btn-secondary">Cancel</a>
+  </div>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Job Adverts - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>📋 Job Adverts Library</h1>
+</div>
+
+<div class="filters">
+  <select id="tier">
+    <option value="">All Tiers</option>
+    <option value="Tier 1">Tier 1</option>
+    <option value="Tier 2">Tier 2</option>
+    <option value="Government">Government</option>
+    <option value="Consultant">Consultant</option>
+  </select>
+  
+  <select id="sector">
+    <option value="">All Sectors</option>
+    <option value="Commercial">Commercial</option>
+    <option value="Residential">Residential</option>
+    <option value="Multi-Residential">Multi-Residential</option>
+    <option value="Infrastructure">Infrastructure</option>
+    <option value="Industrial">Industrial</option>
+  </select>
+  
+  <select id="size">
+    <option value="">All Sizes</option>
+    <option value="$50M+">$50M+</option>
+    <option value="$20M-$50M">$20M-$50M</option>
+    <option value="$10M-$20M">$10M-$20M</option>
+    <option value="Under $10M">Under $10M</option>
+  </select>
+  
+  <select id="location">
+    <option value="">All Locations</option>
+    <option value="Brisbane">Brisbane</option>
+    <option value="Gold Coast">Gold Coast</option>
+    <option value="Sunshine Coast">Sunshine Coast</option>
+    <option value="Ipswich">Ipswich</option>
+    <option value="SEQ Wide">SEQ Wide</option>
+  </select>
+  
+  <button class="btn" onclick="searchAdverts()">🔍 Generate</button>
+</div>
+
+<div id="results" class="adverts-grid"></div>
+
+<!-- View Modal -->
+<div id="viewModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2 id="modalTitle"></h2>
+    <div class="meta" id="modalMeta"></div>
+    <div class="full-text" id="modalText"></div>
+  </div>
+</div>
+
+<style>
+.filters { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.filters select { padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; min-width: 180px; }
+.adverts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+.advert-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.advert-card h3 { margin: 0 0 10px 0; color: #1e293b; }
+.advert-card .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.advert-card .tag { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+.tag.tier { background: #e0f2fe; color: #0369a1; }
+.tag.sector { background: #f0fdf4; color: #15803d; }
+.tag.size { background: #fef3c7; color: #b45309; }
+.tag.location { background: #f3e8ff; color: #7c3aed; }
+.advert-card .preview { color: #64748b; font-size: 14px; line-height: 1.5; max-height: 100px; overflow: hidden; }
+.advert-card .actions { margin-top: 15px; display: flex; gap: 10px; }
+.advert-card button { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.btn-view { background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; }
+.btn-copy { background: #c45c3e; border: none; color: white; }
+.no-results { text-align: center; padding: 40px; color: #64748b; grid-column: 1 / -1; }
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+.modal.active { display: flex; }
+.modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+.modal-content h2 { margin-top: 0; }
+.modal-content .full-text { white-space: pre-wrap; line-height: 1.7; color: #334155; }
+.modal-close { float: right; background: none; border: none; font-size: 24px; cursor: pointer; color: #94a3b8; }
+</style>
+
+<script>
+async function searchAdverts() {
+  const params = new URLSearchParams({
+    tier: document.getElementById('tier').value,
+    sector: document.getElementById('sector').value,
+    size: document.getElementById('size').value,
+    location: document.getElementById('location').value
+  });
+  
+  const res = await fetch('/api/job-adverts?' + params);
+  const adverts = await res.json();
+  
+  const container = document.getElementById('results');
+  if (adverts.length === 0) {
+    container.innerHTML = '<div class="no-results">No adverts found. Try different filters or add new templates.</div>';
+    return;
+  }
+  
+  container.innerHTML = adverts.map(a => `
+    <div class="advert-card">
+      <h3>${a.title}</h3>
+      <div class="meta">
+        <span class="tag tier">${a.tier || 'Any'}</span>
+        <span class="tag sector">${a.sector || 'Any'}</span>
+        <span class="tag size">${a.project_size || 'Any'}</span>
+        <span class="tag location">${a.location || 'Any'}</span>
+      </div>
+      <div class="preview">${a.content?.substring(0, 200)}...</div>
+      <div class="actions">
+        <button class="btn-view" onclick="viewAdvert(${a.id})">View</button>
+        <button class="btn-copy" onclick="copyAdvert(${a.id})">Copy Text</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function viewAdvert(id) {
+  const res = await fetch('/api/job-advert/' + id);
+  const a = await res.json();
+  document.getElementById('modalTitle').textContent = a.title;
+  document.getElementById('modalMeta').innerHTML = `
+    <span class="tag tier">${a.tier || 'Any'}</span>
+    <span class="tag sector">${a.sector || 'Any'}</span>
+    <span class="tag size">${a.project_size || 'Any'}</span>
+    <span class="tag location">${a.location || 'Any'}</span>
+  `;
+  document.getElementById('modalText').textContent = a.content;
+  document.getElementById('viewModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('viewModal').classList.remove('active');
+}
+
+async function copyAdvert(id) {
+  const res = await fetch('/api/job-advert/' + id);
+  const a = await res.json();
+  await navigator.clipboard.writeText(a.content);
+  alert('Copied to clipboard!');
+}
+
+searchAdverts();
+</script>
+
+{% endblock %}

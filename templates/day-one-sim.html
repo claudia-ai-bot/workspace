@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day One Simulator 🎯</title>
+</head>
+<body style="margin:0; background:#0f172a; color:#e2e8f0; font-family:'Inter',system-ui,sans-serif;">
+
+<!-- TITLE SCREEN -->
+<div id="title" style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px;">
+  <div style="font-size:80px; margin-bottom:16px; animation:float 3s infinite;">🎯</div>
+  <h1 style="font-size:36px; font-weight:900; color:#fff; margin-bottom:8px;">Day One Simulator</h1>
+  <p style="color:#94a3b8; font-size:16px; max-width:420px; margin:0 auto 8px; line-height:1.6;">It's Monday 4 May — your first day at Lead Group. 10 real scenarios. How do you handle them?</p>
+  <p style="color:#64748b; font-size:13px; margin-bottom:32px;">Based on your CRM intel — 84 companies, 155 decision makers, 58 leads, $2.5B+ project pipeline.</p>
+  <button onclick="startGame()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; padding:16px 48px; border-radius:40px; font-size:18px; font-weight:800; cursor:pointer; letter-spacing:1px;">LET'S GO 🚀</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game" style="display:none; min-height:100vh; padding:16px; max-width:640px; margin:0 auto;">
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-top:8px;">
+    <span id="counter" style="font-size:13px; color:#64748b; white-space:nowrap;">1 / 10</span>
+    <div style="flex:1; height:6px; background:#1e293b; border-radius:3px; overflow:hidden;">
+      <div id="bar" style="height:100%; background:linear-gradient(90deg,#6366f1,#a78bfa); border-radius:3px; width:10%; transition:width .5s;"></div>
+    </div>
+    <span id="pts" style="font-size:14px; font-weight:700; color:#a78bfa;">0 pts</span>
+  </div>
+  
+  <div style="background:#1e293b; border-radius:16px; overflow:hidden; border:1px solid #334155;">
+    <div id="ctx" style="background:linear-gradient(135deg,#312e81,#3730a3); padding:14px 20px; font-size:13px; color:#c7d2fe;"></div>
+    <div style="padding:20px 20px 0;">
+      <div id="q" style="font-size:17px; font-weight:700; color:#fff; margin-bottom:6px;"></div>
+      <div id="detail" style="font-size:13px; color:#94a3b8; line-height:1.5;"></div>
+    </div>
+    <div id="choices" style="padding:16px 20px 24px; display:flex; flex-direction:column; gap:10px;"></div>
+    <div id="feedback" style="padding:0 20px 20px; display:none;">
+      <div id="fb" style="padding:14px 16px; border-radius:10px; font-size:14px; line-height:1.6;"></div>
+    </div>
+    <button id="next" onclick="nextQ()" style="display:none; margin:0 20px 20px; background:#6366f1; color:#fff; border:none; padding:12px 28px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer;">Next →</button>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results" style="display:none; min-height:100vh; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center;">
+  <div id="r-emoji" style="font-size:72px; margin-bottom:16px;"></div>
+  <div id="r-score" style="font-size:64px; font-weight:900; background:linear-gradient(135deg,#6366f1,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;"></div>
+  <div id="r-rank" style="font-size:22px; font-weight:700; color:#fff; margin:8px 0;"></div>
+  <div id="r-verdict" style="color:#94a3b8; font-size:14px; max-width:400px; margin:0 auto 28px; line-height:1.6;"></div>
+  <div id="summary" style="text-align:left; width:100%; max-width:500px;"></div>
+  <button onclick="restart()" style="margin-top:28px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; padding:14px 40px; border-radius:40px; font-size:15px; font-weight:700; cursor:pointer;">Try Again 🔄</button>
+</div>
+
+<script>
+const scenarios = [
+  {
+    ctx:"Monday 4 May — first morning at Lead Group",
+    q:"Your boss says: \"Chris, construction is your space. Go find me some jobs.\"",
+    detail:"You have CRM intel on 84 companies, 155 DMs, 58 leads. Zero live deals. Where do you start?",
+    opts:[
+      {t:"Start calling the 155 DMs alphabetically", pts:0},
+      {t:"Open the Hitlist — top 10 by hiring urgency, call those first", pts:3},
+      {t:"Update LinkedIn, build personal brand first", pts:1},
+      {t:"Wait for job orders from Lead Group's existing clients", pts:0},
+    ],
+    fb:{
+      good:"🔥 Exactly right. 155 calls = burnout. 10 targeted calls = momentum. The Hitlist scores by hiring urgency. Start with the red flags.",
+      ok:"LinkedIn helps long-term, but week 1 needs revenue activity. Profile stuff can wait till week 3.",
+      bad:"Alphabetical means calling dead leads before hot ones. Waiting for orders makes you an order-taker, not a producer.",
+    }
+  },
+  {
+    ctx:"Day 2 — First outbound call",
+    q:"You call George at Aniko Group ($2.5B Landmark, Mermaid Beach). He picks up.",
+    detail:"George Mastrocostas is the MD. Aniko is hiring PMs & CAs. First conversation with him.",
+    opts:[
+      {t:"\"Hi George, I've got some great PMs available — want to hear about them?\"", pts:1},
+      {t:"\"Hi George. I've been tracking The Landmark progress — impressive project. Not selling anything today, just exploring how I might help with talent pipeline as you ramp up.\"", pts:3},
+      {t:"\"I'm new at Lead Group, can I send you my rate card?\"", pts:0},
+    ],
+    fb:{
+      good:"🎯 Led with market knowledge, zero transactional energy, positioned as a resource. George will remember this.",
+      ok:"Leaping to candidates assumes he has an open req. Build the relationship first.",
+      bad:"Rate cards on first contact = you're just another agency email. George gets 5 per week. Be different.",
+    }
+  },
+  {
+    ctx:"Day 3 — The anti-agency wall",
+    q:"ADCO's GC Manager: \"We don't use agencies. We handle recruitment internally.\"",
+    detail:"ADCO has a public anti-agency stance. This is the most common wall in construction recruitment.",
+    opts:[
+      {t:"\"I understand, but we're different — let me prove it!\"", pts:0},
+      {t:"Accept it gracefully, offer free market intel instead. Build the relationship for later.", pts:3},
+      {t:"Send your best candidates anyway", pts:1},
+    ],
+    fb:{
+      good:"✅ Give value first — salary data, talent movement, hiring trends. Now you're a resource, not a cost. When they need someone they can't find, they'll call YOU.",
+      ok:"Blind submittals to an anti-agency company = instant blacklist. And it burns your candidates too.",
+      bad:"Pushing against a stated boundary gets you blocked. Be useful, not pushy.",
+    }
+  },
+  {
+    ctx:"Day 4 — Candidate gold",
+    q:"A senior PM from John Holland (Light Rail Stage 3) calls you: \"I'm looking — the project's wrapping up.\"",
+    detail:"T1 passive candidate. He doesn't know it yet, but he's walking gold.",
+    opts:[
+      {t:"\"Great, I'll send your CV to all my clients.\"", pts:0},
+      {t:"\"Let's grab coffee. I want to understand what you're after. I won't blast your CV anywhere without your say-so.\"", pts:3},
+      {t:"\"What salary are you on and what do you want?\"", pts:1},
+    ],
+    fb:{
+      good:"🤝 Premium candidates want control and discretion. Meet them, understand them, protect them. That's how you build a candidate moat.",
+      ok:"Salary questions too early = you're a transaction. Understand the person first.",
+      bad:"Blasting his CV everywhere destroys trust. He called YOU for a reason — respect that.",
+    }
+  },
+  {
+    ctx:"Day 5 — Internal referral",
+    q:"Lead Group's property team: \"I've got a construction client but don't know anyone in that space. Want to work it together?\"",
+    detail:"First internal referral. They have the relationship, you have the expertise.",
+    opts:[
+      {t:"\"Absolutely — 50/50 fee split. Let's set it up so you stay close to your client.\"", pts:3},
+      {t:"\"Sure, hand me the details and I'll take it from here.\"", pts:1},
+      {t:"\"Not really my thing, good luck.\"", pts:0},
+    ],
+    fb:{
+      good:"💡 Perfect collaboration. Split the fee, protect their relationship, open the door for more referrals. This is how you compound internal influence.",
+      ok:"Taking it solo might work once but they won't bring you the next one.",
+      bad:"You just told the whole company you're not a team player.",
+    }
+  },
+  {
+    ctx:"Week 2 — Pipeline check",
+    q:"30 calls, 8 warm conversations, ZERO job orders. Boss: \"How's it going?\"",
+    detail:"Construction recruitment has lag. Day 8 with zero orders feels flat.",
+    opts:[
+      {t:"\"No orders yet. Maybe construction isn't for me.\"", pts:0},
+      {t:"\"30 conversations, 8 warm leads — Aniko, Lendlease, McNab. 3 have active projects. Pipeline is building, I'll close this week.\"", pts:3},
+      {t:"\"Coming along. Should be some orders by end of week.\"", pts:1},
+    ],
+    fb:{
+      good:"📊 Boss-level reporting. Specific numbers, named companies, clear momentum. Your boss now has evidence to defend your ramp-up.",
+      ok:"Vague optimism doesn't inspire confidence. Show data, not vibes.",
+      bad:"One week of zero orders is normal. Doubting after 8 days gives up too early. Trust the process.",
+    }
+  },
+  {
+    ctx:"Week 3 — First live order!",
+    q:"McNab needs 2 Site Managers + Project Engineer on an $85M project. They want 15% fee. Lead Group standard: 18-20%.",
+    detail:"First order! But below standard fee. Take it or negotiate?",
+    opts:[
+      {t:"Negotiate to 18% — standard rate, they can afford it", pts:3},
+      {t:"Take 15% — a live order is a live order", pts:1},
+      {t:"Insist on 20% — hold firm or lose it", pts:0},
+    ],
+    fb:{
+      good:"🎯 18% = $45K per role at typical salaries. McNab can afford it and you set a precedent. First order at standard rate.",
+      ok:"15% isn't terrible for a first deal but you're leaving $15K+ on the table on 3 roles.",
+      bad:"20% on a first order risks losing it. Win the relationship, raise the fee on round two.",
+    }
+  },
+  {
+    ctx:"Month 1 end — Networking event",
+    q:"Someone at a GC builders' lunch asks: \"What's your play for the 2032 Olympics pipeline?\"",
+    detail:"$7.1B infrastructure, 30-40K workers. The hiring starts NOW.",
+    opts:[
+      {t:"\"I haven't looked at it yet — focused on current GC projects.\"", pts:0},
+      {t:"\"Laing O'Rourke is the venue delivery partner — 500+ people over 3 years. Building relationships NOW so I'm the first call when hiring starts.\"", pts:3},
+      {t:"\"That's 6 years away — I'll worry about it later.\"", pts:0},
+    ],
+    fb:{
+      good:"🏗️ Olympic hiring starts NOW in planning phases. By building relationships with LOR, CPB, and John Holland today, you own the pipeline.",
+      bad:"6 years to the games, but hiring starts NOW. Pre-construction and PM roles are being filled this year. The recruiters who wait will find all the talent already placed.",
+    }
+  },
+  {
+    ctx:"Month 2 — Counter-offer crisis",
+    q:"Your PM at McNab gets counter-offered: +$20K from current employer. He calls you: \"I'm torn.\"",
+    detail:"Happens in 30% of placements. How you handle it determines the fee AND the relationship.",
+    opts:[
+      {t:"\"Take the extra $20K, it's the sensible move.\"", pts:0},
+      {t:"\"Is money the real issue, or did the counter surface something else? Remember why you were looking.\"", pts:3},
+      {t:"\"I'll call McNab and see if they can match it.\"", pts:1},
+    ],
+    fb:{
+      good:"🧠 Counter-offers are rarely just about money. 80% who accept them leave within 12 months anyway. Help him think through the root cause.",
+      ok:"Matching money might save the placement but misses the bigger picture.",
+      bad:"You just lost the candidate AND the fee. Never talk someone out of your own placement.",
+    }
+  },
+  {
+    ctx:"Day 90 — Review time",
+    q:"Boss: \"What's been your biggest win and what would you do differently?\"",
+    detail:"12 weeks of construction recruitment grinding on the Gold Coast.",
+    opts:[
+      {t:"\"I'm not sure I'm cut out for this. It's been tough.\"", pts:0},
+      {t:"\"200+ calls, 40 company relationships, $400K pipeline. Key lesson: relationships before transactions.\"", pts:3},
+      {t:"\"I've been busy but haven't closed enough. Need to focus.\"", pts:1},
+    ],
+    fb:{
+      good:"🏆 Specific metrics, clear value, honest insight, confident forward plan. Your boss sees a producer building something real.",
+      ok:"Self-critical but vague. What does 'enough' mean? Your boss needs clarity, not doubt.",
+      bad:"Three months in with 200 calls is NOT failing. Desk setups take 6-9 months. Trust the process.",
+    }
+  },
+];
+
+let cur=0, score=0, history=[];
+
+function startGame(){
+  document.getElementById('title').style.display='none';
+  document.getElementById('game').style.display='block';
+  document.getElementById('results').style.display='none';
+  showQ();
+}
+
+function showQ(){
+  const s=scenarios[cur];
+  document.getElementById('counter').textContent=(cur+1)+' / '+scenarios.length;
+  document.getElementById('bar').style.width=((cur+1)/scenarios.length*100)+'%';
+  document.getElementById('pts').textContent=score+' pts';
+  document.getElementById('ctx').textContent=s.ctx;
+  document.getElementById('q').textContent=s.q;
+  document.getElementById('detail').textContent=s.detail;
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('next').style.display='none';
+  const ch=document.getElementById('choices');
+  ch.innerHTML='';
+  s.opts.forEach(function(o,i){
+    const b=document.createElement('button');
+    b.className='choice';
+    b.textContent=o.t;
+    b.style.cssText='background:#0f172a; border:2px solid #334155; border-radius:12px; padding:14px 16px; font-size:14px; line-height:1.5; cursor:pointer; text-align:left; color:#e2e8f0; transition:all .2s;';
+    b.onmouseover=function(){this.style.borderColor='#6366f1';};
+    b.onmouseout=function(){if(!this.classList.contains('picked'))this.style.borderColor='#334155';};
+    b.onclick=function(){pick(i,o,b);};
+    ch.appendChild(b);
+  });
+}
+
+function pick(idx,opt,btn){
+  var s=scenarios[cur];
+  var btns=document.querySelectorAll('#choices button');
+  btns.forEach(function(b){b.classList.add('picked');b.style.pointerEvents='none';});
+  
+  if(opt.pts===3) btn.style.borderColor='#22c55e',btn.style.background='rgba(34,197,94,0.1)';
+  else if(opt.pts===1) btn.style.borderColor='#facc15',btn.style.background='rgba(250,204,21,0.1)';
+  else btn.style.borderColor='#f87171',btn.style.background='rgba(248,113,113,0.1)';
+  
+  s.opts.forEach(function(o,i){if(o.pts===3&&i!==idx)btns[i].style.borderColor='#22c55e',btns[i].style.background='rgba(34,197,94,0.05)';});
+  
+  score+=opt.pts;
+  document.getElementById('pts').textContent=score+' pts';
+  history.push({q:s.q,pts:opt.pts,grade:opt.pts===3?'good':opt.pts===1?'ok':'bad'});
+  
+  var fb=document.getElementById('feedback');
+  var f=document.getElementById('fb');
+  var grade=opt.pts===3?'good':opt.pts===1?'ok':'bad';
+  var icon=opt.pts===3?'✅':opt.pts===1?'⚡':'❌';
+  var label=opt.pts===3?'Great call!':opt.pts===1?'Decent, but...':'Wrong play.';
+  var color=opt.pts===3?'rgba(34,197,94,0.15)':opt.pts===1?'rgba(250,204,21,0.15)':'rgba(248,113,113,0.15)';
+  var text=s.fb[grade]||s.fb.good;
+  f.style.background=color;
+  f.style.border='1px solid '+(opt.pts===3?'rgba(34,197,94,0.3)':opt.pts===1?'rgba(250,204,21,0.3)':'rgba(248,113,113,0.3)');
+  f.style.color=opt.pts===3?'#86efac':opt.pts===1?'#fde68a':'#fca5a5';
+  f.innerHTML='<div style="font-size:15px; font-weight:700; margin-bottom:6px;">'+icon+' '+label+'</div><div>'+text+'</div>';
+  fb.style.display='block';
+  document.getElementById('next').style.display='inline-block';
+}
+
+function nextQ(){
+  cur++;
+  if(cur>=scenarios.length) showResults();
+  else showQ();
+}
+
+function showResults(){
+  document.getElementById('game').style.display='none';
+  var r=document.getElementById('results');
+  r.style.display='flex';
+  var pct=score/(scenarios.length*3);
+  var emoji,rank,verdict;
+  if(pct>=0.85){emoji='🏆';rank="You're Ready!";verdict="Your instincts are spot-on. Day 1 at Lead Group? You'll eat this for breakfast.";}
+  else if(pct>=0.6){emoji='🔥';rank='Almost There';verdict='Good instincts, a few rough edges. Play again to nail the tricky ones.';}
+  else if(pct>=0.4){emoji='⚡';rank='Learning Mode';verdict='Some right, some wrong. Every wrong answer is a real-world lesson you just got for free.';}
+  else{emoji='📚';rank='Keep Practicing';verdict="Construction recruitment has nuances. Review the scenarios, you'll get there.";}
+  document.getElementById('r-emoji').textContent=emoji;
+  document.getElementById('r-score').textContent=score+' / '+(scenarios.length*3);
+  document.getElementById('r-rank').textContent=rank;
+  document.getElementById('r-verdict').textContent=verdict;
+  var sum=document.getElementById('summary');
+  sum.innerHTML='';
+  history.forEach(function(h,i){
+    var d=document.createElement('div');
+    var cls=h.grade==='good'?'border-left:3px solid #22c55e;':h.grade==='ok'?'border-left:3px solid #facc15;':'border-left:3px solid #f87171;';
+    d.setAttribute('style','background:#1e293b; border-radius:10px; padding:12px 16px; margin-bottom:8px; '+cls);
+    d.innerHTML='<div style="font-size:12px; color:#94a3b8;">Scenario '+(i+1)+'</div><div style="font-size:14px; font-weight:600; color:#e2e8f0;">'+(h.grade==='good'?'✅':h.grade==='ok'?'⚡':'❌')+' +'+h.pts+' pts</div>';
+    sum.appendChild(d);
+  });
+}
+
+function restart(){cur=0;score=0;history=[];document.getElementById('results').style.display='none';document.getElementById('title').style.display='flex';}
+</script>
+
+</body>
+</html>

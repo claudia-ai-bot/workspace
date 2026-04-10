@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Project: {{ project.name }} - SEQ CRM{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h1>🏗️ {{ project.name }}</h1>
+    <a href="/projects" style="color:#ff6b35;">← All Projects</a>
+  </div>
+  
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+    <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+      <h3>Details</h3>
+      <p><strong>Address:</strong> {{ project.address or 'N/A' }}</p>
+      <p><strong>Phase:</strong> {{ project.phase or 'Unknown' }}</p>
+      <p><strong>Status:</strong> {{ project.status or 'N/A' }}</p>
+      <p><strong>Value:</strong> {{ project.value or 'N/A' }}</p>
+      <p><strong>DA Number:</strong> {{ project.da_number or 'N/A' }}</p>
+    </div>
+    
+    <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+      <h3>Company</h3>
+      {% if project.company_id %}
+        <p><strong>Linked Company:</strong></p>
+        <a href="/company/{{ project.company_id }}" style="font-size:18px; color:#ff6b35;">{{ project.company_name }} →</a>
+      {% else %}
+        <p style="color:#999;">No company linked</p>
+      {% endif %}
+    </div>
+  </div>
+  
+  <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); margin-top:20px;">
+    <h3>Description</h3>
+    <p>{{ project.description or 'No description' }}</p>
+  </div>
+  
+  <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); margin-top:20px;">
+    <h3>Staffing Needs</h3>
+    <p>{{ project.staffing_needs or 'Not specified' }}</p>
+  </div>
+  
+  <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); margin-top:20px;">
+    <h3>Timeline</h3>
+    <p><strong>Est. Start:</strong> {{ project.estimated_start or 'TBC' }}</p>
+    <p><strong>Est. End:</strong> {{ project.estimated_end or 'TBC' }}</p>
+  </div>
+</div>
+{% endblock %}

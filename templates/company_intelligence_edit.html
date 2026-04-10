@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ company.name }} - Company Intelligence - SEQ CRM{% endblock %}
+
+{% block content %}
+
+<style>
+body { background: #0d1117; }
+.main { background: #0d1117; }
+.header { background: #161b22; border-color: #30363d; }
+input, textarea, select { background: #0d1117; border-color: #30363d; color: #e6edf3; }
+label { color: #8b949e; }
+.btn { background: #238636; border: none; color: white; }
+.btn:hover { background: #2ea043; }
+.btn-secondary { background: #30363d; color: #e6edf3; }
+h1, h2, h3, a { color: #00d4ff; }
+
+.form-section {
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 24px; margin-bottom: 20px;
+}
+.form-section h3 { margin-bottom: 16px; color: #e6edf3; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 10px 14px; border: 1px solid #30363d; border-radius: 6px;
+  background: #0d1117; color: #e6edf3; font-family: inherit;
+}
+.form-group textarea { min-height: 100px; resize: vertical; }
+
+.help-text { font-size: 12px; color: #6e7681; margin-top: 4px; }
+</style>
+
+<div class="header">
+  <h1>✏️ Edit Company Intelligence</h1>
+  <p style="color: #8b949e; margin-top: 8px;">{{ company.name }}</p>
+</div>
+
+<form method="POST">
+  <!-- Core Attributes -->
+  <div class="form-section">
+    <h3>🎯 Core Attributes</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="project_types">Project Types</label>
+        <select name="project_types">
+          <option value="">Select...</option>
+          <option value="Residential" {% if company.project_types == 'Residential' %}selected{% endif %}>Residential</option>
+          <option value="Commercial" {% if company.project_types == 'Commercial' %}selected{% endif %}>Commercial</option>
+          <option value="Civil" {% if company.project_types == 'Civil' %}selected{% endif %}>Civil</option>
+          <option value="Industrial" {% if company.project_types == 'Industrial' %}selected{% endif %}>Industrial</option>
+          <option value="Residential,Commercial" {% if company.project_types == 'Residential,Commercial' %}selected{% endif %}>Mixed (Residential + Commercial)</option>
+          <option value="Commercial,Civil" {% if company.project_types == 'Commercial,Civil' %}selected{% endif %}>Mixed (Commercial + Civil)</option>
+          <option value="Residential,Civil" {% if company.project_types == 'Residential,Civil' %}selected{% endif %}>Mixed (Residential + Civil)</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="pace">Pace</label>
+        <select name="pace">
+          <option value="">Select...</option>
+          <option value="Fast-paced" {% if company.pace == 'Fast-paced' %}selected{% endif %}>Fast-paced</option>
+          <option value="Methodical" {% if company.pace == 'Methodical' %}selected{% endif %}>Methodical</option>
+          <option value="Varied" {% if company.pace == 'Varied' %}selected{% endif %}>Varied</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="team_style">Team Style</label>
+        <select name="team_style">
+          <option value="">Select...</option>
+          <option value="Collaborative" {% if company.team_style == 'Collaborative' %}selected{% endif %}>Collaborative</option>
+          <option value="Autonomous" {% if company.team_style == 'Autonomous' %}selected{% endif %}>Autonomous</option>
+          <option value="Hierarchical" {% if company.team_style == 'Hierarchical' %}selected{% endif %}>Hierarchical</option>
+          <option value="Flat" {% if company.team_style == 'Flat' %}selected{% endif %}>Flat</option>
+          <option value="Team-oriented" {% if company.team_style == 'Team-oriented' %}selected{% endif %}>Team-oriented</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="client_relationship">Client Relationship</label>
+        <select name="client_relationship">
+          <option value="">Select...</option>
+          <option value="Hands-on" {% if company.client_relationship == 'Hands-on' %}selected{% endif %}>Hands-on</option>
+          <option value="Distance" {% if company.client_relationship == 'Distance' %}selected{% endif %}>Distance</option>
+          <option value="Partner" {% if company.client_relationship == 'Partner' %}selected{% endif %}>Partner</option>
+          <option value="Transactional" {% if company.client_relationship == 'Transactional' %}selected{% endif %}>Transactional</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="size_profile">Size Profile</label>
+        <select name="size_profile">
+          <option value="">Select...</option>
+          <option value="Large" {% if company.size_profile == 'Large' %}selected{% endif %}>Large</option>
+          <option value="Corporate" {% if company.size_profile == 'Corporate' %}selected{% endif %}>Corporate</option>
+          <option value="SME" {% if company.size_profile == 'SME' %}selected{% endif %}>SME</option>
+          <option value="Boutique" {% if company.size_profile == 'Boutique' %}selected{% endif %}>Boutique</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="growth_culture">Growth Culture</label>
+        <select name="growth_culture">
+          <option value="">Select...</option>
+          <option value="Career-pathed flatarchy" {% if company.growth_culture == 'Career-pathed flatarchy' %}selected{% endif %}>Career-pathed flatarchy</option>
+          <option value="Promotes from within" {% if company.growth_culture == 'Promotes from within' %}selected{% endif %}>Promotes from within</option>
+          <option value="Static" {% if company.growth_culture == 'Static' %}selected{% endif %}>Static</option>
+          <option value="Rapid promotion" {% if company.growth_culture == 'Rapid promotion' %}selected{% endif %}>Rapid promotion</option>
+          <option value="Lateral moves encouraged" {% if company.growth_culture == 'Lateral moves encouraged' %}selected{% endif %}>Lateral moves encouraged</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Candidate Profile -->
+  <div class="form-section">
+    <h3>👤 Ideal Candidate Profile</h3>
+    <div class="form-group">
+      <label for="ideal_candidate_profile">What type of candidate thrives here?</label>
+      <textarea name="ideal_candidate_profile">{{ company.ideal_candidate_profile or '' }}</textarea>
+    </div>
+  </div>
+
+  <!-- What They Value -->
+  <div class="form-section">
+    <h3>💎 What They Value</h3>
+    <div class="form-group">
+      <label for="what_they_value">What does this company value most?</label>
+      <textarea name="what_they_value">{{ company.what_they_value or '' }}</textarea>
+    </div>
+  </div>
+
+  <!-- Common Pitfalls -->
+  <div class="form-section" style="border-left: 3px solid #e74c3c;">
+    <h3>⚠️ Common Pitfalls</h3>
+    <div class="form-group">
+      <label for="common_pitfalls">Why do people leave? What trips candidates up?</label>
+      <textarea name="common_pitfalls">{{ company.common_pitfalls or '' }}</textarea>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="form-section">
+    <h3>📝 Notes</h3>
+    <div class="form-group">
+      <label for="notes">Any other intelligence</label>
+      <textarea name="notes">{{ company.notes or '' }}</textarea>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 12px; margin-top: 20px;">
+    <button type="submit" class="btn">Save Changes</button>
+    <a href="/company-intelligence/{{ company.id }}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}
